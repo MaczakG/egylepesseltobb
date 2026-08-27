@@ -1,10 +1,380 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hu">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title></title>
+<title>Egy Lépéssel Több Alapítvány – Fogadj örökbe egy családot!</title>
+<meta name="description" content="Az Egy Lépéssel Több Alapítvány rászoruló, beteg vagy fogyatékkal élő gyermeket nevelő családokat köt össze támogatókkal havi rendszeres segítség formájában.">
+<link rel="icon" href="data:,">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+
+<a class="skip-link" href="#main">Ugrás a tartalomhoz</a>
+
+<!-- SZERKESZTŐI MEGJEGYZÉS: Ez az oldal MINTA TARTALMAT használ (családtörténetek,
+     jogi adatok, nagyköveti/partneri nevek, fotók). Minden, ami [szögletes
+     zárójelben] szerepel, vagy "minta tartalom"-ként van jelölve, valós, jóváhagyott
+     tartalommal helyettesítendő az éles indulás előtt. A logó (assets/img/logo-mark.png,
+     assets/img/logo-full.png) már a valódi Alapítvány-logó. -->
+
+<!-- ============================= FEJLÉC ============================= -->
+<header class="site-header" id="site-header">
+  <div class="container header-inner">
+    <a href="#home" class="brand" aria-label="Egy Lépéssel Több Alapítvány – főoldal">
+      <img src="assets/img/logo-mark.png" alt="" class="brand-mark" width="52" height="52" loading="eager">
+      <span class="brand-text">
+        <strong>Egy Lépéssel<br>Több</strong>
+        <small>Hajós István Alapítvány</small>
+      </span>
+    </a>
+
+    <nav class="main-nav" id="main-nav" aria-label="Fő navigáció">
+      <ul>
+        <li><a href="#home">Főoldal</a></li>
+        <li><a href="#rolunk">Rólunk</a></li>
+        <li><a href="#csaladok">Fogadj örökbe egy családot</a></li>
+        <li><a href="#zaro-cta">Jelentkezz támogatónak</a></li>
+        <li><a href="#kapcsolat">Kapcsolat</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <div class="lang-switch" role="group" aria-label="Nyelvválasztó (minta elem — még nem működik)">
+        <button type="button" class="lang-btn is-active" id="lang-hu" aria-pressed="true">HU</button>
+        <button type="button" class="lang-btn" id="lang-en" aria-pressed="false">EN</button>
+      </div>
+      <a href="#csaladok" class="btn btn-primary btn-header">Fogadj örökbe egy családot</a>
+      <button class="hamburger" id="hamburger" aria-expanded="false" aria-controls="mobile-nav" aria-label="Menü megnyitása">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-nav" id="mobile-nav">
+    <ul>
+      <li><a href="#home">Főoldal</a></li>
+      <li><a href="#rolunk">Rólunk</a></li>
+      <li><a href="#csaladok">Fogadj örökbe egy családot</a></li>
+      <li><a href="#zaro-cta">Jelentkezz támogatónak</a></li>
+      <li><a href="#kapcsolat">Kapcsolat</a></li>
+    </ul>
+    <a href="#csaladok" class="btn btn-primary btn-block">Fogadj örökbe egy családot</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================= HERO ============================= -->
+<section class="hero" id="home">
+  <div class="hero-media">
+    <img src="https://picsum.photos/seed/oslf-hero/1800/900" alt="[Minta kép: mosolygó család portréja — az éles indulás előtt valós, jóváhagyott fotóra cserélendő]" width="1800" height="900" loading="eager">
+    <div class="hero-media-overlay"></div>
+  </div>
+  <div class="container hero-inner">
+    <div class="hero-copy reveal">
+      <p class="eyebrow">Egy Lépéssel Több Alapítvány</p>
+      <h1>Fogadj örökbe egy családot – legyél te is egy lépéssel több.</h1>
+      <p class="lead">Rászoruló, beteg vagy fogyatékkal élő gyermeket nevelő családokat kötünk össze támogatókkal. Egy rendszeres havi felajánlással stabil, kiszámítható segítséget nyújthatsz pontosan akkor, amikor a legnagyobb szükség van rá.</p>
+      <div class="hero-ctas">
+        <a href="#csaladok" class="btn btn-primary btn-lg">Nézd meg a családokat</a>
+        <a href="#zaro-cta" class="btn btn-ghost btn-lg">Legyél havi támogató</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= KÜLDETÉS ============================= -->
+<section class="section" id="rolunk">
+  <div class="container mission">
+    <p class="eyebrow center">Küldetésünk</p>
+    <h2>Nem egyszeri gesztus. Havi ígéret.</h2>
+    <p class="mission-text">Alapítványunk szervez és becsatlakozik egyéni és eseti gyűjtésekbe is, de fő célunk más: a „Fogadj örökbe egy családot” programunk egy rendszeres, havi rendszerességű támogatást tesz lehetővé, amellyel egy rászoruló családot segíthetsz. Nem egyszeri adományról van szó, hanem folyamatos, kiszámítható háttérről, amire a családok hónapról hónapra számíthatnak.</p>
+  </div>
+</section>
+
+<!-- ============================= ÖRÖKBEFOGADHATÓ CSALÁDOK ============================= -->
+<section class="section section-tint" id="csaladok">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow center">Fogadj örökbe egy családot</p>
+      <h2>Örökbefogadható családok</h2>
+      <p class="section-lead">Az alábbi profilok bemutatják, hogyan jelennek meg a családok történetei az oldalon.</p>
+      <p class="placeholder-flag">⚠ Minta profilok — MINTA TARTALOM, a valódi, jóváhagyott családtörténetekkel és fotókkal kell helyettesíteni az éles indulás előtt.</p>
+    </div>
+
+    <div class="card-grid card-grid--4">
+      <article class="family-card reveal" style="--delay:0ms">
+        <div class="family-card-media">
+          <img src="https://picsum.photos/seed/oslf-family-1/900/700" alt="[Minta fotó: Bence családja — valós, jóváhagyott fotóra cserélendő]" width="900" height="700" loading="lazy">
+        </div>
+        <div class="family-card-body">
+          <span class="placeholder-badge">Minta profil</span>
+          <h3>[Minta név] – Bence családja</h3>
+          <p>Bence 4 évesen kapott ritka izombetegség diagnózist. A napi gyógytorna és a speciális segédeszközök komoly anyagi terhet jelentenek a családnak. [MINTA TARTALOM]</p>
+          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
+        </div>
+      </article>
+
+      <article class="family-card reveal" style="--delay:80ms">
+        <div class="family-card-media">
+          <img src="https://picsum.photos/seed/oslf-family-2/900/700" alt="[Minta fotó: Zsófia családja — valós, jóváhagyott fotóra cserélendő]" width="900" height="700" loading="lazy">
+        </div>
+        <div class="family-card-body">
+          <span class="placeholder-badge">Minta profil</span>
+          <h3>[Minta név] – Zsófia családja</h3>
+          <p>Zsófia koraszülöttként jött világra, azóta rendszeres fejlesztő terápiákra jár. A havi támogatás segít a szakorvosi vizsgálatok költségeinek fedezésében. [MINTA TARTALOM]</p>
+          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
+        </div>
+      </article>
+
+      <article class="family-card reveal" style="--delay:160ms">
+        <div class="family-card-media">
+          <img src="https://picsum.photos/seed/oslf-family-3/900/700" alt="[Minta fotó: Dávid családja — valós, jóváhagyott fotóra cserélendő]" width="900" height="700" loading="lazy">
+        </div>
+        <div class="family-card-body">
+          <span class="placeholder-badge">Minta profil</span>
+          <h3>[Minta név] – Dávid családja</h3>
+          <p>Dávidnál kisiskolás korában krónikus szívbetegséget diagnosztizáltak. A család a gyógyszerek és a rendszeres kontrollvizsgálatok költségeivel küzd. [MINTA TARTALOM]</p>
+          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
+        </div>
+      </article>
+
+      <article class="family-card reveal" style="--delay:240ms">
+        <div class="family-card-media">
+          <img src="https://picsum.photos/seed/oslf-family-4/900/700" alt="[Minta fotó: Luca családja — valós, jóváhagyott fotóra cserélendő]" width="900" height="700" loading="lazy">
+        </div>
+        <div class="family-card-body">
+          <span class="placeholder-badge">Minta profil</span>
+          <h3>[Minta név] – Luca családja</h3>
+          <p>Luca mozgáskorlátozottan született, mindennapjait kerekesszék és rendszeres gyógytorna segíti. A támogatás új, testhezálló segédeszközök beszerzését tenné lehetővé. [MINTA TARTALOM]</p>
+          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="section-foot reveal">
+      <a href="#" class="btn btn-outline">További családok</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= HOGYAN MŰKÖDIK ============================= -->
+<section class="section" id="hogyan-mukodik">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow center">Hogyan működik?</p>
+      <h2>Négy egyszerű lépés a támogatásig</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step reveal" style="--delay:0ms">
+        <span class="step-index">1</span>
+        <h3>Válassz egy családot</h3>
+        <p>Ismerd meg a valós, ellenőrzött történeteket, és találd meg azt a családot, amelyiké megérint.</p>
+      </div>
+      <div class="step-connector" aria-hidden="true"></div>
+      <div class="step reveal" style="--delay:80ms">
+        <span class="step-index">2</span>
+        <h3>Válaszd ki a havi összeget</h3>
+        <p>Állíts be egy olyan rendszeres összeget, ami neked is kényelmes – minden forint számít.</p>
+      </div>
+      <div class="step-connector" aria-hidden="true"></div>
+      <div class="step reveal" style="--delay:160ms">
+        <span class="step-index">3</span>
+        <h3>Kapj visszajelzést</h3>
+        <p>Rendszeres frissítéseket kapsz arról, hogyan segít a támogatásod.</p>
+      </div>
+      <div class="step-connector" aria-hidden="true"></div>
+      <div class="step reveal" style="--delay:240ms">
+        <span class="step-index">4</span>
+        <h3>Lásd a hatást</h3>
+        <p>Kövesd nyomon, ahogy a család egyre stabilabb talajra kerül – lépésről lépésre.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= TÁMOGATOTT TERÜLETEK ============================= -->
+<section class="section section-tint" id="tamogatott-teruletek">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow center">Támogatott területek</p>
+      <h2>Öt terület, ahol valódi változást hozunk</h2>
+    </div>
+
+    <div class="area-grid">
+      <div class="area-item reveal" style="--delay:0ms">
+        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 42s-15-9.4-15-21A9 9 0 0 1 24 14a9 9 0 0 1 15 7c0 11.6-15 21-15 21Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg></div>
+        <p>Beteg gyermekek családjai</p>
+      </div>
+      <div class="area-item reveal" style="--delay:60ms">
+        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 12c-3-6-13-6-13 3 0 7 9 12 13 17 4-5 13-10 13-17 0-9-10-9-13-3Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="24" cy="16" r="2.2" fill="currentColor"/></svg></div>
+        <p>Állatvédelem</p>
+      </div>
+      <div class="area-item reveal" style="--delay:120ms">
+        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="14" r="7" stroke="currentColor" stroke-width="2.4"/><path d="M12 40c0-8 5.4-13 12-13s12 5 12 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div>
+        <p>Sport</p>
+      </div>
+      <div class="area-item reveal" style="--delay:180ms">
+        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 6v36M10 15c7 0 10 3 14 3s7-3 14-3M10 33c7 0 10-3 14-3s7 3 14 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <p>Egészségügy</p>
+      </div>
+      <div class="area-item reveal" style="--delay:240ms">
+        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M6 14 24 8l18 6-18 6Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M13 19v10c0 3 5 6 11 6s11-3 11-6V19M40 15v13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <p>Oktatás</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= BIZALOM & TÁRSADALMI VISSZAIGAZOLÁS ============================= -->
+<section class="section" id="bizalom">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow center">Közösségünk</p>
+      <h2>Nagyköveteink és partnereink állnak mellettünk</h2>
+      <p class="placeholder-flag">⚠ Az alábbi nevek és logók általános helykitöltők — az éles indulás előtt valós, jóváhagyott nagykövetekre és partnerekre kell cserélni.</p>
+    </div>
+
+    <div class="impact-media reveal">
+      <img src="https://picsum.photos/seed/oslf-impact/1800/700" alt="[Minta kép: közösségi esemény vagy önkéntesek — valós fotóra cserélendő]" width="1800" height="700" loading="lazy">
+    </div>
+
+    <div class="ambassador-row reveal">
+      <p class="group-label">Nagyköveteink</p>
+      <div class="ambassador-list">
+        <div class="ambassador">
+          <div class="avatar-placeholder" aria-hidden="true"></div>
+          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
+        </div>
+        <div class="ambassador">
+          <div class="avatar-placeholder" aria-hidden="true"></div>
+          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
+        </div>
+        <div class="ambassador">
+          <div class="avatar-placeholder" aria-hidden="true"></div>
+          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
+        </div>
+        <div class="ambassador">
+          <div class="avatar-placeholder" aria-hidden="true"></div>
+          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="partner-row reveal">
+      <p class="group-label">Kiemelt partnereink</p>
+      <div class="partner-list">
+        <div class="partner-logo">[Partner logó]</div>
+        <div class="partner-logo">[Partner logó]</div>
+        <div class="partner-logo">[Partner logó]</div>
+        <div class="partner-logo">[Partner logó]</div>
+        <div class="partner-logo">[Partner logó]</div>
+      </div>
+    </div>
+
+    <p class="trust-line reveal">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4 6.5V11c0 5 3.4 8.9 8 10 4.6-1.1 8-5 8-10V6.5L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Nyilvánosságra hozzuk pénzügyeinket és jogi nyilvántartási adatainkat, hogy mindig pontosan tudd, hova kerül a támogatásod.
+    </p>
+  </div>
+</section>
+
+<!-- ============================= ZÁRÓ CTA ============================= -->
+<section class="final-cta" id="zaro-cta">
+  <div class="container final-cta-inner reveal">
+    <h2>A havi felajánlásod valakinek stabil hátteret jelent.</h2>
+    <p>Csatlakozz rendszeres támogatóink közösségéhez, és segíts, hogy egy család újabb lépést tehessen előre – minden egyes hónapban.</p>
+    <a href="#csaladok" class="btn btn-white btn-lg">Legyél havi támogató</a>
+  </div>
+</section>
+
+<!-- ============================= KAPCSOLAT ============================= -->
+<section class="section" id="kapcsolat">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow center">Kapcsolat</p>
+      <h2>Szeretnél többet megtudni?</h2>
+      <p class="section-lead">Keress minket bizalommal az örökbefogadási programmal vagy a támogatással kapcsolatos kérdéseiddel.</p>
+    </div>
+    <div class="contact-row reveal">
+      <a href="mailto:info@example.hu" class="contact-pill">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8"/></svg>
+        [info@example.hu]
+      </a>
+      <a href="tel:+3600000000" class="contact-pill">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L15 12l5 2v3a2 2 0 0 1-2 2C10.5 19 5 13.5 5 6a2 2 0 0 1 1-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        [+36 00 000 0000]
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================= LÁBLÉC ============================= -->
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <img src="assets/img/logo-full.png" alt="Egy Lépéssel Több – Hajós István Alapítvány" width="220" height="96" loading="lazy" class="footer-logo">
+      <p>Rászoruló, beteg vagy fogyatékkal élő gyermeket nevelő családok havi rendszeres, kiszámítható támogatása.</p>
+      <div class="social-row">
+        <a href="#" aria-label="Facebook (minta hivatkozás)">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M14 9h3V5h-3c-2.2 0-4 1.8-4 4v2H8v4h2v6h4v-6h3l1-4h-4v-2c0-.6.4-1 1-1Z" fill="currentColor"/></svg>
+        </a>
+        <a href="#" aria-label="Instagram (minta hivatkozás)">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor"/></svg>
+        </a>
+        <a href="#" aria-label="TikTok (minta hivatkozás)">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M14 3v11.2a2.8 2.8 0 1 1-2.8-2.8c.28 0 .55.04.8.11V8.6a5.6 5.6 0 1 0 4.8 5.55V9.9A6.7 6.7 0 0 0 20.5 11V8.2c-2 0-3.6-1.2-4.2-2.7A4.6 4.6 0 0 1 16 3h-2Z" fill="currentColor"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <nav class="footer-nav" aria-label="Lábléc navigáció">
+      <h4>Navigáció</h4>
+      <ul>
+        <li><a href="#rolunk">Rólunk</a></li>
+        <li><a href="#csaladok">Fogadj örökbe egy családot</a></li>
+        <li><a href="#tamogatott-teruletek">Támogatott területek</a></li>
+        <li><a href="#zaro-cta">Jelentkezz támogatónak</a></li>
+        <li><a href="#kapcsolat">Kapcsolat</a></li>
+      </ul>
+    </nav>
+
+    <div class="footer-contact">
+      <h4>Kapcsolat</h4>
+      <p>[Alapító neve], alapító</p>
+      <p><a href="mailto:info@example.hu">[info@example.hu]</a></p>
+      <p><a href="tel:+3600000000">[+36 00 000 0000]</a></p>
+      <p>[Utca, város, irányítószám]</p>
+    </div>
+
+    <div class="footer-legal">
+      <h4>Jogi információk</h4>
+      <p>Adószám: [00000000-0-00]</p>
+      <p>Nyilvántartási szám: [00-00-0000000]</p>
+      <p>Bankszámlaszám: [00000000-00000000]</p>
+      <p>IBAN: [HU00 0000 0000 0000 0000 0000 0000]</p>
+      <ul>
+        <li><a href="#">Adatkezelési tájékoztató [minta]</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <p>&copy; <span id="year"></span> Egy Lépéssel Több Alapítvány. Minden jog fenntartva.</p>
+      <p class="cookie-notice">Ez a weboldal sütiket használ. [Minta cookie tájékoztató szöveg — az éles indulás előtt valós adatkezelési szöveggel és hozzájárulási mechanizmussal kell helyettesíteni.]</p>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
 </body>
 </html>
