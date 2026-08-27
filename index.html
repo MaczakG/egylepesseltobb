@@ -18,7 +18,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -48,7 +48,10 @@
     </nav>
 
     <div class="header-actions">
-      <a href="#tamogatas" class="btn btn-primary btn-header">Támogatom</a>
+      <a href="#tamogatas" class="btn-pill">
+        Támogatom
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.5S3.5 15 3.5 8.9A4.9 4.9 0 0 1 12 5.6a4.9 4.9 0 0 1 8.5 3.3c0 6.1-8.5 11.6-8.5 11.6Z" fill="currentColor"/></svg>
+      </a>
       <button class="hamburger" id="hamburger" aria-expanded="false" aria-controls="mobile-nav" aria-label="Menü megnyitása">
         <span></span><span></span><span></span>
       </button>
@@ -71,47 +74,53 @@
 
 <!-- ============================= HERO ============================= -->
 <section class="hero">
+  <div class="hero-media" aria-hidden="true">
+    <img src="assets/img/hero.webp" alt="" width="1700" height="1224" loading="eager" fetchpriority="high">
+  </div>
   <div class="container hero-inner">
     <div class="hero-copy reveal">
       <p class="eyebrow">Egy lépéssel több Alapítvány</p>
       <h1>Fogadj örökbe egy családot – legyél Te is egy lépéssel több.</h1>
       <p class="lead">Szervezünk és becsatlakozunk egyéni és eseti gyűjtésekbe is, de fő célunk, hogy rászoruló, beteg gyermeket nevelő családoknak havi rendszerességgel segíthessünk a „Fogadj örökbe egy családot” programunkkal.</p>
       <div class="hero-ctas">
-        <a href="#tamogatas" class="btn btn-primary btn-lg">Támogatom</a>
-        <a href="#rolunk" class="btn btn-ghost btn-lg">Megismerem</a>
+        <a href="#tamogatas" class="btn btn-primary btn-lg">
+          Támogatom
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#rolunk" class="btn btn-ghost btn-lg">
+          Megismerem
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </div>
-    </div>
-    <div class="hero-media reveal" style="--delay:120ms">
-      <img src="assets/img/hero.webp" alt="Mosolygó kislány hintázik napsütötte kertben – az Egy lépéssel több Alapítvány egyik támogatott gyermeke" width="1700" height="1224" loading="eager" fetchpriority="high">
     </div>
   </div>
 </section>
 
 <!-- ============================= RÓLUNK ============================= -->
-<section class="section" id="rolunk">
-  <div class="container split-layout">
+<section id="rolunk">
+  <div class="split-bleed">
     <div class="split-media reveal">
       <img src="assets/img/about.webp" alt="Az Alapítvány alapítója egy támogatott család körében, kezet fogva" width="1400" height="1866" loading="lazy">
     </div>
     <div class="split-copy reveal" style="--delay:120ms">
       <p class="eyebrow">Rólunk</p>
-      <h2>Több mint egy segítség. Egy lehetőség.</h2>
+      <h2>Több mint egy segítség. Egy <span class="accent">lehetőség</span>.</h2>
       <p>Az Egy lépéssel több Alapítványt Hajós István hozta létre azzal a céllal, hogy rászoruló, beteg gyermeket nevelő családok mellé álljon.</p>
       <p>Nem egyszeri gesztust adunk, hanem folyamatos, havi rendszerességű támogatást a „Fogadj örökbe egy családot” programunkon keresztül – emellett egyéni és eseti gyűjtésekbe is szívesen becsatlakozunk.</p>
-      <a href="https://egylepesseltobb.hu/alapitonk/" class="btn btn-outline">Többet szeretnék megtudni</a>
+      <p><a href="https://egylepesseltobb.hu/alapitonk/" class="btn btn-outline">Többet szeretnék megtudni</a></p>
     </div>
   </div>
 </section>
 
 <!-- ============================= MIÉRT FONTOS ============================= -->
-<section class="section section-tinted" id="miert-fontos">
-  <div class="container split-layout split-layout--reverse">
+<section id="miert-fontos">
+  <div class="split-bleed split-bleed--reverse split-dark">
     <div class="split-media reveal">
       <img src="assets/img/why-important.webp" alt="Kislány kitartóan gyakorol egy járássegítő eszközben, gyógytorna közben" width="1400" height="1008" loading="lazy">
     </div>
     <div class="split-copy reveal" style="--delay:120ms">
       <p class="eyebrow">Miért fontos a segítség?</p>
-      <h2>Minden gyermek megérdemli a lehetőséget.</h2>
+      <h2>Minden gyermek megérdemli a <span class="accent" style="color:var(--color-secondary)">lehetőséget</span>.</h2>
       <p>Alapítványunk a beteg gyermekek családjainak támogatásától az állatvédelemig, a sportig, az egészségügyig és az oktatásig sok területen segít. Hisszük, hogy közös erővel olyan változást érhetünk el, amely egy-egy gyermek életét gyökeresen jobbá teheti.</p>
       <blockquote class="pull-quote">„Nincs lehetetlen, csak tehetetlen.”<cite>Hajós István, alapító</cite></blockquote>
     </div>
@@ -119,33 +128,36 @@
 </section>
 
 <!-- ============================= EGY LÉPÉSSEL TÖBB ============================= -->
-<section class="section" id="egy-lepessel-tobb">
+<section class="section process-band" id="egy-lepessel-tobb">
   <div class="container">
     <div class="section-head reveal">
       <p class="eyebrow">Mit jelent az „Egy lépéssel több”?</p>
       <h2>Négy gondolat, ami mindent visz.</h2>
     </div>
-    <div class="card-grid card-grid--4">
-      <article class="num-card reveal" style="--delay:0ms">
-        <span class="num-card-index">01</span>
+    <div class="process-steps">
+      <div class="process-step reveal" style="--delay:0ms">
+        <span class="process-step-index">01</span>
         <h3>Segítség</h3>
         <p>Havi rendszeres támogatást nyújtunk a beteg gyermeket nevelő családoknak a „Fogadj örökbe egy családot” programunkon keresztül.</p>
-      </article>
-      <article class="num-card reveal" style="--delay:80ms">
-        <span class="num-card-index">02</span>
+      </div>
+      <div class="process-connector" aria-hidden="true">»</div>
+      <div class="process-step reveal" style="--delay:80ms">
+        <span class="process-step-index">02</span>
         <h3>Összefogás</h3>
         <p>Nagyköveteink, partnereink és támogatóink közös erővel érnek el nagyobb változást, mint egyedül bármelyikünk.</p>
-      </article>
-      <article class="num-card reveal" style="--delay:160ms">
-        <span class="num-card-index">03</span>
+      </div>
+      <div class="process-connector" aria-hidden="true">»</div>
+      <div class="process-step reveal" style="--delay:160ms">
+        <span class="process-step-index">03</span>
         <h3>Lehetőség</h3>
         <p>A támogatás kezelésekhez, eszközökhöz és programokhoz segíti hozzá a családokat – olyan lehetőségekhez, amelyek hosszú távon is számítanak.</p>
-      </article>
-      <article class="num-card reveal" style="--delay:240ms">
-        <span class="num-card-index">04</span>
+      </div>
+      <div class="process-connector" aria-hidden="true">»</div>
+      <div class="process-step reveal" style="--delay:240ms">
+        <span class="process-step-index">04</span>
         <h3>Egy lépéssel több</h3>
         <p>Minden felajánlás, megosztás és csatlakozás egy újabb lépés a jobb lehetőségek felé.</p>
-      </article>
+      </div>
     </div>
   </div>
 </section>
@@ -174,39 +186,39 @@
 </section>
 
 <!-- ============================= MIBEN SEGÍTÜNK ============================= -->
-<section class="section section-tinted" id="miben-segitunk">
-  <div class="container">
-    <div class="section-head reveal">
+<section id="miben-segitunk">
+  <div class="container" style="padding:0">
+    <div class="section-head reveal" style="padding:100px 24px 0">
       <p class="eyebrow">Miben segítünk?</p>
-      <h2>Öt terület, ahol valódi változást hozunk.</h2>
+      <h2>Öt terület, ahol valódi <span class="accent">változást</span> hozunk.</h2>
     </div>
-    <div class="card-grid card-grid--5">
-      <article class="support-card reveal" style="--delay:0ms">
-        <span class="support-card-index">01</span>
-        <h3>Beteg gyermekek családjai</h3>
-        <p>Havi rendszeres segítséggel állunk rászoruló, beteg gyermeket nevelő családok mellett.</p>
-      </article>
-      <article class="support-card reveal" style="--delay:60ms">
-        <span class="support-card-index">02</span>
-        <h3>Állatvédelem</h3>
-        <p>Támogatjuk az állatok védelmét célzó kezdeményezéseket és szervezeteket.</p>
-      </article>
-      <article class="support-card reveal" style="--delay:120ms">
-        <span class="support-card-index">03</span>
-        <h3>Sport</h3>
-        <p>Hozzájárulunk fiatal sportolók és sportprogramok megvalósulásához.</p>
-      </article>
-      <article class="support-card reveal" style="--delay:180ms">
-        <span class="support-card-index">04</span>
-        <h3>Egészségügy</h3>
-        <p>Segítjük az egészségügyi ellátás és a gyógyulás esélyeinek javítását.</p>
-      </article>
-      <article class="support-card reveal" style="--delay:240ms">
-        <span class="support-card-index">05</span>
-        <h3>Oktatás</h3>
-        <p>Támogatjuk a gyermekek tanulási és fejlődési lehetőségeit.</p>
-      </article>
-    </div>
+  </div>
+  <div class="color-strip">
+    <article class="color-block color-block--tint reveal" style="--delay:0ms">
+      <div class="color-block-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 42s-15-9.4-15-21A9 9 0 0 1 24 14a9 9 0 0 1 15 7c0 11.6-15 21-15 21Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
+      <h3>Beteg gyermekek családjai</h3>
+      <p>Havi rendszeres segítséggel állunk rászoruló, beteg gyermeket nevelő családok mellett.</p>
+    </article>
+    <article class="color-block color-block--gold reveal" style="--delay:60ms">
+      <div class="color-block-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 12c-3-6-13-6-13 3 0 7 9 12 13 17 4-5 13-10 13-17 0-9-10-9-13-3Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="24" cy="16" r="2.4" fill="currentColor"/></svg></div>
+      <h3>Állatvédelem</h3>
+      <p>Támogatjuk az állatok védelmét célzó kezdeményezéseket és szervezeteket.</p>
+    </article>
+    <article class="color-block color-block--navy reveal" style="--delay:120ms">
+      <div class="color-block-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="14" r="7" stroke="currentColor" stroke-width="2.5"/><path d="M12 40c0-8 5.4-13 12-13s12 5 12 13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+      <h3>Sport</h3>
+      <p>Hozzájárulunk fiatal sportolók és sportprogramok megvalósulásához.</p>
+    </article>
+    <article class="color-block color-block--green reveal" style="--delay:180ms">
+      <div class="color-block-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 6v36M10 15c7 0 10 3 14 3s7-3 14-3M10 33c7 0 10-3 14-3s7 3 14 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3>Egészségügy</h3>
+      <p>Segítjük az egészségügyi ellátás és a gyógyulás esélyeinek javítását.</p>
+    </article>
+    <article class="color-block color-block--tint reveal" style="--delay:240ms">
+      <div class="color-block-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M6 14 24 8l18 6-18 6Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M13 19v10c0 3 5 6 11 6s11-3 11-6V19M40 15v13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3>Oktatás</h3>
+      <p>Támogatjuk a gyermekek tanulási és fejlődési lehetőségeit.</p>
+    </article>
   </div>
 </section>
 
@@ -215,7 +227,7 @@
   <div class="container">
     <div class="section-head reveal">
       <p class="eyebrow">Történetek</p>
-      <h2>A segítség valódi történeteket ír.</h2>
+      <h2>A segítség valódi <span class="accent">történeteket</span> ír.</h2>
     </div>
     <div class="card-grid card-grid--4">
       <article class="story-card reveal" style="--delay:0ms">
@@ -267,7 +279,7 @@
   <div class="container">
     <div class="section-head reveal">
       <p class="eyebrow">Hogyan tudsz segíteni?</p>
-      <h2>Te is tehetsz egy lépést.</h2>
+      <h2>Te is tehetsz egy <span class="accent">lépést</span>.</h2>
     </div>
     <div class="card-grid card-grid--3">
       <article class="way-card reveal" style="--delay:0ms">
@@ -276,7 +288,10 @@
         </div>
         <h3>Támogatom</h3>
         <p>Közvetlen támogatással segítheted a kezdeményezést, online bankkártyával vagy átutalással.</p>
-        <a href="#tamogatas" class="btn btn-primary">Támogatom</a>
+        <a href="#tamogatas" class="btn btn-primary">
+          Támogatom
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </article>
       <article class="way-card reveal" style="--delay:80ms">
         <div class="way-card-icon" aria-hidden="true">
@@ -284,7 +299,10 @@
         </div>
         <h3>Megosztom</h3>
         <p>Segíts abban, hogy minél több emberhez eljusson az üzenetünk – oszd meg ismerőseiddel!</p>
-        <a href="https://www.facebook.com/egylepesseltobb" class="btn btn-outline" target="_blank" rel="noopener">Megosztom</a>
+        <a href="https://www.facebook.com/egylepesseltobb" class="btn btn-outline" target="_blank" rel="noopener">
+          Megosztom
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </article>
       <article class="way-card reveal" style="--delay:160ms">
         <div class="way-card-icon" aria-hidden="true">
@@ -292,61 +310,66 @@
         </div>
         <h3>Kapcsolódok</h3>
         <p>Ha más módon szeretnél segíteni vagy együttműködni, vedd fel velünk a kapcsolatot.</p>
-        <a href="#kapcsolat" class="btn btn-outline">Kapcsolat</a>
+        <a href="#kapcsolat" class="btn btn-outline">
+          Kapcsolat
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
       </article>
     </div>
   </div>
 </section>
 
 <!-- ============================= TÁMOGATÁS + SIMPLEPAY ============================= -->
-<section class="section support-section" id="tamogatas">
-  <div class="container">
-    <div class="section-head reveal">
+<section id="tamogatas">
+  <div class="support-hero">
+    <div class="support-hero-copy reveal">
       <p class="eyebrow">Támogatás</p>
       <h2>Minden támogatás számít.</h2>
-      <p class="lead">Az Alapítvány céljainak megvalósítása érdekében minden felajánlás kiemelten fontos számunkra. Válaszd ki a számodra legkényelmesebb módot.</p>
+      <p>Az Alapítvány céljainak megvalósítása érdekében minden felajánlás kiemelten fontos számunkra. Válaszd ki a számodra legkényelmesebb módot.</p>
+    </div>
+    <div class="support-hero-panel reveal" style="--delay:120ms">
+      <h3>Online bankkártyás támogatás</h3>
+      <p>Biztonságos, gyors támogatás bankkártyával, a SimplePay rendszerén keresztül.</p>
+      <div class="amount-pills" role="list" aria-label="Javasolt támogatási összegek">
+        <span role="listitem">2 500 Ft</span>
+        <span role="listitem">5 000 Ft</span>
+        <span role="listitem">7 500 Ft</span>
+        <span role="listitem">10 000 Ft</span>
+        <span role="listitem">15 000 Ft</span>
+        <span role="listitem">20 000 Ft</span>
+        <span role="listitem">25 000 Ft</span>
+        <span role="listitem">30 000 Ft</span>
+      </div>
+      <a href="https://egylepesseltobb.hu/linkesfizetes/" class="btn btn-dark btn-lg btn-block" target="_blank" rel="noopener">
+        Támogatom online
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <div class="simplepay-badge">
+        <img src="assets/img/simplepay_logo.svg" alt="SimplePay" width="118" height="48" loading="lazy">
+        <p>Biztonságos online fizetés a SimplePay rendszerén keresztül.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="support-grid">
+    <div class="support-panel reveal">
+      <h3>Banki átutalás</h3>
+      <p>Ha inkább banki átutalással támogatnál, az alábbi adatokat használd:</p>
+      <dl class="bank-details">
+        <div><dt>Kedvezményezett</dt><dd>Egy lépéssel több Alapítvány</dd></div>
+        <div><dt>Bankszámlaszám</dt><dd>11703006-25993994</dd></div>
+        <div><dt>IBAN</dt><dd>HU88 1170 3006 2599 3994 0000 0000</dd></div>
+        <div><dt>SWIFT/BIC</dt><dd>OTPVHUHB</dd></div>
+        <div><dt>Adószám</dt><dd>19353825-1-41</dd></div>
+      </dl>
     </div>
 
-    <div class="support-grid">
-      <div class="support-panel reveal">
-        <h3>Online bankkártyás támogatás</h3>
-        <p>Biztonságos, gyors támogatás bankkártyával, a SimplePay rendszerén keresztül.</p>
-        <div class="amount-pills" role="list" aria-label="Javasolt támogatási összegek">
-          <span role="listitem">2 500 Ft</span>
-          <span role="listitem">5 000 Ft</span>
-          <span role="listitem">7 500 Ft</span>
-          <span role="listitem">10 000 Ft</span>
-          <span role="listitem">15 000 Ft</span>
-          <span role="listitem">20 000 Ft</span>
-          <span role="listitem">25 000 Ft</span>
-          <span role="listitem">30 000 Ft</span>
-        </div>
-        <a href="https://egylepesseltobb.hu/linkesfizetes/" class="btn btn-primary btn-lg" target="_blank" rel="noopener">Támogatom online</a>
-
-        <div class="simplepay-badge">
-          <img src="assets/img/simplepay_logo.svg" alt="SimplePay" width="118" height="48" loading="lazy">
-          <p>Biztonságos online fizetés a SimplePay rendszerén keresztül.</p>
-        </div>
-      </div>
-
-      <div class="support-panel reveal" style="--delay:100ms">
-        <h3>Banki átutalás</h3>
-        <p>Ha inkább banki átutalással támogatnál, az alábbi adatokat használd:</p>
-        <dl class="bank-details">
-          <div><dt>Kedvezményezett</dt><dd>Egy lépéssel több Alapítvány</dd></div>
-          <div><dt>Bankszámlaszám</dt><dd>11703006-25993994</dd></div>
-          <div><dt>IBAN</dt><dd>HU88 1170 3006 2599 3994 0000 0000</dd></div>
-          <div><dt>SWIFT/BIC</dt><dd>OTPVHUHB</dd></div>
-          <div><dt>Adószám</dt><dd>19353825-1-41</dd></div>
-        </dl>
-      </div>
-
-      <div class="support-panel reveal" style="--delay:200ms">
-        <h3>Adó 1%</h3>
-        <p>Rendelkező nyilatkozatoddal, jövedelemadód 1%-ával is támogathatod munkánkat – ez semmibe sem kerül számodra.</p>
-        <p class="tax-number"><strong>Adószám:</strong> 19353825-1-41</p>
-        <p class="fineprint">Amennyiben adományigazolást szeretnél kérni, írj nekünk az <a href="mailto:info@egylepesseltobb.hu">info@egylepesseltobb.hu</a> címre.</p>
-      </div>
+    <div class="support-panel reveal" style="--delay:100ms">
+      <h3>Adó 1%</h3>
+      <p>Rendelkező nyilatkozatoddal, jövedelemadód 1%-ával is támogathatod munkánkat – ez semmibe sem kerül számodra.</p>
+      <p class="tax-number"><strong>Adószám:</strong> 19353825-1-41</p>
+      <p class="fineprint">Amennyiben adományigazolást szeretnél kérni, írj nekünk az <a href="mailto:info@egylepesseltobb.hu">info@egylepesseltobb.hu</a> címre.</p>
     </div>
   </div>
 </section>
@@ -358,9 +381,12 @@
   </div>
   <div class="big-cta-overlay"></div>
   <div class="container big-cta-content reveal">
-    <h2>Tegyünk együtt egy lépéssel többet a gyerekekért.</h2>
+    <h2>Tegyünk együtt egy lépéssel <span style="color:var(--color-secondary)">többet</span> a gyerekekért.</h2>
     <p>Egyetlen felajánlás is új esélyt jelenthet egy családnak. Csatlakozz hozzánk még ma.</p>
-    <a href="#tamogatas" class="btn btn-primary btn-lg">Támogatom</a>
+    <a href="#tamogatas" class="btn btn-primary btn-lg">
+      Támogatom
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
   </div>
 </section>
 
@@ -369,7 +395,7 @@
   <div class="container contact-grid">
     <div class="contact-info reveal">
       <p class="eyebrow">Kapcsolat</p>
-      <h2>Szeretnél segíteni vagy többet megtudni?</h2>
+      <h2>Szeretnél segíteni vagy <span class="accent">többet</span> megtudni?</h2>
       <p>Keress minket bizalommal az alábbi elérhetőségek bármelyikén, vagy írj a mellékelt űrlapon keresztül.</p>
       <ul class="contact-list">
         <li>
