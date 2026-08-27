@@ -13,6 +13,17 @@
   document.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
+  // Hero háttérkép-váltakozás (crossfade a hero-media rétegei között)
+  var heroSlides = document.querySelectorAll(".hero-slide");
+  if (heroSlides.length > 1) {
+    var heroIndex = 0;
+    setInterval(function () {
+      heroSlides[heroIndex].classList.remove("is-active");
+      heroIndex = (heroIndex + 1) % heroSlides.length;
+      heroSlides[heroIndex].classList.add("is-active");
+    }, 5000);
+  }
+
   // Mobil hamburger menü
   var hamburger = document.getElementById("hamburger");
   var mobileNav = document.getElementById("mobile-nav");
