@@ -40,11 +40,14 @@
   body { font-family: 'Nunito', sans-serif; }
   h1, h2, h3, .font-display { font-family: 'Baloo 2', sans-serif; }
 
-  .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1rem; border-radius: 0.65rem; color: rgba(255,255,255,0.7); font-weight: 600; font-size: 0.9rem; border-left: 3px solid transparent; transition: all 0.15s ease; cursor: pointer; }
+  .nav-item { display: flex; align-items: center; width: 100%; box-sizing: border-box; gap: 0.75rem; padding: 0.7rem 1rem; border-radius: 0.65rem; color: rgba(255,255,255,0.7); font-weight: 600; font-size: 0.9rem; border-left: 3px solid transparent; transition: all 0.15s ease; cursor: pointer; text-align: left; }
   .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
   .nav-item.active { background: rgba(218,199,160,0.12); color: #fff; border-left-color: #dac7a0; }
 
-  .status-seg-btn { color: #708998; }
+  /* Status segmented control — outer pill defines the exact height every
+     segment fills; segments never depend on text length to size themselves. */
+  .status-seg { display: inline-flex; align-items: stretch; width: 100%; height: 46px; padding: 4px; box-sizing: border-box; border-radius: 9999px; background: #eef2f4; border: 1px solid #dde4e8; }
+  .status-seg-btn { flex: 1 1 0%; min-width: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; line-height: 1; white-space: nowrap; padding: 0 0.5rem; color: #708998; }
   .status-seg-btn.active { background: #dac7a0; color: #1a252d; }
 
   #story-editable { min-height: 220px; }
@@ -201,21 +204,21 @@
           <div class="grid sm:grid-cols-3 gap-6">
             <div>
               <label class="block text-sm font-semibold text-navy-700 mb-2">Státusz</label>
-              <div class="inline-flex bg-navy-50 rounded-full p-1 border border-navy-100 w-full">
-                <button type="button" id="status-btn-adoptable" class="status-seg-btn flex-1 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold transition-colors" onclick="setFormStatus('adoptable')">Örökbefogadható</button>
-                <button type="button" id="status-btn-adopted" class="status-seg-btn flex-1 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold transition-colors" onclick="setFormStatus('adopted')">Örökbefogadott</button>
+              <div class="status-seg">
+                <button type="button" id="status-btn-adoptable" class="status-seg-btn" onclick="setFormStatus('adoptable')">Örökbefogadható</button>
+                <button type="button" id="status-btn-adopted" class="status-seg-btn" onclick="setFormStatus('adopted')">Örökbefogadott</button>
               </div>
             </div>
             <div>
               <label class="block text-sm font-semibold text-navy-700 mb-2">Havi támogatási összeg</label>
               <div class="relative">
-                <input id="field-amount" type="number" min="0" step="1000" placeholder="45000" class="w-full px-4 py-2.5 pr-12 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
+                <input id="field-amount" type="number" min="0" step="1000" placeholder="45000" class="w-full h-[46px] box-border px-4 pr-12 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-navy-400 text-sm font-semibold">Ft</span>
               </div>
             </div>
             <div>
               <label class="block text-sm font-semibold text-navy-700 mb-2">Jelentkezők száma</label>
-              <input id="field-applicants" type="number" min="0" step="1" oninput="onApplicantsChange(this.value)" class="w-full px-4 py-2.5 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
+              <input id="field-applicants" type="number" min="0" step="1" oninput="onApplicantsChange(this.value)" class="w-full h-[46px] box-border px-4 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
               <p id="applicants-auto-hint" class="hidden text-xs text-sand-700 mt-1.5">Automatikus szabály alapján javasolt státusz frissült.</p>
             </div>
           </div>
