@@ -56,6 +56,9 @@
   /* Section number backdrop */
   .section-num { font-family: 'Baloo 2', sans-serif; font-weight: 400; -webkit-text-stroke: 1px #dac7a0; color: transparent; }
 
+  /* Soften harsh studio-photo contrast on ambassador portraits */
+  .ambassador-photo { filter: contrast(0.88) saturate(0.9) brightness(1.04); }
+
   /* Partner logo grayscale-to-color */
   .partner-logo img { filter: grayscale(100%); opacity: 0.55; transition: filter 0.35s ease, opacity 0.35s ease, transform 0.35s ease; }
   .partner-logo:hover img { filter: grayscale(0%); opacity: 1; transform: translateY(-2px); }
@@ -80,7 +83,7 @@
       <span class="font-display text-lg md:text-xl font-semibold tracking-tight text-white drop-shadow-sm leading-tight">Egy Lépéssel <span class="text-sand-400">Több</span></span>
     </a>
 
-    <nav class="hidden lg:flex items-center gap-9 text-sm font-medium tracking-wide text-white/90">
+    <nav class="hidden lg:flex items-center gap-10 xl:gap-12 text-sm font-medium tracking-wide text-white/90">
       <a href="#families" class="hover:text-sand-400 transition-colors">Családok</a>
       <a href="#ambassadors" class="hover:text-sand-400 transition-colors">Nagyköveteink</a>
       <a href="#areas" class="hover:text-sand-400 transition-colors">Területeink</a>
@@ -228,37 +231,37 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
-        <img src="assets/img/ambassador-gyorfi-pal.jpg" loading="lazy" alt="Győrfi Pál portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <img src="assets/img/ambassador-gyorfi-pal.jpg" loading="lazy" alt="Győrfi Pál portréja" class="ambassador-photo w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
         <h3 class="font-display text-white font-semibold mb-1">Győrfi Pál</h3>
         <p class="text-sand-400 text-xs uppercase tracking-wide">OMSZ szóvivő</p>
       </div>
 
       <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
-        <img src="assets/img/ambassador-racz-jeno.jpg" loading="lazy" alt="Rácz Jenő portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <img src="assets/img/ambassador-racz-jeno.jpg" loading="lazy" alt="Rácz Jenő portréja" class="ambassador-photo w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
         <h3 class="font-display text-white font-semibold mb-1">Rácz Jenő</h3>
         <p class="text-sand-400 text-xs uppercase tracking-wide">Michelin-csillagos séf</p>
       </div>
 
       <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
-        <img src="assets/img/ambassador-kucsera-gabor.jpg" loading="lazy" alt="Kucsera Gábor portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <img src="assets/img/ambassador-kucsera-gabor.jpg" loading="lazy" alt="Kucsera Gábor portréja" class="ambassador-photo w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
         <h3 class="font-display text-white font-semibold mb-1">Kucsera Gábor</h3>
         <p class="text-sand-400 text-xs uppercase tracking-wide">Kétszeres világbajnok kajakos</p>
       </div>
 
       <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
-        <img src="assets/img/ambassador-proksa-szandra.jpg" loading="lazy" alt="Proksa Szandra portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <img src="assets/img/ambassador-proksa-szandra.jpg" loading="lazy" alt="Proksa Szandra portréja" class="ambassador-photo w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
         <h3 class="font-display text-white font-semibold mb-1">Proksa Szandra</h3>
         <p class="text-sand-400 text-xs uppercase tracking-wide">TV2 műsorvezető</p>
       </div>
 
       <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
-        <img src="assets/img/ambassador-kovacs-dobos-evelin.jpg" loading="lazy" alt="Kovács-Dobos Evelin portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <img src="assets/img/ambassador-kovacs-dobos-evelin.jpg" loading="lazy" alt="Kovács-Dobos Evelin portréja" class="ambassador-photo w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
         <h3 class="font-display text-white font-semibold mb-1">Kovács-Dobos Evelin</h3>
         <p class="text-sand-400 text-xs uppercase tracking-wide">Színésznő</p>
       </div>
 
       <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
-        <img src="assets/img/ambassador-andrasfi-tibor.jpg" loading="lazy" alt="Andrásfi Tibor portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <img src="assets/img/ambassador-andrasfi-tibor.jpg" loading="lazy" alt="Andrásfi Tibor portréja" class="ambassador-photo w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
         <h3 class="font-display text-white font-semibold mb-1">Andrásfi Tibor</h3>
         <p class="text-sand-400 text-xs uppercase tracking-wide">Olimpiai bajnok</p>
       </div>
@@ -453,12 +456,12 @@
       <div>
         <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Kapcsolat</h5>
         <ul class="space-y-3 text-sm text-white/65 mb-6">
-          <li>4024 Debrecen, Piac utca 22.</li>
+          <li>1131 Budapest, Rokolya utca 1-13. 5. emelet</li>
           <li>+36 30 123 4567</li>
           <li>info@egylepesseltobb.hu</li>
         </ul>
         <div class="rounded-xl overflow-hidden border border-white/10">
-          <iframe src="https://www.google.com/maps?q=Debrecen,Piac%20utca%2022&output=embed" class="w-full h-36 grayscale contrast-125" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Az alapítvány székhelye a térképen"></iframe>
+          <iframe src="https://www.google.com/maps?q=1131+Budapest,+Rokolya+utca+1-13&output=embed" class="w-full h-36 grayscale contrast-125" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Az alapítvány székhelye a térképen"></iframe>
         </div>
         <div class="mt-5 flex items-center gap-3">
           <span class="text-xs text-white/40 uppercase tracking-wide">Biztonságos online fizetés</span>
@@ -466,6 +469,19 @@
         </div>
       </div>
 
+    </div>
+
+    <div class="max-w-7xl mx-auto border-t border-white/10 pt-10 mb-10">
+      <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Információk</h5>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-5 text-sm text-white/70">
+        <div><span class="block text-white/40 text-xs uppercase tracking-wide mb-1">Adószám</span>19353825-1-41</div>
+        <div><span class="block text-white/40 text-xs uppercase tracking-wide mb-1">Nyilvántartási szám</span>01-01-0013418</div>
+        <div><span class="block text-white/40 text-xs uppercase tracking-wide mb-1">Bankszámlaszám</span>11703006-25993994</div>
+        <div><span class="block text-white/40 text-xs uppercase tracking-wide mb-1">IBAN</span>HU88 1170 3006 2599 3994 0000 0000</div>
+        <div><span class="block text-white/40 text-xs uppercase tracking-wide mb-1">Swift/Bic</span>OTPVHUHB</div>
+        <div><span class="block text-white/40 text-xs uppercase tracking-wide mb-1">Cím</span>1131 Budapest, Rokolya utca 1-13. 5. emelet</div>
+        <div><span class="block text-white/40 text-xs uppercase tracking-wide mb-1">Alapító</span>Hajós István</div>
+      </div>
     </div>
 
     <div class="max-w-7xl mx-auto pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/40">
