@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Egy Lépéssel Több Alapítvány — Fogadj örökbe egy családot</title>
 <meta name="description" content="Az Egy Lépéssel Több Alapítvány rászoruló családokat köt össze adományozókkal. Fogadj örökbe egy családot, és válj havonta a történetük részévé.">
+<script>document.documentElement.classList.add('js');</script>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,53 +38,117 @@
 </script>
 
 <style>
+  :root { --ease-soft: cubic-bezier(0.22, 1, 0.36, 1); }
+  *, *::before, *::after { transition-timing-function: var(--ease-soft); }
+
   html { scroll-behavior: smooth; }
   body { font-family: 'Nunito', sans-serif; color: #334758; }
   h1, h2, h3, h4, .font-display { font-family: 'Baloo 2', sans-serif; }
 
-  /* Hero crossfade */
-  .hero-slide { opacity: 0; transition: opacity 2s ease-in-out; }
-  .hero-slide.active { opacity: 1; }
+  /* Anchor targets: compensate for the fixed header */
+  #top, #families, #ambassadors, #areas, #founder, #events, #contact { scroll-margin-top: 5.5rem; }
 
-  /* Scroll reveal */
-  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s ease, transform 0.8s ease; }
-  .reveal.in-view { opacity: 1; transform: translateY(0); }
+  /* Hero crossfade + slow Ken Burns breathing zoom */
+  .hero-slide { opacity: 0; transition: opacity 2s var(--ease-soft); animation: kenburns 20s var(--ease-soft) infinite alternate; }
+  .hero-slide.active { opacity: 1; }
+  @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.06); } }
+
+  /* Discrete "scroll down" breathing indicator */
+  .scroll-cue { animation: scrollcue 2.6s var(--ease-soft) infinite; }
+  @keyframes scrollcue { 0%, 100% { transform: translateY(0); opacity: 0.7; } 50% { transform: translateY(6px); opacity: 1; } }
+
+  /* Header compact-on-scroll (transform only, no height animation) */
+  #header-inner { transition: transform 0.3s var(--ease-soft); transform-origin: top center; }
+  #site-header.scrolled #header-inner { transform: scale(0.94); }
+
+  /* Scroll reveal — visible by default so content never hides behind a JS/observer failure.
+     Reveal offset (--reveal-y) and hover-lift offset (--lift-y) are composed into ONE
+     transform via calc(), so the entrance animation and the card hover-lift never fight
+     over the `transform` property (a plain cascade clash would make one silently win). */
+  .reveal, .lift-card {
+    --reveal-y: 0px;
+    --lift-y: 0px;
+    transform: translateY(calc(var(--reveal-y) + var(--lift-y)));
+  }
+  .reveal { opacity: 1; }
+  html.js .reveal {
+    opacity: 0;
+    --reveal-y: 24px;
+    transition: opacity 0.7s var(--ease-soft), transform 0.5s var(--ease-soft), box-shadow 0.3s var(--ease-soft);
+  }
+  html.js .reveal.in-view { opacity: 1; --reveal-y: 0px; }
 
   /* Card hover lift */
-  .lift-card { transition: transform 0.35s ease, box-shadow 0.35s ease; }
-  .lift-card:hover { transform: translateY(-8px); box-shadow: 0 24px 48px -12px rgba(26,37,45,0.28); }
+  .lift-card { transition: transform 0.5s var(--ease-soft), box-shadow 0.3s var(--ease-soft); }
+  .lift-card:hover { --lift-y: -4px; box-shadow: 0 20px 40px -14px rgba(26,37,45,0.28); }
 
   /* Soften harsh studio-photo contrast on ambassador portraits */
   .ambassador-photo { filter: contrast(0.78) saturate(0.85) brightness(1.05); }
 
+  /* Ambassador portrait hover accent — bottom line that expands from the center */
+  .ambassador-accent { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #dac7a0; transform: scaleX(0); transition: transform 0.3s var(--ease-soft); transform-origin: center; }
+  .lift-card:hover .ambassador-accent { transform: scaleX(1); }
+
   /* Partner logo grayscale-to-color */
-  .partner-logo img { filter: grayscale(100%); opacity: 0.55; transition: filter 0.35s ease, opacity 0.35s ease, transform 0.35s ease; }
+  .partner-logo img { filter: grayscale(100%); opacity: 0.55; transition: filter 0.3s var(--ease-soft), opacity 0.3s var(--ease-soft), transform 0.3s var(--ease-soft); }
   .partner-logo:hover img { filter: grayscale(0%); opacity: 1; transform: translateY(-2px); }
 
+  /* Primary CTA buttons: lift + a soft sand glow ring that fades in (opacity only) */
+  .btn-primary { position: relative; transition: transform 0.25s var(--ease-soft), background-color 0.25s var(--ease-soft); }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: -3px; border-radius: 999px;
+    box-shadow: 0 0 0 2px rgba(218,199,160,0.55);
+    opacity: 0; transition: opacity 0.25s var(--ease-soft); pointer-events: none;
+  }
+  .btn-primary:hover::after { opacity: 1; }
+
+  /* Nav link underline that grows from the center */
+  .nav-underline { position: relative; }
+  .nav-underline::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: #dac7a0;
+    transform: scaleX(0); transform-origin: center; transition: transform 0.25s var(--ease-soft);
+  }
+  .nav-underline:hover::after { transform: scaleX(1); }
+
   /* Lightbox */
-  #lightbox { transition: opacity 0.3s ease; }
-  .lightbox-img { transition: opacity 0.25s ease; }
+  #lightbox { transition: opacity 0.3s var(--ease-soft); }
+  .lightbox-img { transition: opacity 0.25s var(--ease-soft); }
 
   /* Mobile menu */
-  #mobile-menu { transition: max-height 0.4s ease, opacity 0.3s ease; }
+  #mobile-menu { transition: max-height 0.4s var(--ease-soft), opacity 0.3s var(--ease-soft); }
 
   ::selection { background: #dac7a0; color: #1a252d; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto !important; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+    html.js .reveal { opacity: 1 !important; transform: none !important; }
+    .hero-slide { animation: none !important; }
+    .scroll-cue { animation: none !important; }
+    .lift-card:hover, .btn-primary:hover { transform: none !important; }
+  }
 </style>
 </head>
 <body class="bg-white text-navy-700 antialiased">
 
 <!-- ============ HEADER / NAV ============ -->
 <header id="site-header" class="fixed top-0 inset-x-0 z-50 transition-colors duration-500">
-  <div class="max-w-[96rem] mx-auto px-6 lg:px-10 flex items-center justify-between 2xl:justify-center gap-10 h-20">
+  <div id="header-inner" class="max-w-[96rem] mx-auto px-6 lg:px-10 flex items-center justify-between 2xl:justify-center gap-10 h-20">
     <a href="#top" class="flex items-center shrink-0">
       <img src="assets/img/logo-full.png" alt="Egy Lépéssel Több Hajós István Alapítvány logó" class="h-12 md:h-14 w-auto object-contain">
     </a>
 
     <nav class="hidden 2xl:flex items-center gap-10 text-sm font-medium tracking-wide text-white/90 whitespace-nowrap">
-      <a href="#top" class="hover:text-sand-400 transition-colors">Főoldal</a>
+      <a href="#top" class="nav-underline hover:text-sand-400 transition-colors">Főoldal</a>
 
       <div class="nav-dropdown group relative">
-        <button class="flex items-center gap-1.5 hover:text-sand-400 transition-colors">
+        <button class="nav-underline flex items-center gap-1.5 hover:text-sand-400 transition-colors">
           Alapítvány
           <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
@@ -98,7 +163,7 @@
       </div>
 
       <div class="nav-dropdown group relative">
-        <button class="flex items-center gap-1.5 hover:text-sand-400 transition-colors">
+        <button class="nav-underline flex items-center gap-1.5 hover:text-sand-400 transition-colors">
           Fogadj örökbe egy családot
           <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
@@ -114,7 +179,7 @@
       </div>
 
       <div class="nav-dropdown group relative">
-        <button class="flex items-center gap-1.5 hover:text-sand-400 transition-colors">
+        <button class="nav-underline flex items-center gap-1.5 hover:text-sand-400 transition-colors">
           Galéria
           <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
@@ -131,7 +196,7 @@
       </div>
 
       <div class="nav-dropdown group relative">
-        <button class="flex items-center gap-1.5 hover:text-sand-400 transition-colors">
+        <button class="nav-underline flex items-center gap-1.5 hover:text-sand-400 transition-colors">
           Váradi Eszter díj
           <svg class="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
         </button>
@@ -147,7 +212,7 @@
       <a href="#contact" class="inline-flex items-center gap-2 border border-white/40 hover:border-sand-400 hover:text-sand-400 text-white font-semibold text-sm px-5 py-3 rounded-full transition-colors whitespace-nowrap">
         Adó 1%
       </a>
-      <a href="#families" class="inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold text-sm px-5 py-3 rounded-full transition-colors whitespace-nowrap">
+      <a href="#families" class="btn-primary inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold text-sm px-5 py-3 rounded-full whitespace-nowrap">
         Fogadj örökbe egy családot
       </a>
     </div>
@@ -211,7 +276,7 @@
       </div>
 
       <a href="#contact" class="inline-flex justify-center border border-white/40 text-white font-semibold text-base px-6 py-3 rounded-full mt-4">Adó 1%</a>
-      <a href="#families" class="inline-flex justify-center bg-sand-500 text-navy-900 font-semibold text-base px-6 py-3 rounded-full mt-2">Fogadj örökbe egy családot</a>
+      <a href="#families" class="btn-primary inline-flex justify-center bg-sand-500 text-navy-900 font-semibold text-base px-6 py-3 rounded-full mt-2">Fogadj örökbe egy családot</a>
     </nav>
   </div>
 </header>
@@ -233,7 +298,7 @@
       Fogadj örökbe egy rászoruló családot, és válj havonta a történetük részévé.
     </p>
     <div class="reveal flex flex-wrap gap-4">
-      <a href="#families" class="inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold px-8 py-4 rounded-full transition-colors">
+      <a href="#families" class="btn-primary inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold px-8 py-4 rounded-full">
         Fogadj örökbe egy családot
       </a>
       <a href="#founder" class="inline-flex items-center gap-2 border border-white/40 hover:border-sand-400 text-white px-8 py-4 rounded-full transition-colors">
@@ -242,7 +307,7 @@
     </div>
   </div>
 
-  <div class="absolute bottom-8 right-6 lg:right-10 z-10 hidden sm:flex flex-col items-center gap-2 text-white/70">
+  <div class="scroll-cue absolute bottom-8 right-6 lg:right-10 z-10 hidden sm:flex flex-col items-center gap-2 text-white/70">
     <span class="text-xs tracking-widest uppercase [writing-mode:vertical-rl]">Görgess</span>
     <span class="w-px h-10 bg-white/40"></span>
   </div>
@@ -263,7 +328,7 @@
       <!-- Noel -->
       <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
         <div class="relative h-64 overflow-hidden">
-          <img src="assets/img/story-noel.webp" loading="lazy" alt="Noel, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <img src="assets/img/story-noel.webp" loading="lazy" alt="Noel, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500">
           <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
         </div>
         <div class="p-7">
@@ -277,7 +342,7 @@
       <!-- F. Noel -->
       <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
         <div class="relative h-64 overflow-hidden">
-          <img src="assets/img/story-fnoel.webp" loading="lazy" alt="F. Noel, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <img src="assets/img/story-fnoel.webp" loading="lazy" alt="F. Noel, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500">
           <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
         </div>
         <div class="p-7">
@@ -291,7 +356,7 @@
       <!-- Kamilla -->
       <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
         <div class="relative h-64 overflow-hidden">
-          <img src="assets/img/story-kamilla.webp" loading="lazy" alt="Kamilla, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <img src="assets/img/story-kamilla.webp" loading="lazy" alt="Kamilla, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500">
           <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
         </div>
         <div class="p-7">
@@ -317,8 +382,9 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
-        <div class="aspect-[4/5] w-full overflow-hidden">
-          <img src="assets/img/ambassador-gyorfi-pal.jpg" loading="lazy" alt="Győrfi Pál portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+        <div class="relative aspect-[4/5] w-full overflow-hidden">
+          <img src="assets/img/ambassador-gyorfi-pal.jpg" loading="lazy" alt="Győrfi Pál portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
+          <span class="ambassador-accent"></span>
         </div>
         <div class="p-6">
           <h3 class="font-display text-white font-semibold text-2xl mb-1">Győrfi Pál</h3>
@@ -327,8 +393,9 @@
       </article>
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
-        <div class="aspect-[4/5] w-full overflow-hidden">
-          <img src="assets/img/ambassador-racz-jeno.jpg" loading="lazy" alt="Rácz Jenő portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+        <div class="relative aspect-[4/5] w-full overflow-hidden">
+          <img src="assets/img/ambassador-racz-jeno.jpg" loading="lazy" alt="Rácz Jenő portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
+          <span class="ambassador-accent"></span>
         </div>
         <div class="p-6">
           <h3 class="font-display text-white font-semibold text-2xl mb-1">Rácz Jenő</h3>
@@ -337,8 +404,9 @@
       </article>
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
-        <div class="aspect-[4/5] w-full overflow-hidden">
-          <img src="assets/img/ambassador-kucsera-gabor.jpg" loading="lazy" alt="Kucsera Gábor portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+        <div class="relative aspect-[4/5] w-full overflow-hidden">
+          <img src="assets/img/ambassador-kucsera-gabor.jpg" loading="lazy" alt="Kucsera Gábor portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
+          <span class="ambassador-accent"></span>
         </div>
         <div class="p-6">
           <h3 class="font-display text-white font-semibold text-2xl mb-1">Kucsera Gábor</h3>
@@ -347,8 +415,9 @@
       </article>
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
-        <div class="aspect-[4/5] w-full overflow-hidden">
-          <img src="assets/img/ambassador-proksa-szandra.jpg" loading="lazy" alt="Proksa Szandra portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+        <div class="relative aspect-[4/5] w-full overflow-hidden">
+          <img src="assets/img/ambassador-proksa-szandra.jpg" loading="lazy" alt="Proksa Szandra portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
+          <span class="ambassador-accent"></span>
         </div>
         <div class="p-6">
           <h3 class="font-display text-white font-semibold text-2xl mb-1">Proksa Szandra</h3>
@@ -357,8 +426,9 @@
       </article>
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
-        <div class="aspect-[4/5] w-full overflow-hidden">
-          <img src="assets/img/ambassador-kovacs-dobos-evelin.jpg" loading="lazy" alt="Kovács-Dobos Evelin portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+        <div class="relative aspect-[4/5] w-full overflow-hidden">
+          <img src="assets/img/ambassador-kovacs-dobos-evelin.jpg" loading="lazy" alt="Kovács-Dobos Evelin portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
+          <span class="ambassador-accent"></span>
         </div>
         <div class="p-6">
           <h3 class="font-display text-white font-semibold text-2xl mb-1">Kovács-Dobos Evelin</h3>
@@ -367,8 +437,9 @@
       </article>
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
-        <div class="aspect-[4/5] w-full overflow-hidden">
-          <img src="assets/img/ambassador-andrasfi-tibor.jpg" loading="lazy" alt="Andrásfi Tibor portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+        <div class="relative aspect-[4/5] w-full overflow-hidden">
+          <img src="assets/img/ambassador-andrasfi-tibor.jpg" loading="lazy" alt="Andrásfi Tibor portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
+          <span class="ambassador-accent"></span>
         </div>
         <div class="p-6">
           <h3 class="font-display text-white font-semibold text-2xl mb-1">Andrásfi Tibor</h3>
@@ -393,31 +464,31 @@
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
 
-      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+      <div class="reveal lift-card bg-white rounded-2xl p-7 border-t-4 border-sand-500">
         <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21c-4.97-3.5-9-7.03-9-11.25C3 6.83 5.42 4.5 8.35 4.5c1.74 0 3.41.87 4.65 2.26C14.24 5.37 15.91 4.5 17.65 4.5 20.58 4.5 23 6.83 23 9.75 23 14 18.97 17.5 14 21l-1 .7-1-.7z"/></svg>
         <h3 class="font-display font-semibold text-navy-800 mb-2">Beteg gyermekek családjai</h3>
         <p class="text-sm text-navy-600 leading-relaxed">Tartósan vagy súlyosan beteg gyermeket nevelő családok anyagi és lelki terheinek enyhítése.</p>
       </div>
 
-      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+      <div class="reveal lift-card bg-white rounded-2xl p-7 border-t-4 border-sand-500">
         <svg class="w-10 h-10 text-navy-700 mb-5" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6.3" cy="10.2" rx="2" ry="2.6" transform="rotate(-20 6.3 10.2)"/><ellipse cx="11" cy="7.1" rx="2" ry="2.6"/><ellipse cx="15.6" cy="7.4" rx="2" ry="2.6" transform="rotate(12 15.6 7.4)"/><ellipse cx="19.2" cy="11" rx="1.8" ry="2.3" transform="rotate(28 19.2 11)"/><path d="M12.3 12c-3.4 0-6.8 2.7-6.8 5.9 0 2.1 2 3.4 4.4 3.4.9 0 1.7-.3 2.4-.3.7 0 1.4.3 2.4.3 2.4 0 4.4-1.3 4.4-3.4 0-3.2-3.4-5.9-6.8-5.9z"/></svg>
         <h3 class="font-display font-semibold text-navy-800 mb-2">Állatvédelem</h3>
         <p class="text-sm text-navy-600 leading-relaxed">Menhelyek, örökbefogadó programok és sérült állatok gyógykezelésének támogatása.</p>
       </div>
 
-      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+      <div class="reveal lift-card bg-white rounded-2xl p-7 border-t-4 border-sand-500">
         <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4h8v5a4 4 0 0 1-8 0V4Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H5a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 13v3"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 20h6"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 20c0-2.5 1.2-3 3-4 1.8 1 3 1.5 3 4"/></svg>
         <h3 class="font-display font-semibold text-navy-800 mb-2">Sporttámogatás</h3>
         <p class="text-sm text-navy-600 leading-relaxed">Sportfelszerelés, edzésbérlet és versenyeztetés rászoruló, tehetséges gyerekeknek.</p>
       </div>
 
-      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+      <div class="reveal lift-card bg-white rounded-2xl p-7 border-t-4 border-sand-500">
         <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-4-4h8"/><circle cx="12" cy="12" r="9"/></svg>
         <h3 class="font-display font-semibold text-navy-800 mb-2">Egészségügyi támogatás</h3>
         <p class="text-sm text-navy-600 leading-relaxed">Gyógyszerek, vizsgálatok és kezelések elérhetővé tétele, amikor a család ereje elfogyna.</p>
       </div>
 
-      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+      <div class="reveal lift-card bg-white rounded-2xl p-7 border-t-4 border-sand-500">
         <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 9v6c0 1.5 4 3.5 9 3.5s9-2 9-3.5V9"/></svg>
         <h3 class="font-display font-semibold text-navy-800 mb-2">Oktatás támogatása</h3>
         <p class="text-sm text-navy-600 leading-relaxed">Taneszközök, korrepetálás és ösztöndíjak, hogy a szegénység ne szabjon határt a tanulásnak.</p>
@@ -480,7 +551,7 @@
 
         <button class="event-card text-left group" data-event="0">
           <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/charity,gala/all" loading="lazy" alt="Jótékonysági Gála" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <img src="https://loremflickr.com/480/360/charity,gala/all" loading="lazy" alt="Jótékonysági Gála" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
             <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
           </div>
           <h4 class="font-display font-semibold text-white mb-1">Jótékonysági Gála</h4>
@@ -489,7 +560,7 @@
 
         <button class="event-card text-left group" data-event="1">
           <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/picnic,family,park/all" loading="lazy" alt="Családi Piknik Nap" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <img src="https://loremflickr.com/480/360/picnic,family,park/all" loading="lazy" alt="Családi Piknik Nap" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
             <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
           </div>
           <h4 class="font-display font-semibold text-white mb-1">Családi Piknik Nap</h4>
@@ -498,7 +569,7 @@
 
         <button class="event-card text-left group" data-event="2">
           <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/christmas,donation/all" loading="lazy" alt="Karácsonyi Adományosztás" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <img src="https://loremflickr.com/480/360/christmas,donation/all" loading="lazy" alt="Karácsonyi Adományosztás" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
             <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
           </div>
           <h4 class="font-display font-semibold text-white mb-1">Karácsonyi Adományosztás</h4>
@@ -507,7 +578,7 @@
 
         <button class="event-card text-left group" data-event="3">
           <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/kids,sports,day/all" loading="lazy" alt="Sportnap a Gyerekekért" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <img src="https://loremflickr.com/480/360/kids,sports,day/all" loading="lazy" alt="Sportnap a Gyerekekért" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
             <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
           </div>
           <h4 class="font-display font-semibold text-white mb-1">Sportnap a Gyerekekért</h4>
@@ -637,9 +708,9 @@
   var header = document.getElementById('site-header');
   function updateHeader() {
     if (window.scrollY > 40) {
-      header.classList.add('bg-navy-900/95', 'backdrop-blur', 'shadow-lg');
+      header.classList.add('bg-navy-900/95', 'backdrop-blur', 'shadow-lg', 'scrolled');
     } else {
-      header.classList.remove('bg-navy-900/95', 'backdrop-blur', 'shadow-lg');
+      header.classList.remove('bg-navy-900/95', 'backdrop-blur', 'shadow-lg', 'scrolled');
     }
   }
   updateHeader();
@@ -698,13 +769,33 @@
   }
 
   // ---- Scroll reveal ----
+  // Stagger each element by its position within its row (grid parents reset
+  // the count every N items, where N is the parent's current column count).
   var revealEls = document.querySelectorAll('.reveal');
+  function revealDelay(el) {
+    var parent = el.parentElement;
+    if (!parent) return 0;
+    var siblings = Array.prototype.filter.call(parent.children, function (c) {
+      return c.classList.contains('reveal');
+    });
+    var idx = siblings.indexOf(el);
+    var isHero = !!el.closest('#top');
+    var step = isHero ? 150 : 80;
+
+    var isGrid = getComputedStyle(parent).display === 'grid';
+    var posInRow = idx;
+    if (isGrid) {
+      var cols = getComputedStyle(parent).gridTemplateColumns.trim().split(' ').filter(Boolean).length || 1;
+      posInRow = idx % cols;
+    }
+    return Math.min(posInRow, 8) * step;
+  }
+
   var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry, i) {
+    entries.forEach(function (entry) {
       if (entry.isIntersecting) {
         var el = entry.target;
-        var delay = (Array.prototype.indexOf.call(el.parentElement.children, el) % 6) * 90;
-        setTimeout(function () { el.classList.add('in-view'); }, delay);
+        setTimeout(function () { el.classList.add('in-view'); }, revealDelay(el));
         observer.unobserve(el);
       }
     });
