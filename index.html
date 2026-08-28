@@ -9,7 +9,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <script>
   tailwind.config = {
@@ -28,8 +28,8 @@
           }
         },
         fontFamily: {
-          serif: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
-          sans: ['"Work Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          serif: ['"Baloo 2"', 'ui-rounded', 'sans-serif'],
+          sans: ['Nunito', 'ui-sans-serif', 'system-ui', 'sans-serif']
         }
       }
     }
@@ -38,8 +38,8 @@
 
 <style>
   html { scroll-behavior: smooth; }
-  body { font-family: 'Work Sans', sans-serif; color: #334758; }
-  h1, h2, h3, h4, .font-display { font-family: 'Fraunces', serif; }
+  body { font-family: 'Nunito', sans-serif; color: #334758; }
+  h1, h2, h3, h4, .font-display { font-family: 'Baloo 2', sans-serif; }
 
   /* Hero crossfade */
   .hero-slide { opacity: 0; transition: opacity 2s ease-in-out; }
@@ -54,7 +54,7 @@
   .lift-card:hover { transform: translateY(-8px); box-shadow: 0 24px 48px -12px rgba(26,37,45,0.28); }
 
   /* Section number backdrop */
-  .section-num { font-family: 'Fraunces', serif; font-weight: 300; -webkit-text-stroke: 1px #dac7a0; color: transparent; }
+  .section-num { font-family: 'Baloo 2', sans-serif; font-weight: 400; -webkit-text-stroke: 1px #dac7a0; color: transparent; }
 
   /* Partner logo grayscale-to-color */
   .partner-logo img { filter: grayscale(100%); opacity: 0.55; transition: filter 0.35s ease, opacity 0.35s ease, transform 0.35s ease; }
