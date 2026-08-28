@@ -89,9 +89,14 @@
       <a href="#contact" class="hover:text-sand-400 transition-colors">Kapcsolat</a>
     </nav>
 
-    <a href="#families" class="hidden lg:inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold text-sm px-6 py-3 rounded-full transition-colors">
-      Fogadj örökbe egy családot
-    </a>
+    <div class="hidden lg:flex items-center gap-3">
+      <a href="#contact" class="inline-flex items-center gap-2 border border-white/40 hover:border-sand-400 hover:text-sand-400 text-white font-semibold text-sm px-6 py-3 rounded-full transition-colors">
+        Adó 1%
+      </a>
+      <a href="#families" class="inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold text-sm px-6 py-3 rounded-full transition-colors">
+        Fogadj örökbe egy családot
+      </a>
+    </div>
 
     <button id="menu-toggle" class="lg:hidden text-white p-2" aria-label="Menü megnyitása">
       <svg id="icon-open" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -111,7 +116,8 @@
       <a href="#founder" class="mobile-link">Alapító</a>
       <a href="#events" class="mobile-link">Rendezvények</a>
       <a href="#contact" class="mobile-link">Kapcsolat</a>
-      <a href="#families" class="inline-flex justify-center bg-sand-500 text-navy-900 font-semibold text-base px-6 py-3 rounded-full mt-2">Fogadj örökbe egy családot</a>
+      <a href="#contact" class="inline-flex justify-center border border-white/40 text-white font-semibold text-base px-6 py-3 rounded-full mt-2">Adó 1%</a>
+      <a href="#families" class="inline-flex justify-center bg-sand-500 text-navy-900 font-semibold text-base px-6 py-3 rounded-full">Fogadj örökbe egy családot</a>
     </nav>
   </div>
 </header>
@@ -168,7 +174,7 @@
       <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
         <div class="relative h-64 overflow-hidden">
           <img src="assets/img/story-noel.webp" loading="lazy" alt="Noel, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Valódi történet</span>
+          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
         </div>
         <div class="p-7">
           <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Noel</h3>
@@ -182,7 +188,7 @@
       <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
         <div class="relative h-64 overflow-hidden">
           <img src="assets/img/story-fnoel.webp" loading="lazy" alt="F. Noel, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Valódi történet</span>
+          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
         </div>
         <div class="p-7">
           <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">F. Noel</h3>
@@ -196,7 +202,7 @@
       <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
         <div class="relative h-64 overflow-hidden">
           <img src="assets/img/story-kamilla.webp" loading="lazy" alt="Kamilla, akit az Alapítvány támogat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Valódi történet</span>
+          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
         </div>
         <div class="p-7">
           <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Kamilla</h3>
@@ -270,7 +276,7 @@
         <span class="reveal block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Területeink</span>
         <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-navy-800 leading-tight">Öt terület, ahol hisszük: a segítség rendszerré válhat</h2>
       </div>
-      <p class="reveal text-navy-600 leading-relaxed md:text-right">Nem csak pénzt adunk — figyelmet, kapcsolatot és hosszú távú elköteleződést. Ezekben az irányokban dolgozunk a legtöbbet.</p>
+      <p class="reveal text-navy-600 leading-relaxed md:text-right">Alapítványunk különböző területeken nyújt támogatást: a beteg gyermekek ellátásától kezdve az állatvédelemig, a sport, az egészségügy és az oktatás előmozdításáig. Közös erővel érhetünk el változást ezekben a fontos ügyekben.</p>
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -282,13 +288,13 @@
       </div>
 
       <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
-        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 15.5c1-3 3-4 3-4s0 3 2 4-3 3-3 3-2.5-1-2-3z"/></svg>
+        <svg class="w-10 h-10 text-navy-700 mb-5" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6.3" cy="10.2" rx="2" ry="2.6" transform="rotate(-20 6.3 10.2)"/><ellipse cx="11" cy="7.1" rx="2" ry="2.6"/><ellipse cx="15.6" cy="7.4" rx="2" ry="2.6" transform="rotate(12 15.6 7.4)"/><ellipse cx="19.2" cy="11" rx="1.8" ry="2.3" transform="rotate(28 19.2 11)"/><path d="M12.3 12c-3.4 0-6.8 2.7-6.8 5.9 0 2.1 2 3.4 4.4 3.4.9 0 1.7-.3 2.4-.3.7 0 1.4.3 2.4.3 2.4 0 4.4-1.3 4.4-3.4 0-3.2-3.4-5.9-6.8-5.9z"/></svg>
         <h3 class="font-display font-semibold text-navy-800 mb-2">Állatvédelem</h3>
         <p class="text-sm text-navy-600 leading-relaxed">Menhelyek, örökbefogadó programok és sérült állatok gyógykezelésének támogatása.</p>
       </div>
 
       <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
-        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18"/></svg>
+        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4h8v5a4 4 0 0 1-8 0V4Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H5a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 13v3"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 20h6"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 20c0-2.5 1.2-3 3-4 1.8 1 3 1.5 3 4"/></svg>
         <h3 class="font-display font-semibold text-navy-800 mb-2">Sporttámogatás</h3>
         <p class="text-sm text-navy-600 leading-relaxed">Sportfelszerelés, edzésbérlet és versenyeztetés rászoruló, tehetséges gyerekeknek.</p>
       </div>
@@ -320,12 +326,11 @@
     </div>
 
     <div class="lg:col-span-3 reveal">
-      <span class="block text-sand-400 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Az alapító</span>
+      <span class="block text-sand-400 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Alapítónk</span>
       <h2 class="font-display text-3xl md:text-5xl font-medium text-white leading-tight mb-8">Hajós István</h2>
       <div class="space-y-5 text-white/80 leading-relaxed text-base md:text-lg">
-        <p>2019-ben, egy debreceni kórházi látogatás után döntöttem el, hogy nem elég adományozni — rendszert kell építeni, amiben a segítség folyamatos és személyes marad.</p>
-        <p>Azóta az Egy Lépéssel Több Alapítvány több száz családot kötött össze olyan emberekkel, akik havi szinten, hosszú távon állnak melléjük. Nem a nagy gesztusokban hiszek, hanem abban, hogy egy stabil, kiszámítható támogatás mekkora biztonságot ad egy gyereknek.</p>
-        <p>Minden család, minden nagykövet és minden támogató egy közös meggyőződést erősít: senkinek nem kellene egyedül küzdenie.</p>
+        <p>Fiatalon lett vállalkozó, első cégét 2002-ben alapította. Meglátása szerint a kellő alázat, az akarat és a folyamatos tanulás elengedhetetlen egy sikeres vállalkozás működtetéséhez.</p>
+        <p>Innovatív vezető, aki mindig keresi az újabb és újabb kihívásokat. Ha egy hirtelen feladattal találják magukat szemben, kollégái már jól ismerik a mottót: nincs lehetetlen, csak tehetetlen. Éppen ezért nagyon büszke csapatára — a cégcsoportban az alkalmazottak száma meghaladja a 300 főt.</p>
       </div>
       <p class="font-display text-2xl text-sand-400 mt-10 italic">Hajós István</p>
       <p class="text-white/50 text-sm mt-1">Alapító, Egy Lépéssel Több Alapítvány · 2019 óta</p>
@@ -412,7 +417,7 @@
           <img src="assets/img/logo-mark.png" alt="Egy Lépéssel Több Hajós István Alapítvány logó" class="h-10 w-10 object-contain">
           <span class="font-display text-lg font-semibold text-white leading-tight">Egy Lépéssel <span class="text-sand-400">Több</span></span>
         </a>
-        <p class="text-white/60 text-sm leading-relaxed mb-6">Rászoruló családokat kötünk össze adományozókkal — havi rendszerességgel, hosszú távon, emberi léptékben.</p>
+        <p class="text-white/60 text-sm leading-relaxed mb-6">Most Te is tehetsz egy lépéssel többet!</p>
         <div class="flex gap-3">
           <a href="#" aria-label="Facebook" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0022 12z"/></svg>
