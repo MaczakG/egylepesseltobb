@@ -3,380 +3,739 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Egy Lépéssel Több Alapítvány – Fogadj örökbe egy családot!</title>
-<meta name="description" content="Az Egy Lépéssel Több Alapítvány rászoruló, beteg vagy fogyatékkal élő gyermeket nevelő családokat köt össze támogatókkal havi rendszeres segítség formájában.">
-<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<title>Egy Lépéssel Több Alapítvány — Fogadj örökbe egy családot</title>
+<meta name="description" content="Az Egy Lépéssel Több Alapítvány rászoruló családokat köt össze adományozókkal. Fogadj örökbe egy családot, és válj havonta a történetük részévé.">
 
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="assets/css/style.css">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: {
+            50: '#eef2f4', 100: '#dde4e8', 200: '#b9c5cd', 300: '#94a7b3',
+            400: '#708998', 500: '#4c6b7d', 600: '#3d5568', 700: '#334758',
+            800: '#263640', 900: '#1a252d'
+          },
+          sand: {
+            50: '#fdfbf7', 100: '#f8f1e4', 200: '#f0e4cb', 300: '#e8d7b2',
+            400: '#e2d3ab', 500: '#dac7a0', 600: '#c3ac7e', 700: '#a68c5c',
+            800: '#7d6944', 900: '#544632'
+          }
+        },
+        fontFamily: {
+          serif: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+          sans: ['"Work Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif']
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Work Sans', sans-serif; color: #334758; }
+  h1, h2, h3, h4, .font-display { font-family: 'Fraunces', serif; }
+
+  /* Hero crossfade */
+  .hero-slide { opacity: 0; transition: opacity 2s ease-in-out; }
+  .hero-slide.active { opacity: 1; }
+
+  /* Scroll reveal */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+  /* Card hover lift */
+  .lift-card { transition: transform 0.35s ease, box-shadow 0.35s ease; }
+  .lift-card:hover { transform: translateY(-8px); box-shadow: 0 24px 48px -12px rgba(26,37,45,0.28); }
+
+  /* Section number backdrop */
+  .section-num { font-family: 'Fraunces', serif; font-weight: 300; -webkit-text-stroke: 1px #dac7a0; color: transparent; }
+
+  /* Partner logo grayscale-to-color */
+  .partner-logo img { filter: grayscale(100%); opacity: 0.55; transition: filter 0.35s ease, opacity 0.35s ease, transform 0.35s ease; }
+  .partner-logo:hover img { filter: grayscale(0%); opacity: 1; transform: translateY(-2px); }
+
+  /* Lightbox */
+  #lightbox { transition: opacity 0.3s ease; }
+  .lightbox-img { transition: opacity 0.25s ease; }
+
+  /* Mobile menu */
+  #mobile-menu { transition: max-height 0.4s ease, opacity 0.3s ease; }
+
+  ::selection { background: #dac7a0; color: #1a252d; }
+</style>
 </head>
-<body>
+<body class="bg-white text-navy-700 antialiased">
 
-<a class="skip-link" href="#main">Ugrás a tartalomhoz</a>
-
-<!-- SZERKESZTŐI MEGJEGYZÉS: Ez az oldal MINTA TARTALMAT használ (családtörténetek,
-     jogi adatok, nagyköveti/partneri nevek, fotók). Minden, ami [szögletes
-     zárójelben] szerepel, vagy "minta tartalom"-ként van jelölve, valós, jóváhagyott
-     tartalommal helyettesítendő az éles indulás előtt. A logó (assets/img/logo-mark.png,
-     assets/img/logo-full.png) már a valódi Alapítvány-logó. -->
-
-<!-- ============================= FEJLÉC ============================= -->
-<header class="site-header" id="site-header">
-  <div class="container header-inner">
-    <a href="#home" class="brand" aria-label="Egy Lépéssel Több Alapítvány – főoldal">
-      <img src="assets/img/logo-mark.png" alt="" class="brand-mark" width="52" height="52" loading="eager">
-      <span class="brand-text">
-        <strong>Egy Lépéssel<br>Több</strong>
-        <small>Hajós István Alapítvány</small>
-      </span>
+<!-- ============ HEADER / NAV ============ -->
+<header id="site-header" class="fixed top-0 inset-x-0 z-50 transition-colors duration-500">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-between h-20">
+    <a href="#top" class="font-display text-xl md:text-2xl font-semibold tracking-tight text-white drop-shadow-sm">
+      Egy Lépéssel <span class="text-sand-400">Több</span>
     </a>
 
-    <nav class="main-nav" id="main-nav" aria-label="Fő navigáció">
-      <ul>
-        <li><a href="#home">Főoldal</a></li>
-        <li><a href="#rolunk">Rólunk</a></li>
-        <li><a href="#csaladok">Fogadj örökbe egy családot</a></li>
-        <li><a href="#zaro-cta">Jelentkezz támogatónak</a></li>
-        <li><a href="#kapcsolat">Kapcsolat</a></li>
-      </ul>
+    <nav class="hidden lg:flex items-center gap-9 text-sm font-medium tracking-wide text-white/90">
+      <a href="#families" class="hover:text-sand-400 transition-colors">Családok</a>
+      <a href="#ambassadors" class="hover:text-sand-400 transition-colors">Nagyköveteink</a>
+      <a href="#areas" class="hover:text-sand-400 transition-colors">Területeink</a>
+      <a href="#founder" class="hover:text-sand-400 transition-colors">Alapító</a>
+      <a href="#events" class="hover:text-sand-400 transition-colors">Rendezvények</a>
+      <a href="#contact" class="hover:text-sand-400 transition-colors">Kapcsolat</a>
     </nav>
 
-    <div class="header-actions">
-      <div class="lang-switch" role="group" aria-label="Nyelvválasztó (minta elem — még nem működik)">
-        <button type="button" class="lang-btn is-active" id="lang-hu" aria-pressed="true">HU</button>
-        <button type="button" class="lang-btn" id="lang-en" aria-pressed="false">EN</button>
-      </div>
-      <a href="#csaladok" class="btn btn-primary btn-header">Fogadj örökbe egy családot</a>
-      <button class="hamburger" id="hamburger" aria-expanded="false" aria-controls="mobile-nav" aria-label="Menü megnyitása">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
+    <a href="#families" class="hidden lg:inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold text-sm px-6 py-3 rounded-full transition-colors">
+      Fogadj örökbe egy családot
+    </a>
+
+    <button id="menu-toggle" class="lg:hidden text-white p-2" aria-label="Menü megnyitása">
+      <svg id="icon-open" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+      <svg id="icon-close" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
   </div>
 
-  <div class="mobile-nav" id="mobile-nav">
-    <ul>
-      <li><a href="#home">Főoldal</a></li>
-      <li><a href="#rolunk">Rólunk</a></li>
-      <li><a href="#csaladok">Fogadj örökbe egy családot</a></li>
-      <li><a href="#zaro-cta">Jelentkezz támogatónak</a></li>
-      <li><a href="#kapcsolat">Kapcsolat</a></li>
-    </ul>
-    <a href="#csaladok" class="btn btn-primary btn-block">Fogadj örökbe egy családot</a>
+  <div id="mobile-menu" class="lg:hidden overflow-hidden max-h-0 opacity-0 bg-navy-800/98 backdrop-blur">
+    <nav class="flex flex-col px-6 py-6 gap-5 text-white text-lg font-display">
+      <a href="#families" class="mobile-link">Családok</a>
+      <a href="#ambassadors" class="mobile-link">Nagyköveteink</a>
+      <a href="#areas" class="mobile-link">Területeink</a>
+      <a href="#founder" class="mobile-link">Alapító</a>
+      <a href="#events" class="mobile-link">Rendezvények</a>
+      <a href="#contact" class="mobile-link">Kapcsolat</a>
+      <a href="#families" class="inline-flex justify-center bg-sand-500 text-navy-900 font-semibold text-base px-6 py-3 rounded-full mt-2">Fogadj örökbe egy családot</a>
+    </nav>
   </div>
 </header>
 
-<main id="main">
-
-<!-- ============================= HERO ============================= -->
-<section class="hero" id="home">
-  <div class="hero-media" id="hero-media">
-    <img src="assets/img/hero.webp" alt="Mosolygó kislány hintázik napsütötte kertben – az Alapítvány egyik támogatott gyermeke" width="1700" height="1224" loading="eager" fetchpriority="high" class="hero-slide is-active">
-    <img src="assets/img/about.webp" alt="Az Alapítvány alapítója egy támogatott család körében" width="1400" height="1866" loading="lazy" class="hero-slide">
-    <img src="assets/img/why-important.webp" alt="Kislány gyógytorna közben, járássegítő eszközben" width="1400" height="1008" loading="lazy" class="hero-slide">
-    <div class="hero-media-overlay"></div>
+<!-- ============ HERO ============ -->
+<section id="top" class="relative h-screen min-h-[640px] w-full overflow-hidden">
+  <div class="absolute inset-0">
+    <img src="https://loremflickr.com/1920/1280/family,hungary/all" alt="Család egymást átölelve otthon" class="hero-slide active absolute inset-0 w-full h-full object-cover" data-slide="0">
+    <img src="https://loremflickr.com/1920/1280/mother,child/all" alt="Édesanya gyermekével" class="hero-slide absolute inset-0 w-full h-full object-cover" data-slide="1">
+    <img src="https://loremflickr.com/1920/1280/children,playing/all" alt="Gyerekek játék közben" class="hero-slide absolute inset-0 w-full h-full object-cover" data-slide="2">
   </div>
-  <div class="container hero-inner">
-    <div class="hero-copy reveal">
-      <p class="eyebrow">Egy Lépéssel Több Alapítvány</p>
-      <h1>Fogadj örökbe egy családot – legyél te is egy lépéssel több.</h1>
-      <p class="lead">Rászoruló, beteg vagy fogyatékkal élő gyermeket nevelő családokat kötünk össze támogatókkal. Egy rendszeres havi felajánlással stabil, kiszámítható segítséget nyújthatsz pontosan akkor, amikor a legnagyobb szükség van rá.</p>
-      <div class="hero-ctas">
-        <a href="#csaladok" class="btn btn-primary btn-lg">Nézd meg a családokat</a>
-        <a href="#zaro-cta" class="btn btn-ghost btn-lg">Legyél havi támogató</a>
-      </div>
-    </div>
-  </div>
-</section>
+  <div class="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/55 to-navy-900/40"></div>
 
-<!-- ============================= KÜLDETÉS ============================= -->
-<section class="section" id="rolunk">
-  <div class="container mission">
-    <p class="eyebrow center">Küldetésünk</p>
-    <h2>Nem egyszeri gesztus. Havi ígéret.</h2>
-    <p class="mission-text">Alapítványunk szervez és becsatlakozik egyéni és eseti gyűjtésekbe is, de fő célunk más: a „Fogadj örökbe egy családot” programunk egy rendszeres, havi rendszerességű támogatást tesz lehetővé, amellyel egy rászoruló családot segíthetsz. Nem egyszeri adományról van szó, hanem folyamatos, kiszámítható háttérről, amire a családok hónapról hónapra számíthatnak.</p>
-  </div>
-</section>
-
-<!-- ============================= ÖRÖKBEFOGADHATÓ CSALÁDOK ============================= -->
-<section class="section section-tint" id="csaladok">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="eyebrow center">Fogadj örökbe egy családot</p>
-      <h2>Örökbefogadható családok</h2>
-      <p class="section-lead">Az alábbi profilok bemutatják, hogyan jelennek meg a családok történetei az oldalon.</p>
-      <p class="placeholder-flag">⚠ Minta profilok — MINTA TARTALOM, a valódi, jóváhagyott családtörténetekkel és fotókkal kell helyettesíteni az éles indulás előtt.</p>
-    </div>
-
-    <div class="card-grid card-grid--4">
-      <article class="family-card reveal" style="--delay:0ms">
-        <div class="family-card-media">
-          <img src="assets/img/story-noel.webp" alt="Bence portréja (minta fotó)" width="900" height="622" loading="lazy">
-        </div>
-        <div class="family-card-body">
-          <span class="placeholder-badge">Minta profil</span>
-          <h3>[Minta név] – Bence családja</h3>
-          <p>Bence 4 évesen kapott ritka izombetegség diagnózist. A napi gyógytorna és a speciális segédeszközök komoly anyagi terhet jelentenek a családnak. [MINTA TARTALOM]</p>
-          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
-        </div>
-      </article>
-
-      <article class="family-card reveal" style="--delay:80ms">
-        <div class="family-card-media">
-          <img src="assets/img/story-fnoel.webp" alt="Zsófia portréja (minta fotó)" width="900" height="622" loading="lazy">
-        </div>
-        <div class="family-card-body">
-          <span class="placeholder-badge">Minta profil</span>
-          <h3>[Minta név] – Zsófia családja</h3>
-          <p>Zsófia koraszülöttként jött világra, azóta rendszeres fejlesztő terápiákra jár. A havi támogatás segít a szakorvosi vizsgálatok költségeinek fedezésében. [MINTA TARTALOM]</p>
-          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
-        </div>
-      </article>
-
-      <article class="family-card reveal" style="--delay:160ms">
-        <div class="family-card-media">
-          <img src="assets/img/story-kamilla.webp" alt="Dávid portréja (minta fotó)" width="900" height="600" loading="lazy">
-        </div>
-        <div class="family-card-body">
-          <span class="placeholder-badge">Minta profil</span>
-          <h3>[Minta név] – Dávid családja</h3>
-          <p>Dávidnál kisiskolás korában krónikus szívbetegséget diagnosztizáltak. A család a gyógyszerek és a rendszeres kontrollvizsgálatok költségeivel küzd. [MINTA TARTALOM]</p>
-          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
-        </div>
-      </article>
-
-      <article class="family-card reveal" style="--delay:240ms">
-        <div class="family-card-media">
-          <img src="assets/img/story-anna.webp" alt="Luca portréja (minta fotó)" width="900" height="1125" loading="lazy">
-        </div>
-        <div class="family-card-body">
-          <span class="placeholder-badge">Minta profil</span>
-          <h3>[Minta név] – Luca családja</h3>
-          <p>Luca mozgáskorlátozottan született, mindennapjait kerekesszék és rendszeres gyógytorna segíti. A támogatás új, testhezálló segédeszközök beszerzését tenné lehetővé. [MINTA TARTALOM]</p>
-          <a href="#" class="btn btn-outline btn-sm">Támogatom ezt a családot</a>
-        </div>
-      </article>
-    </div>
-
-    <div class="section-foot reveal">
-      <a href="#" class="btn btn-outline">További családok</a>
-    </div>
-  </div>
-</section>
-
-<!-- ============================= HOGYAN MŰKÖDIK ============================= -->
-<section class="section" id="hogyan-mukodik">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="eyebrow center">Hogyan működik?</p>
-      <h2>Négy egyszerű lépés a támogatásig</h2>
-    </div>
-
-    <div class="steps">
-      <div class="step reveal" style="--delay:0ms">
-        <span class="step-index">1</span>
-        <h3>Válassz egy családot</h3>
-        <p>Ismerd meg a valós, ellenőrzött történeteket, és találd meg azt a családot, amelyiké megérint.</p>
-      </div>
-      <div class="step-connector" aria-hidden="true"></div>
-      <div class="step reveal" style="--delay:80ms">
-        <span class="step-index">2</span>
-        <h3>Válaszd ki a havi összeget</h3>
-        <p>Állíts be egy olyan rendszeres összeget, ami neked is kényelmes – minden forint számít.</p>
-      </div>
-      <div class="step-connector" aria-hidden="true"></div>
-      <div class="step reveal" style="--delay:160ms">
-        <span class="step-index">3</span>
-        <h3>Kapj visszajelzést</h3>
-        <p>Rendszeres frissítéseket kapsz arról, hogyan segít a támogatásod.</p>
-      </div>
-      <div class="step-connector" aria-hidden="true"></div>
-      <div class="step reveal" style="--delay:240ms">
-        <span class="step-index">4</span>
-        <h3>Lásd a hatást</h3>
-        <p>Kövesd nyomon, ahogy a család egyre stabilabb talajra kerül – lépésről lépésre.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================= TÁMOGATOTT TERÜLETEK ============================= -->
-<section class="section section-tint" id="tamogatott-teruletek">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="eyebrow center">Támogatott területek</p>
-      <h2>Öt terület, ahol valódi változást hozunk</h2>
-    </div>
-
-    <div class="area-grid">
-      <div class="area-item reveal" style="--delay:0ms">
-        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 42s-15-9.4-15-21A9 9 0 0 1 24 14a9 9 0 0 1 15 7c0 11.6-15 21-15 21Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg></div>
-        <p>Beteg gyermekek családjai</p>
-      </div>
-      <div class="area-item reveal" style="--delay:60ms">
-        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 12c-3-6-13-6-13 3 0 7 9 12 13 17 4-5 13-10 13-17 0-9-10-9-13-3Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="24" cy="16" r="2.2" fill="currentColor"/></svg></div>
-        <p>Állatvédelem</p>
-      </div>
-      <div class="area-item reveal" style="--delay:120ms">
-        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="14" r="7" stroke="currentColor" stroke-width="2.4"/><path d="M12 40c0-8 5.4-13 12-13s12 5 12 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div>
-        <p>Sport</p>
-      </div>
-      <div class="area-item reveal" style="--delay:180ms">
-        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 6v36M10 15c7 0 10 3 14 3s7-3 14-3M10 33c7 0 10-3 14-3s7 3 14 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <p>Egészségügy</p>
-      </div>
-      <div class="area-item reveal" style="--delay:240ms">
-        <div class="area-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M6 14 24 8l18 6-18 6Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M13 19v10c0 3 5 6 11 6s11-3 11-6V19M40 15v13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <p>Oktatás</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================= BIZALOM & TÁRSADALMI VISSZAIGAZOLÁS ============================= -->
-<section class="section" id="bizalom">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="eyebrow center">Közösségünk</p>
-      <h2>Nagyköveteink és partnereink állnak mellettünk</h2>
-      <p class="placeholder-flag">⚠ Az alábbi nevek és logók általános helykitöltők — az éles indulás előtt valós, jóváhagyott nagykövetekre és partnerekre kell cserélni.</p>
-    </div>
-
-    <div class="impact-media reveal">
-      <img src="assets/img/editorial-big.webp" alt="Közösségi esemény az Alapítvány támogatásával" width="1600" height="1152" loading="lazy">
-    </div>
-
-    <div class="ambassador-row reveal">
-      <p class="group-label">Nagyköveteink</p>
-      <div class="ambassador-list">
-        <div class="ambassador">
-          <div class="avatar-placeholder" aria-hidden="true"></div>
-          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
-        </div>
-        <div class="ambassador">
-          <div class="avatar-placeholder" aria-hidden="true"></div>
-          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
-        </div>
-        <div class="ambassador">
-          <div class="avatar-placeholder" aria-hidden="true"></div>
-          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
-        </div>
-        <div class="ambassador">
-          <div class="avatar-placeholder" aria-hidden="true"></div>
-          <p><strong>[Nagykövet neve]</strong><br><span>[Beosztás / szerepkör]</span></p>
-        </div>
-      </div>
-    </div>
-
-    <div class="partner-row reveal">
-      <p class="group-label">Kiemelt partnereink</p>
-      <div class="partner-list">
-        <div class="partner-logo">[Partner logó]</div>
-        <div class="partner-logo">[Partner logó]</div>
-        <div class="partner-logo">[Partner logó]</div>
-        <div class="partner-logo">[Partner logó]</div>
-        <div class="partner-logo">[Partner logó]</div>
-      </div>
-    </div>
-
-    <p class="trust-line reveal">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4 6.5V11c0 5 3.4 8.9 8 10 4.6-1.1 8-5 8-10V6.5L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Nyilvánosságra hozzuk pénzügyeinket és jogi nyilvántartási adatainkat, hogy mindig pontosan tudd, hova kerül a támogatásod.
+  <div class="relative z-10 h-full flex flex-col justify-end px-6 lg:px-10 pb-28 max-w-4xl">
+    <span class="reveal inline-block text-sand-400 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-5">Egy Lépéssel Több Alapítvány</span>
+    <h1 class="reveal font-display text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.05] mb-6">
+      Egy lépéssel közelebb egy méltóbb élethez
+    </h1>
+    <p class="reveal text-white/85 text-lg md:text-xl max-w-2xl mb-10 leading-relaxed">
+      Fogadj örökbe egy rászoruló családot, és válj havonta a történetük részévé — nem alamizsnával, hanem tartós, személyes támogatással.
     </p>
-  </div>
-</section>
-
-<!-- ============================= ZÁRÓ CTA ============================= -->
-<section class="final-cta" id="zaro-cta">
-  <div class="container final-cta-inner reveal">
-    <h2>A havi felajánlásod valakinek stabil hátteret jelent.</h2>
-    <p>Csatlakozz rendszeres támogatóink közösségéhez, és segíts, hogy egy család újabb lépést tehessen előre – minden egyes hónapban.</p>
-    <a href="#csaladok" class="btn btn-white btn-lg">Legyél havi támogató</a>
-  </div>
-</section>
-
-<!-- ============================= KAPCSOLAT ============================= -->
-<section class="section" id="kapcsolat">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="eyebrow center">Kapcsolat</p>
-      <h2>Szeretnél többet megtudni?</h2>
-      <p class="section-lead">Keress minket bizalommal az örökbefogadási programmal vagy a támogatással kapcsolatos kérdéseiddel.</p>
-    </div>
-    <div class="contact-row reveal">
-      <a href="mailto:info@example.hu" class="contact-pill">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.8"/></svg>
-        [info@example.hu]
+    <div class="reveal flex flex-wrap gap-4">
+      <a href="#families" class="inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold px-8 py-4 rounded-full transition-colors">
+        Fogadj örökbe egy családot
       </a>
-      <a href="tel:+3600000000" class="contact-pill">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3h3l2 5-2.5 1.5a11 11 0 0 0 5 5L15 12l5 2v3a2 2 0 0 1-2 2C10.5 19 5 13.5 5 6a2 2 0 0 1 1-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        [+36 00 000 0000]
+      <a href="#founder" class="inline-flex items-center gap-2 border border-white/40 hover:border-sand-400 text-white px-8 py-4 rounded-full transition-colors">
+        Ismerd meg a történetünket
       </a>
     </div>
   </div>
+
+  <div class="absolute bottom-8 right-6 lg:right-10 z-10 hidden sm:flex flex-col items-center gap-2 text-white/70">
+    <span class="text-xs tracking-widest uppercase [writing-mode:vertical-rl]">Görgess</span>
+    <span class="w-px h-10 bg-white/40"></span>
+  </div>
 </section>
 
-</main>
-
-<!-- ============================= LÁBLÉC ============================= -->
-<footer class="site-footer">
-  <div class="container footer-grid">
-    <div class="footer-brand">
-      <img src="assets/img/logo-full.png" alt="Egy Lépéssel Több – Hajós István Alapítvány" width="220" height="96" loading="lazy" class="footer-logo">
-      <p>Rászoruló, beteg vagy fogyatékkal élő gyermeket nevelő családok havi rendszeres, kiszámítható támogatása.</p>
-      <div class="social-row">
-        <a href="#" aria-label="Facebook (minta hivatkozás)">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M14 9h3V5h-3c-2.2 0-4 1.8-4 4v2H8v4h2v6h4v-6h3l1-4h-4v-2c0-.6.4-1 1-1Z" fill="currentColor"/></svg>
-        </a>
-        <a href="#" aria-label="Instagram (minta hivatkozás)">
-          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor"/></svg>
-        </a>
-        <a href="#" aria-label="TikTok (minta hivatkozás)">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M14 3v11.2a2.8 2.8 0 1 1-2.8-2.8c.28 0 .55.04.8.11V8.6a5.6 5.6 0 1 0 4.8 5.55V9.9A6.7 6.7 0 0 0 20.5 11V8.2c-2 0-3.6-1.2-4.2-2.7A4.6 4.6 0 0 1 16 3h-2Z" fill="currentColor"/></svg>
-        </a>
+<!-- ============ FAMILIES ============ -->
+<section id="families" class="relative bg-white py-24 md:py-36 px-6 lg:px-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="relative mb-16 md:mb-20">
+      <span class="section-num absolute -top-10 -left-2 text-[7rem] md:text-[10rem] leading-none select-none pointer-events-none">01</span>
+      <div class="relative pl-0 md:pl-16">
+        <span class="reveal block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Fogadj örökbe egy családot</span>
+        <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-navy-800 max-w-2xl leading-tight">
+          Nem statisztika. Nem szám. Egy valódi család, akinek az élete változhat veled.
+        </h2>
       </div>
     </div>
 
-    <nav class="footer-nav" aria-label="Lábléc navigáció">
-      <h4>Navigáció</h4>
-      <ul>
-        <li><a href="#rolunk">Rólunk</a></li>
-        <li><a href="#csaladok">Fogadj örökbe egy családot</a></li>
-        <li><a href="#tamogatott-teruletek">Támogatott területek</a></li>
-        <li><a href="#zaro-cta">Jelentkezz támogatónak</a></li>
-        <li><a href="#kapcsolat">Kapcsolat</a></li>
-      </ul>
-    </nav>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
 
-    <div class="footer-contact">
-      <h4>Kapcsolat</h4>
-      <p>[Alapító neve], alapító</p>
-      <p><a href="mailto:info@example.hu">[info@example.hu]</a></p>
-      <p><a href="tel:+3600000000">[+36 00 000 0000]</a></p>
-      <p>[Utca, város, irányítószám]</p>
-    </div>
+      <!-- Card 1 -->
+      <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
+        <div class="relative h-64 overflow-hidden">
+          <img src="https://loremflickr.com/640/480/family,portrait/all" loading="lazy" alt="Kovács család portréja" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
+        </div>
+        <div class="p-7">
+          <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Kovács család</h3>
+          <p class="text-sm text-navy-500 mb-4">Debrecen · 3 gyermek</p>
+          <p class="text-navy-600 text-sm leading-relaxed mb-6">Édesanya egyedül neveli három gyermekét egy műszakos betanított munkásként. A legkisebb most kezdi az iskolát, a legnagyobb tehetséges rajzoló — csak egy kis biztonságra lenne szükségük, hogy kibontakozhassanak.</p>
+          <div class="flex items-center justify-between pt-5 border-t border-navy-200">
+            <div>
+              <span class="block text-xs text-navy-400 uppercase tracking-wide">Havi támogatás</span>
+              <span class="font-display text-lg font-semibold text-navy-800">45 000 Ft</span>
+            </div>
+            <a href="#contact" class="text-sm font-semibold text-navy-800 hover:text-sand-700 inline-flex items-center gap-1">Örökbefogadom →</a>
+          </div>
+        </div>
+      </article>
 
-    <div class="footer-legal">
-      <h4>Jogi információk</h4>
-      <p>Adószám: [00000000-0-00]</p>
-      <p>Nyilvántartási szám: [00-00-0000000]</p>
-      <p>Bankszámlaszám: [00000000-00000000]</p>
-      <p>IBAN: [HU00 0000 0000 0000 0000 0000 0000]</p>
-      <ul>
-        <li><a href="#">Adatkezelési tájékoztató [minta]</a></li>
-      </ul>
+      <!-- Card 2 -->
+      <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
+        <div class="relative h-64 overflow-hidden">
+          <img src="https://loremflickr.com/640/480/mother,children/all" loading="lazy" alt="Nagy család portréja" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-4 left-4 bg-navy-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full">Már támogatott</span>
+        </div>
+        <div class="p-7">
+          <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Nagy család</h3>
+          <p class="text-sm text-navy-500 mb-4">Miskolc · 2 gyermek</p>
+          <p class="text-navy-600 text-sm leading-relaxed mb-6">A családfő tartós betegsége miatt vesztette el állását. Két lányuk szorgalmasan tanul, kettejük álma, hogy egyszer óvónő és állatorvos legyen. Egy támogatójuk fél éve áll mellettük.</p>
+          <div class="flex items-center justify-between pt-5 border-t border-navy-200">
+            <div>
+              <span class="block text-xs text-navy-400 uppercase tracking-wide">Havi támogatás</span>
+              <span class="font-display text-lg font-semibold text-navy-800">38 000 Ft</span>
+            </div>
+            <span class="text-sm font-medium text-navy-400">Köszönjük! 🤍</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
+        <div class="relative h-64 overflow-hidden">
+          <img src="https://loremflickr.com/640/480/family,siblings/all" loading="lazy" alt="Szabó család portréja" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
+        </div>
+        <div class="p-7">
+          <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Szabó család</h3>
+          <p class="text-sm text-navy-500 mb-4">Szeged · 4 gyermek</p>
+          <p class="text-navy-600 text-sm leading-relaxed mb-6">Négy gyermek, egy jövedelem és rengeteg szeretet — de a hónap vége mindig szűkös. A szülők mindent megtesznek, hogy senki ne maradjon le a suliban vagy a sportkörön.</p>
+          <div class="flex items-center justify-between pt-5 border-t border-navy-200">
+            <div>
+              <span class="block text-xs text-navy-400 uppercase tracking-wide">Havi támogatás</span>
+              <span class="font-display text-lg font-semibold text-navy-800">52 000 Ft</span>
+            </div>
+            <a href="#contact" class="text-sm font-semibold text-navy-800 hover:text-sand-700 inline-flex items-center gap-1">Örökbefogadom →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
+        <div class="relative h-64 overflow-hidden">
+          <img src="https://loremflickr.com/640/480/child,hospital/all" loading="lazy" alt="Tóth család portréja" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
+        </div>
+        <div class="p-7">
+          <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Tóth család</h3>
+          <p class="text-sm text-navy-500 mb-4">Pécs · 1 gyermek (tartósan beteg)</p>
+          <p class="text-navy-600 text-sm leading-relaxed mb-6">Kisfiuk rendszeres kezelésre jár, ami miatt az egyik szülő nem tud dolgozni. A gyógyszerek és az utazás felemészti a család teljes bevételét — pedig a mosolyuk semmiben sem különbözik a többiekétől.</p>
+          <div class="flex items-center justify-between pt-5 border-t border-navy-200">
+            <div>
+              <span class="block text-xs text-navy-400 uppercase tracking-wide">Havi támogatás</span>
+              <span class="font-display text-lg font-semibold text-navy-800">60 000 Ft</span>
+            </div>
+            <a href="#contact" class="text-sm font-semibold text-navy-800 hover:text-sand-700 inline-flex items-center gap-1">Örökbefogadom →</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5 -->
+      <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
+        <div class="relative h-64 overflow-hidden">
+          <img src="https://loremflickr.com/640/480/family,kids/all" loading="lazy" alt="Horváth család portréja" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-4 left-4 bg-navy-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full">Már támogatott</span>
+        </div>
+        <div class="p-7">
+          <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Horváth család</h3>
+          <p class="text-sm text-navy-500 mb-4">Nyíregyháza · 3 gyermek</p>
+          <p class="text-navy-600 text-sm leading-relaxed mb-6">Három élénk gyerek, akik imádnak focizni és rajzolni. A szülők közmunkából élnek, de sosem adták fel a reményt egy nyugodtabb hétköznapért. Most már nincsenek egyedül.</p>
+          <div class="flex items-center justify-between pt-5 border-t border-navy-200">
+            <div>
+              <span class="block text-xs text-navy-400 uppercase tracking-wide">Havi támogatás</span>
+              <span class="font-display text-lg font-semibold text-navy-800">40 000 Ft</span>
+            </div>
+            <span class="text-sm font-medium text-navy-400">Köszönjük! 🤍</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 6 -->
+      <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
+        <div class="relative h-64 overflow-hidden">
+          <img src="https://loremflickr.com/640/480/family,rural/all" loading="lazy" alt="Varga család portréja" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+          <span class="absolute top-4 left-4 bg-sand-500 text-navy-900 text-xs font-semibold px-3 py-1.5 rounded-full">Örökbefogadható</span>
+        </div>
+        <div class="p-7">
+          <h3 class="font-display text-xl font-semibold text-navy-800 mb-1">Varga család</h3>
+          <p class="text-sm text-navy-500 mb-4">Székesfehérvár · 2 gyermek</p>
+          <p class="text-navy-600 text-sm leading-relaxed mb-6">Az apa napszámosként dolgozik, az anya otthon van a két kisgyerekkel. Egy stabil havi támogatás nekik azt jelentené, hogy végre nem a rezsiszámla dönti el, mi kerül vacsorára.</p>
+          <div class="flex items-center justify-between pt-5 border-t border-navy-200">
+            <div>
+              <span class="block text-xs text-navy-400 uppercase tracking-wide">Havi támogatás</span>
+              <span class="font-display text-lg font-semibold text-navy-800">35 000 Ft</span>
+            </div>
+            <a href="#contact" class="text-sm font-semibold text-navy-800 hover:text-sand-700 inline-flex items-center gap-1">Örökbefogadom →</a>
+          </div>
+        </div>
+      </article>
+
     </div>
   </div>
-  <div class="footer-bottom">
-    <div class="container footer-bottom-inner">
-      <p>&copy; <span id="year"></span> Egy Lépéssel Több Alapítvány. Minden jog fenntartva.</p>
-      <p class="cookie-notice">Ez a weboldal sütiket használ. [Minta cookie tájékoztató szöveg — az éles indulás előtt valós adatkezelési szöveggel és hozzájárulási mechanizmussal kell helyettesíteni.]</p>
+</section>
+
+<!-- ============ AMBASSADORS ============ -->
+<section id="ambassadors" class="relative bg-navy-800 py-24 md:py-36 px-6 lg:px-10 overflow-hidden">
+  <span class="section-num absolute top-10 right-6 md:right-10 text-[7rem] md:text-[11rem] leading-none select-none pointer-events-none" style="-webkit-text-stroke:1px rgba(218,199,160,0.35)">02</span>
+
+  <div class="max-w-7xl mx-auto relative">
+    <div class="mb-16 md:mb-20 max-w-2xl">
+      <span class="reveal block text-sand-400 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Nagyköveteink</span>
+      <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-white leading-tight">Akik a nevüket adják hozzá, hogy több család jusson segítséghez</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+
+      <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
+        <img src="https://loremflickr.com/240/240/woman,doctor/all" loading="lazy" alt="Dr. Kiss Andrea portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <h3 class="font-display text-white font-semibold mb-1">Dr. Kiss Andrea</h3>
+        <p class="text-sand-400 text-xs uppercase tracking-wide mb-4">Gyermekorvos</p>
+        <p class="text-white/70 text-sm leading-relaxed">„Naponta látom, mennyit számít egy biztos háttér egy gyermek fejlődésében. Ezért állok az Alapítvány mellé.”</p>
+      </div>
+
+      <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
+        <img src="https://loremflickr.com/240/240/man,actor/all" loading="lazy" alt="Fekete Gábor portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <h3 class="font-display text-white font-semibold mb-1">Fekete Gábor</h3>
+        <p class="text-sand-400 text-xs uppercase tracking-wide mb-4">Színész</p>
+        <p class="text-white/70 text-sm leading-relaxed">„Hiszek benne, hogy a figyelem és a kitartás többet ér, mint egyszeri adomány. Ezért havi támogató vagyok.”</p>
+      </div>
+
+      <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
+        <img src="https://loremflickr.com/240/240/woman,swimmer,athlete/all" loading="lazy" alt="Molnár Zsófia portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <h3 class="font-display text-white font-semibold mb-1">Molnár Zsófia</h3>
+        <p class="text-sand-400 text-xs uppercase tracking-wide mb-4">Olimpikon, úszó</p>
+        <p class="text-white/70 text-sm leading-relaxed">„Tudom, milyen egy edző, egy csapat, egy közösség ereje. Minden gyerek megérdemli, hogy legyen kire számítania.”</p>
+      </div>
+
+      <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
+        <img src="https://loremflickr.com/240/240/businessman,portrait/all" loading="lazy" alt="Papp Tamás portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <h3 class="font-display text-white font-semibold mb-1">Papp Tamás</h3>
+        <p class="text-sand-400 text-xs uppercase tracking-wide mb-4">Vállalkozó</p>
+        <p class="text-white/70 text-sm leading-relaxed">„A vállalkozásom sikeréből szeretnék visszaadni — az Egy Lépéssel Több pontosan tudja, hova kell.”</p>
+      </div>
+
+      <div class="reveal lift-card bg-navy-700/60 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
+        <img src="https://loremflickr.com/240/240/woman,journalist,portrait/all" loading="lazy" alt="Balogh Eszter portréja" class="w-24 h-24 rounded-full object-cover mb-5 ring-2 ring-sand-500/60">
+        <h3 class="font-display text-white font-semibold mb-1">Balogh Eszter</h3>
+        <p class="text-sand-400 text-xs uppercase tracking-wide mb-4">Újságíró, műsorvezető</p>
+        <p class="text-white/70 text-sm leading-relaxed">„A történeteken keresztül sok embert megérintünk — ez a legjobb módja, hogy híre menjen a jónak.”</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ SUPPORTED AREAS ============ -->
+<section id="areas" class="relative bg-sand-50 py-24 md:py-36 px-6 lg:px-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-16 md:mb-20 grid md:grid-cols-2 gap-10 items-end">
+      <div>
+        <span class="reveal block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Területeink</span>
+        <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-navy-800 leading-tight">Öt terület, ahol hisszük: a segítség rendszerré válhat</h2>
+      </div>
+      <p class="reveal text-navy-600 leading-relaxed md:text-right">Nem csak pénzt adunk — figyelmet, kapcsolatot és hosszú távú elköteleződést. Ezekben az irányokban dolgozunk a legtöbbet.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+
+      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21c-4.97-3.5-9-7.03-9-11.25C3 6.83 5.42 4.5 8.35 4.5c1.74 0 3.41.87 4.65 2.26C14.24 5.37 15.91 4.5 17.65 4.5 20.58 4.5 23 6.83 23 9.75 23 14 18.97 17.5 14 21l-1 .7-1-.7z"/></svg>
+        <h3 class="font-display font-semibold text-navy-800 mb-2">Beteg gyermekek családjai</h3>
+        <p class="text-sm text-navy-600 leading-relaxed">Tartósan vagy súlyosan beteg gyermeket nevelő családok anyagi és lelki terheinek enyhítése.</p>
+      </div>
+
+      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 15.5c1-3 3-4 3-4s0 3 2 4-3 3-3 3-2.5-1-2-3z"/></svg>
+        <h3 class="font-display font-semibold text-navy-800 mb-2">Állatvédelem</h3>
+        <p class="text-sm text-navy-600 leading-relaxed">Menhelyek, örökbefogadó programok és sérült állatok gyógykezelésének támogatása.</p>
+      </div>
+
+      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18"/></svg>
+        <h3 class="font-display font-semibold text-navy-800 mb-2">Sporttámogatás</h3>
+        <p class="text-sm text-navy-600 leading-relaxed">Sportfelszerelés, edzésbérlet és versenyeztetés rászoruló, tehetséges gyerekeknek.</p>
+      </div>
+
+      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-4-4h8"/><circle cx="12" cy="12" r="9"/></svg>
+        <h3 class="font-display font-semibold text-navy-800 mb-2">Egészségügyi támogatás</h3>
+        <p class="text-sm text-navy-600 leading-relaxed">Gyógyszerek, vizsgálatok és kezelések elérhetővé tétele, amikor a család ereje elfogyna.</p>
+      </div>
+
+      <div class="reveal bg-white rounded-2xl p-7 border-t-4 border-sand-500 hover:-translate-y-2 transition-transform duration-300">
+        <svg class="w-10 h-10 text-navy-700 mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 9v6c0 1.5 4 3.5 9 3.5s9-2 9-3.5V9"/></svg>
+        <h3 class="font-display font-semibold text-navy-800 mb-2">Oktatás támogatása</h3>
+        <p class="text-sm text-navy-600 leading-relaxed">Taneszközök, korrepetálás és ösztöndíjak, hogy a szegénység ne szabjon határt a tanulásnak.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOUNDER ============ -->
+<section id="founder" class="relative bg-navy-700 py-24 md:py-36 px-6 lg:px-10 overflow-hidden">
+  <span class="section-num absolute -bottom-6 left-6 md:left-10 text-[7rem] md:text-[11rem] leading-none select-none pointer-events-none" style="-webkit-text-stroke:1px rgba(218,199,160,0.3)">03</span>
+
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-5 gap-14 items-center relative">
+    <div class="lg:col-span-2 relative reveal">
+      <div class="absolute -inset-4 border border-sand-500/40 rounded-2xl hidden md:block"></div>
+      <img src="https://loremflickr.com/720/880/man,founder,portrait/all" loading="lazy" alt="Hajós István, az alapítvány alapítója" class="relative w-full h-[420px] md:h-[560px] object-cover rounded-2xl shadow-2xl">
+    </div>
+
+    <div class="lg:col-span-3 reveal">
+      <span class="block text-sand-400 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Az alapító</span>
+      <h2 class="font-display text-3xl md:text-5xl font-medium text-white leading-tight mb-8">Hajós István</h2>
+      <div class="space-y-5 text-white/80 leading-relaxed text-base md:text-lg">
+        <p>2019-ben, egy debreceni kórházi látogatás után döntöttem el, hogy nem elég adományozni — rendszert kell építeni, amiben a segítség folyamatos és személyes marad.</p>
+        <p>Azóta az Egy Lépéssel Több Alapítvány több száz családot kötött össze olyan emberekkel, akik havi szinten, hosszú távon állnak melléjük. Nem a nagy gesztusokban hiszek, hanem abban, hogy egy stabil, kiszámítható támogatás mekkora biztonságot ad egy gyereknek.</p>
+        <p>Minden család, minden nagykövet és minden támogató egy közös meggyőződést erősít: senkinek nem kellene egyedül küzdenie.</p>
+      </div>
+      <p class="font-display text-2xl text-sand-400 mt-10 italic">Hajós István</p>
+      <p class="text-white/50 text-sm mt-1">Alapító, Egy Lépéssel Több Alapítvány · 2019 óta</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-navy-900 text-white">
+
+  <!-- Partners -->
+  <div class="border-b border-white/10 py-14 px-6 lg:px-10">
+    <div class="max-w-7xl mx-auto">
+      <p class="text-center text-xs tracking-[0.3em] uppercase text-white/40 mb-9">Kiemelt partnereink</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
+        <div class="partner-logo flex justify-center"><img src="https://placehold.co/160x64/1a252d/dac7a0?text=K%C5%91RIS+CSOPORT&font=raleway" alt="Kőris Csoport logó" loading="lazy" class="h-10 object-contain"></div>
+        <div class="partner-logo flex justify-center"><img src="https://placehold.co/160x64/1a252d/dac7a0?text=NAPF%C3%89NY&font=raleway" alt="Napfény Biztosító logó" loading="lazy" class="h-10 object-contain"></div>
+        <div class="partner-logo flex justify-center"><img src="https://placehold.co/160x64/1a252d/dac7a0?text=TISZTA+FORR%C3%81S&font=raleway" alt="Tiszta Forrás Kft. logó" loading="lazy" class="h-10 object-contain"></div>
+        <div class="partner-logo flex justify-center"><img src="https://placehold.co/160x64/1a252d/dac7a0?text=ARANYKAPU&font=raleway" alt="Aranykapu Ingatlan logó" loading="lazy" class="h-10 object-contain"></div>
+        <div class="partner-logo flex justify-center"><img src="https://placehold.co/160x64/1a252d/dac7a0?text=KRIST%C3%81LYPONT&font=raleway" alt="Kristálypont Egészségközpont logó" loading="lazy" class="h-10 object-contain"></div>
+        <div class="partner-logo flex justify-center"><img src="https://placehold.co/160x64/1a252d/dac7a0?text=Z%C3%96LD+%C3%9AT&font=raleway" alt="Zöld Út Logisztika logó" loading="lazy" class="h-10 object-contain"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Events -->
+  <div id="events" class="border-b border-white/10 py-16 px-6 lg:px-10">
+    <div class="max-w-7xl mx-auto">
+      <p class="text-xs tracking-[0.3em] uppercase text-sand-400 mb-3">Rendezvényeink</p>
+      <h3 class="font-display text-2xl md:text-3xl font-medium mb-10">Találkozzunk élőben is</h3>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <button class="event-card text-left group" data-event="0">
+          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
+            <img src="https://loremflickr.com/480/360/charity,gala/all" loading="lazy" alt="Jótékonysági Gála" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
+          </div>
+          <h4 class="font-display font-semibold text-white mb-1">Jótékonysági Gála</h4>
+          <p class="text-sm text-white/60">2026. szeptember 20. · Budapest, Bálna</p>
+        </button>
+
+        <button class="event-card text-left group" data-event="1">
+          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
+            <img src="https://loremflickr.com/480/360/picnic,family,park/all" loading="lazy" alt="Családi Piknik Nap" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
+          </div>
+          <h4 class="font-display font-semibold text-white mb-1">Családi Piknik Nap</h4>
+          <p class="text-sm text-white/60">2026. október 4. · Margitsziget</p>
+        </button>
+
+        <button class="event-card text-left group" data-event="2">
+          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
+            <img src="https://loremflickr.com/480/360/christmas,donation/all" loading="lazy" alt="Karácsonyi Adományosztás" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
+          </div>
+          <h4 class="font-display font-semibold text-white mb-1">Karácsonyi Adományosztás</h4>
+          <p class="text-sm text-white/60">2026. december 14. · Debrecen</p>
+        </button>
+
+        <button class="event-card text-left group" data-event="3">
+          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
+            <img src="https://loremflickr.com/480/360/kids,sports,day/all" loading="lazy" alt="Sportnap a Gyerekekért" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
+          </div>
+          <h4 class="font-display font-semibold text-white mb-1">Sportnap a Gyerekekért</h4>
+          <p class="text-sm text-white/60">2027. február 1. · Szeged, Sportcsarnok</p>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer menu / contact -->
+  <div id="contact" class="py-16 px-6 lg:px-10">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-14">
+
+      <div>
+        <a href="#top" class="font-display text-xl font-semibold text-white block mb-4">Egy Lépéssel <span class="text-sand-400">Több</span></a>
+        <p class="text-white/60 text-sm leading-relaxed mb-6">Rászoruló családokat kötünk össze adományozókkal — havi rendszerességgel, hosszú távon, emberi léptékben.</p>
+        <div class="flex gap-3">
+          <a href="#" aria-label="Facebook" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0022 12z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 2 .3 2.4.5.6.2 1 .5 1.5 1 .4.4.7.9 1 1.5.2.4.4 1.2.5 2.4.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2-.5 2.4-.3.6-.6 1-1 1.5-.5.4-.9.7-1.5 1-.4.2-1.2.4-2.4.5-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2-.3-2.4-.5-.6-.3-1-.6-1.5-1-.4-.5-.7-.9-1-1.5-.2-.4-.4-1.2-.5-2.4-.1-1.3-.1-1.7-.1-4.9s0-3.6.1-4.9c.1-1.2.3-2 .5-2.4.2-.6.6-1 1-1.5.4-.4.9-.7 1.5-1 .4-.2 1.2-.4 2.4-.5C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.8.1-1 .1-1.5.2-1.9.4-.5.2-.8.4-1.1.7-.3.3-.5.6-.7 1.1-.2.4-.3.9-.4 1.9-.1 1.3-.1 1.7-.1 4.8s0 3.5.1 4.8c.1 1 .2 1.5.4 1.9.2.5.4.8.7 1.1.3.3.6.5 1.1.7.4.2.9.3 1.9.4 1.3.1 1.7.1 4.8.1s3.5 0 4.8-.1c1-.1 1.5-.2 1.9-.4.5-.2.8-.4 1.1-.7.3-.3.5-.6.7-1.1.2-.4.3-.9.4-1.9.1-1.3.1-1.7.1-4.8s0-3.5-.1-4.8c-.1-1-.2-1.5-.4-1.9-.2-.5-.4-.8-.7-1.1-.3-.3-.6-.5-1.1-.7-.4-.2-.9-.3-1.9-.4-1.3-.1-1.7-.1-4.8-.1zm0 3.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 1.8a2.7 2.7 0 100 5.4 2.7 2.7 0 000-5.4zm5.7-2a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0z"/></svg>
+          </a>
+          <a href="#" aria-label="YouTube" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23 12s0-3.6-.5-5.3a3 3 0 00-2.1-2.1C18.7 4 12 4 12 4s-6.7 0-8.4.6A3 3 0 001.5 6.7C1 8.4 1 12 1 12s0 3.6.5 5.3a3 3 0 002.1 2.1C5.3 20 12 20 12 20s6.7 0 8.4-.6a3 3 0 002.1-2.1c.5-1.7.5-5.3.5-5.3zM9.7 15.5v-7l6.1 3.5-6.1 3.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Rólunk</h5>
+        <ul class="space-y-3 text-sm text-white/65">
+          <li><a href="#founder" class="hover:text-white transition-colors">Az alapító</a></li>
+          <li><a href="#ambassadors" class="hover:text-white transition-colors">Nagyköveteink</a></li>
+          <li><a href="#areas" class="hover:text-white transition-colors">Támogatott területek</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Közhasznúsági jelentés</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Támogatás</h5>
+        <ul class="space-y-3 text-sm text-white/65">
+          <li><a href="#families" class="hover:text-white transition-colors">Fogadj örökbe egy családot</a></li>
+          <li><a href="#events" class="hover:text-white transition-colors">Rendezvények</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Adatvédelem</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">ÁSZF</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Kapcsolat</h5>
+        <ul class="space-y-3 text-sm text-white/65 mb-6">
+          <li>4024 Debrecen, Piac utca 22.</li>
+          <li>+36 30 123 4567</li>
+          <li>info@egylepesseltobb.hu</li>
+        </ul>
+        <div class="rounded-xl overflow-hidden border border-white/10">
+          <iframe src="https://www.google.com/maps?q=Debrecen,Piac%20utca%2022&output=embed" class="w-full h-36 grayscale contrast-125" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Az alapítvány székhelye a térképen"></iframe>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="max-w-7xl mx-auto pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/40">
+      <p>© 2026 Egy Lépéssel Több Alapítvány. Minden jog fenntartva.</p>
+      <div class="flex gap-6">
+        <a href="#" class="hover:text-white transition-colors">Adatvédelem</a>
+        <a href="#" class="hover:text-white transition-colors">ÁSZF</a>
+        <a href="#" class="hover:text-white transition-colors">Közhasznúsági jelentés</a>
+      </div>
     </div>
   </div>
 </footer>
 
-<script src="assets/js/main.js"></script>
+<!-- ============ LIGHTBOX ============ -->
+<div id="lightbox" class="fixed inset-0 z-[100] hidden opacity-0 bg-navy-900/95 backdrop-blur-sm items-center justify-center px-4">
+  <button id="lightbox-close" aria-label="Bezárás" class="absolute top-6 right-6 text-white/80 hover:text-sand-400 transition-colors">
+    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+  </button>
+
+  <button id="lightbox-prev" aria-label="Előző kép" class="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-sand-400 transition-colors">
+    <svg class="w-9 h-9 md:w-12 md:h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+  </button>
+  <button id="lightbox-next" aria-label="Következő kép" class="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-sand-400 transition-colors">
+    <svg class="w-9 h-9 md:w-12 md:h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+  </button>
+
+  <div class="max-w-4xl w-full">
+    <div class="relative rounded-xl overflow-hidden bg-navy-800 aspect-[4/3]">
+      <img id="lightbox-img" src="" alt="" class="lightbox-img w-full h-full object-cover">
+    </div>
+    <div class="text-center mt-5">
+      <h4 id="lightbox-title" class="font-display text-white text-lg font-semibold"></h4>
+      <p id="lightbox-counter" class="text-white/50 text-sm mt-1"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ---- Header background on scroll ----
+  var header = document.getElementById('site-header');
+  function updateHeader() {
+    if (window.scrollY > 40) {
+      header.classList.add('bg-navy-900/95', 'backdrop-blur', 'shadow-lg');
+    } else {
+      header.classList.remove('bg-navy-900/95', 'backdrop-blur', 'shadow-lg');
+    }
+  }
+  updateHeader();
+  window.addEventListener('scroll', updateHeader);
+
+  // ---- Mobile menu ----
+  var menuToggle = document.getElementById('menu-toggle');
+  var mobileMenu = document.getElementById('mobile-menu');
+  var iconOpen = document.getElementById('icon-open');
+  var iconClose = document.getElementById('icon-close');
+  var menuOpen = false;
+
+  function setMenu(open) {
+    menuOpen = open;
+    if (open) {
+      mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+      mobileMenu.style.opacity = '1';
+      iconOpen.classList.add('hidden');
+      iconClose.classList.remove('hidden');
+    } else {
+      mobileMenu.style.maxHeight = '0px';
+      mobileMenu.style.opacity = '0';
+      iconOpen.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+    }
+  }
+  menuToggle.addEventListener('click', function () { setMenu(!menuOpen); });
+  document.querySelectorAll('#mobile-menu a').forEach(function (a) {
+    a.addEventListener('click', function () { setMenu(false); });
+  });
+
+  // ---- Hero crossfade ----
+  var slides = document.querySelectorAll('.hero-slide');
+  var current = 0;
+  if (slides.length > 1) {
+    setInterval(function () {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, 5000);
+  }
+
+  // ---- Scroll reveal ----
+  var revealEls = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry, i) {
+      if (entry.isIntersecting) {
+        var el = entry.target;
+        var delay = (Array.prototype.indexOf.call(el.parentElement.children, el) % 6) * 90;
+        setTimeout(function () { el.classList.add('in-view'); }, delay);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+  revealEls.forEach(function (el) { observer.observe(el); });
+
+  // ---- Events lightbox ----
+  var eventGalleries = [
+    {
+      title: 'Jótékonysági Gála',
+      images: [
+        { src: 'https://loremflickr.com/1200/800/gala,event/all', alt: 'Jótékonysági Gála – vendégek érkezése' },
+        { src: 'https://loremflickr.com/1200/800/gala,dinner/all', alt: 'Jótékonysági Gála – vacsora' },
+        { src: 'https://loremflickr.com/1200/800/charity,auction/all', alt: 'Jótékonysági Gála – árverés' }
+      ]
+    },
+    {
+      title: 'Családi Piknik Nap',
+      images: [
+        { src: 'https://loremflickr.com/1200/800/picnic,park,family/all', alt: 'Családi Piknik Nap – piknikező családok' },
+        { src: 'https://loremflickr.com/1200/800/children,games,park/all', alt: 'Családi Piknik Nap – gyerekjátékok' },
+        { src: 'https://loremflickr.com/1200/800/summer,picnic/all', alt: 'Családi Piknik Nap – nyári hangulat' }
+      ]
+    },
+    {
+      title: 'Karácsonyi Adományosztás',
+      images: [
+        { src: 'https://loremflickr.com/1200/800/christmas,gifts/all', alt: 'Karácsonyi Adományosztás – ajándékcsomagok' },
+        { src: 'https://loremflickr.com/1200/800/christmas,children/all', alt: 'Karácsonyi Adományosztás – gyerekek az ajándékokkal' },
+        { src: 'https://loremflickr.com/1200/800/winter,charity/all', alt: 'Karácsonyi Adományosztás – önkéntesek' }
+      ]
+    },
+    {
+      title: 'Sportnap a Gyerekekért',
+      images: [
+        { src: 'https://loremflickr.com/1200/800/kids,sports,field/all', alt: 'Sportnap a Gyerekekért – pályán' },
+        { src: 'https://loremflickr.com/1200/800/children,running,race/all', alt: 'Sportnap a Gyerekekért – futóverseny' },
+        { src: 'https://loremflickr.com/1200/800/sports,team,kids/all', alt: 'Sportnap a Gyerekekért – csapatjáték' }
+      ]
+    }
+  ];
+
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightbox-img');
+  var lightboxTitle = document.getElementById('lightbox-title');
+  var lightboxCounter = document.getElementById('lightbox-counter');
+  var lbClose = document.getElementById('lightbox-close');
+  var lbPrev = document.getElementById('lightbox-prev');
+  var lbNext = document.getElementById('lightbox-next');
+
+  var activeGallery = null;
+  var activeIndex = 0;
+
+  function renderLightbox() {
+    var gallery = eventGalleries[activeGallery];
+    var img = gallery.images[activeIndex];
+    lightboxImg.style.opacity = '0';
+    setTimeout(function () {
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt;
+      lightboxImg.style.opacity = '1';
+    }, 120);
+    lightboxTitle.textContent = gallery.title;
+    lightboxCounter.textContent = (activeIndex + 1) + ' / ' + gallery.images.length;
+  }
+
+  function openLightbox(idx) {
+    activeGallery = idx;
+    activeIndex = 0;
+    lightbox.classList.remove('hidden');
+    requestAnimationFrame(function () {
+      lightbox.classList.add('flex');
+      lightbox.style.opacity = '1';
+    });
+    document.body.style.overflow = 'hidden';
+    renderLightbox();
+  }
+
+  function closeLightbox() {
+    lightbox.style.opacity = '0';
+    document.body.style.overflow = '';
+    setTimeout(function () {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+    }, 300);
+  }
+
+  document.querySelectorAll('.event-card').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openLightbox(parseInt(btn.getAttribute('data-event'), 10));
+    });
+  });
+
+  lbClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLightbox(); });
+  lbPrev.addEventListener('click', function () {
+    var gallery = eventGalleries[activeGallery];
+    activeIndex = (activeIndex - 1 + gallery.images.length) % gallery.images.length;
+    renderLightbox();
+  });
+  lbNext.addEventListener('click', function () {
+    var gallery = eventGalleries[activeGallery];
+    activeIndex = (activeIndex + 1) % gallery.images.length;
+    renderLightbox();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (lightbox.classList.contains('hidden')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') lbPrev.click();
+    if (e.key === 'ArrowRight') lbNext.click();
+  });
+})();
+</script>
+
 </body>
 </html>
