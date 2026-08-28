@@ -138,7 +138,7 @@
 <body class="bg-white text-navy-700 antialiased">
 
 <!-- ============ HEADER / NAV ============ -->
-<header id="site-header" class="fixed top-0 inset-x-0 z-50 transition-colors duration-500">
+<header id="site-header" class="fixed top-0 inset-x-0 z-50 bg-navy-900/95 backdrop-blur shadow-lg transition-colors duration-500">
   <div id="header-inner" class="max-w-[96rem] mx-auto px-6 lg:px-10 flex items-center justify-between 2xl:justify-center gap-10 h-20">
     <a href="#top" class="flex items-center shrink-0">
       <img src="assets/img/logo-full.png" alt="Egy Lépéssel Több Hajós István Alapítvány logó" class="h-12 md:h-14 w-auto object-contain">
@@ -379,7 +379,7 @@
       <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-white leading-tight">Akik a nevüket adják hozzá, hogy több család jusson segítséghez</h2>
     </div>
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
         <div class="relative aspect-[4/5] w-full overflow-hidden">
@@ -707,11 +707,7 @@
   // ---- Header background on scroll ----
   var header = document.getElementById('site-header');
   function updateHeader() {
-    if (window.scrollY > 40) {
-      header.classList.add('bg-navy-900/95', 'backdrop-blur', 'shadow-lg', 'scrolled');
-    } else {
-      header.classList.remove('bg-navy-900/95', 'backdrop-blur', 'shadow-lg', 'scrolled');
-    }
+    header.classList.toggle('scrolled', window.scrollY > 40);
   }
   updateHeader();
   window.addEventListener('scroll', updateHeader);
