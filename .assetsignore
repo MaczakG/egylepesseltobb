@@ -1,0 +1,6 @@
+.git
+.github
+.wrangler
+deploy
+wrangler.jsonc
+*.md
