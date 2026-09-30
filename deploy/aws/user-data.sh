@@ -79,7 +79,7 @@ else
   git -C "$SRC" reset --hard FETCH_HEAD
 fi
 
-rsync -a --delete --exclude '.*' --exclude 'deploy/' --exclude '*.md' --exclude 'wrangler.jsonc' "$SRC/" "$WEB/"
+rsync -a --delete --exclude '.*' --exclude 'deploy/' --exclude '*.md' "$SRC/" "$WEB/"
 
 if [ -n "$DOMAIN" ] && [ ! -d "/etc/letsencrypt/live/${DOMAIN%%,*}" ]; then
   # Csak akkor kérünk tanúsítványt, ha minden domain már erre a szerverre mutat,
