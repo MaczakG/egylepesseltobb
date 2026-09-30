@@ -82,9 +82,18 @@ fi
 rsync -a --delete --exclude '.*' --exclude 'deploy/' --exclude '*.md' "$SRC/" "$WEB/"
 
 if [ -n "$DOMAIN" ] && [ ! -d "/etc/letsencrypt/live/${DOMAIN%%,*}" ]; then
-  # Csak akkor sikerül, ha a DNS már erre a szerverre mutat; addig minden futáskor újrapróbálja.
-  if [ -n "$EMAIL" ]; then email_args=(-m "$EMAIL"); else email_args=(--register-unsafely-without-email); fi
-  certbot --nginx --non-interactive --agree-tos --redirect "${email_args[@]}" -d "$DOMAIN" || true
+  # Csak akkor kérünk tanúsítványt, ha minden domain már erre a szerverre mutat,
+  # különben a Let's Encrypt a sikertelen próbálkozások miatt egy időre letiltana.
+  token=$(curl -sf --max-time 2 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token || true)
+  my_ip=$(curl -sf --max-time 2 -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/public-ipv4 || true)
+  ready=$([ -n "$my_ip" ] && echo 1 || echo 0)
+  for d in ${DOMAIN//,/ }; do
+    [ "$(getent ahostsv4 "$d" | awk 'NR == 1 { print $1 }')" = "$my_ip" ] || ready=0
+  done
+  if [ "$ready" = 1 ]; then
+    if [ -n "$EMAIL" ]; then email_args=(-m "$EMAIL"); else email_args=(--register-unsafely-without-email); fi
+    certbot --nginx --non-interactive --agree-tos --redirect "${email_args[@]}" -d "$DOMAIN" || true
+  fi
 fi
 EOF
 chmod 755 /usr/local/bin/egylepesseltobb-update
