@@ -1,5 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 import { POST_CATEGORIES, POST_STATUSES, STATUSES } from './db.js';
+import { slugify } from './slug.js';
 
 export class ValidationError extends Error {}
 
@@ -64,6 +65,8 @@ export function validateFamily(body) {
   if (story.length > 100_000) throw new ValidationError('A történet túl hosszú.');
   return {
     name: text(body.name, 'családnév', 120, { required: true }),
+    // Üresen a névből készül (új családnál), illetve megmarad a régi (szerkesztéskor).
+    slug: typeof body.slug === 'string' ? slugify(body.slug) : '',
     subtitle: text(body.subtitle, 'alcím', 200),
     status: body.status,
     amount: integer(body.amount, 'összeg', 100_000_000),
@@ -91,16 +94,7 @@ export function detectImageType(buf) {
 }
 
 // Ékezetek nélküli, kötőjeles URL-részlet: „Őszi családi nap 2026!” → „oszi-csaladi-nap-2026”.
-export function slugify(value) {
-  return String(value)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
-    .replace(/-+$/, '');
-}
+export { slugify };
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 

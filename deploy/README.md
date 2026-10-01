@@ -61,6 +61,10 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - Belépés: `https://<domain>/admin.html`, az `ADMIN_EMAIL` / `ADMIN_PASSWORD` adatokkal.
 - Családstátuszok: **Örökbefogadható**, **Örökbefogadott**, **Feltöltés alatt**, **Archivált**. A főoldalon csak az „Örökbefogadható” státuszú családok jelennek meg, a többi csak az adminban látszik.
 - Az automatikus státuszváltás (Beállítások) csak az örökbefogadható és az örökbefogadott családokra vonatkozik.
+- Minden gyereknek (családnak) saját aloldala van: `/csaladok/<webcím>`. Az adatbázisból jön a név, az alcím, a történet és a képek (nagyítóval). Van rajta „Segíteni szeretnék” gomb, ami a lábléc e-mail címére ír a család nevével a tárgyban, megosztás gomb és további örökbefogadható családok. A havi összeg és a jelentkezők száma nem jelenik meg.
+- A webcím a névből készül, és átnevezéskor nem változik; az adminban a család adatlapján átírható. Ugyanott az „Aloldal ↗” gomb megnyitja az oldalt.
+- Aloldala az örökbefogadható és az örökbefogadott családoknak van. Az archivált és a feltöltés alatti családot csak bejelentkezett adminisztrátor látja, előnézetként.
+- Családlista: `/csaladok` (örökbefogadhatók) és `/csaladok?statusz=orokbefogadott`. A menü „Örökbefogadható / Örökbefogadott családok” pontja ide mutat.
 - Az adatok a szerver lemezén vannak: a `destroy` velük együtt törli a szervert. Naponta mentés készül Google Drive-ra (lásd lent).
 
 ## Blog
@@ -70,7 +74,7 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - A piszkozatot csak bejelentkezett adminisztrátor látja (előnézet); jövőbeli megjelenési dátummal a bejegyzés időzíthető.
 - A webcím (`/blog/...`) a címből készül; közzététel után már ne változtasd, mert a megosztott linkek elromlanak.
 
-Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad tovább. A 2026. október 1. előtt telepített szerveren ez még nincs így beállítva, ott a `/blog` oldalakhoz egyszer frissíteni kell az nginx konfigot (vagy újratelepíteni a szervert).
+Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad tovább. A 2026. október 1. előtt telepített szerveren ez még nincs így beállítva, ott a `/blog` és a `/csaladok` oldalakhoz egyszer frissíteni kell az nginx konfigot (vagy újratelepíteni a szervert).
 
 ## Import a régi oldalról (egylepesseltobb.hu)
 

@@ -7,7 +7,7 @@ import {
   MIN_PASSWORD_LENGTH, SESSION_TTL_MS, createSessionToken, hashPassword, readSessionToken, verifyPassword,
 } from './auth.js';
 import {
-  renderBlogList, renderBlogPost, renderHomePosts, renderNotFound, siteFrame,
+  renderBlogList, renderBlogPost, renderFamilyList, renderFamilyPage, renderHomePosts, renderNotFound, siteFrame,
 } from './pages.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
@@ -22,6 +22,7 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_FAILURES = 10;
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const POSTS_PER_PAGE = 12;
+const FAMILIES_PER_PAGE = 12;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function parseCookies(header = '') {
@@ -93,6 +94,31 @@ export function createApp({ db, config }) {
     const html = renderBlogPost(siteFrame(readIndex()), { post, related, baseUrl: baseUrl(req), preview: !published });
     if (!published) res.set('X-Robots-Tag', 'noindex');
     sendHtml(res, html);
+  });
+
+  app.get('/csaladok', (req, res) => {
+    const status = req.query.statusz === 'orokbefogadott' ? 'adopted' : 'adoptable';
+    const requested = Math.max(1, Number.parseInt(req.query.oldal, 10) || 1);
+    const { total } = store.listPublicFamilies(db, { status, limit: 1 });
+    const pageCount = Math.max(1, Math.ceil(total / FAMILIES_PER_PAGE));
+    const page = Math.min(requested, pageCount);
+    const { families } = store.listPublicFamilies(db, {
+      status, limit: FAMILIES_PER_PAGE, offset: (page - 1) * FAMILIES_PER_PAGE,
+    });
+    sendHtml(res, renderFamilyList(siteFrame(readIndex()), {
+      families, status, page, pageCount, counts: store.countFamiliesByStatus(db), baseUrl: baseUrl(req),
+    }));
+  });
+
+  // A gyerek (család) aloldala. Az archivált és a feltöltés alatti családot csak a bejelentkezett admin látja.
+  app.get('/csaladok/:slug', (req, res, next) => {
+    if (!SLUG.test(req.params.slug)) return next();
+    const family = store.getFamilyBySlug(db, req.params.slug);
+    const isPublic = Boolean(family) && store.PUBLIC_STATUSES.includes(family.status);
+    if (!family || (!isPublic && !req.user)) return next();
+    const more = store.listPublicFamilies(db, { status: 'adoptable', limit: 3, excludeId: family.id }).families;
+    if (!isPublic) res.set('X-Robots-Tag', 'noindex');
+    sendHtml(res, renderFamilyPage(siteFrame(readIndex()), { family, more, baseUrl: baseUrl(req), preview: !isPublic }));
   });
 
   // Élesben az nginx szolgálja ki a statikus fájlokat; ez fejlesztéshez és tartaléknak kell.

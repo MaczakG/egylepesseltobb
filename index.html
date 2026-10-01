@@ -171,8 +171,8 @@
         <div class="nav-dropdown-panel absolute left-0 top-full pt-3 opacity-0 invisible -translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
           <div class="bg-navy-800 border border-white/10 rounded-xl shadow-2xl py-2 min-w-[260px]">
             <a href="#families" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Család örökbefogadás</a>
-            <a href="#families" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadható családok</a>
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadott családok</a>
+            <a href="/csaladok" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadható családok</a>
+            <a href="/csaladok?statusz=orokbefogadott" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadott családok</a>
             <a href="#contact" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Az Alapítvány működésének támogatása</a>
             <a href="#events" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Jótékonysági meccs</a>
           </div>
@@ -249,8 +249,8 @@
       </button>
       <div id="mob-sub-orokbefogadas" class="hidden flex-col pl-4 gap-1 text-sm font-sans text-white/70">
         <a href="#families" class="block py-2 hover:text-sand-400 transition-colors">Család örökbefogadás</a>
-        <a href="#families" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadható családok</a>
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadott családok</a>
+        <a href="/csaladok" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadható családok</a>
+        <a href="/csaladok?statusz=orokbefogadott" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadott családok</a>
         <a href="#contact" class="block py-2 hover:text-sand-400 transition-colors">Az Alapítvány működésének támogatása</a>
         <a href="#events" class="block py-2 hover:text-sand-400 transition-colors">Jótékonysági meccs</a>
       </div>
@@ -318,11 +318,14 @@
 <!-- ============ FAMILIES ============ -->
 <section id="families" class="relative bg-white py-24 md:py-36 px-6 lg:px-10">
   <div class="max-w-7xl mx-auto">
-    <div class="mb-16 md:mb-20">
-      <span class="reveal block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Fogadj örökbe egy családot</span>
-      <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-navy-800 max-w-2xl leading-tight">
-        Nem statisztika. Nem szám. Egy valódi család, akinek az élete változhat veled.
-      </h2>
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16 md:mb-20">
+      <div>
+        <span class="reveal block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Fogadj örökbe egy családot</span>
+        <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-navy-800 max-w-2xl leading-tight">
+          Nem statisztika. Nem szám. Egy valódi család, akinek az élete változhat veled.
+        </h2>
+      </div>
+      <a href="/csaladok?statusz=orokbefogadott" class="reveal inline-flex items-center gap-2 border border-navy-800 text-navy-800 hover:bg-navy-800 hover:text-white font-semibold px-6 py-3 rounded-full transition-colors self-start md:self-auto whitespace-nowrap">Örökbefogadott családjaink →</a>
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">

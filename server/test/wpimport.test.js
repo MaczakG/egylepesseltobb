@@ -49,6 +49,8 @@ describe('WordPress-import', () => {
     assert.equal(store.listFamilies(ctx.db).length, 174, 'a 3 minta-család törlődött');
     const kinga = store.listFamilies(ctx.db).find((f) => f.name === 'H. Kinga és családja');
     assert.equal(kinga.createdAt, '2026-09-30');
+    assert.equal(kinga.slug, 'h-kinga-es-csaladja');
+    assert.equal(new Set(store.listFamilies(ctx.db).map((f) => f.slug)).size, 174, 'minden családnak egyedi webcíme van');
     assert.match(kinga.story, /^<p>Kinga 7 éves kislány Moyamoya-betegséggel él/);
     assert.match(kinga.images[0].url, /^\/uploads\/[0-9a-f]{24}\.webp$/);
     assert.equal(kinga.images[0].isCover, true);

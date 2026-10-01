@@ -290,6 +290,7 @@
             <h1 id="form-title" class="text-xl font-semibold text-slate-900">Új család</h1>
           </div>
           <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span id="family-view-wrap" class="hidden"><a id="family-view-link" href="#" target="_blank" rel="noopener" class="btn btn-secondary">Aloldal ↗</a></span>
             <button onclick="goToView('list')" class="btn btn-secondary">Mégse</button>
             <button id="save-family-btn" onclick="saveFamily()" class="btn btn-primary">Mentés</button>
           </div>
@@ -301,16 +302,24 @@
             <div class="card">
               <div class="px-5 py-4 border-b border-slate-200">
                 <h2 class="font-semibold text-slate-900">Alapadatok</h2>
-                <p class="text-slate-500 text-[13px] mt-0.5">A főoldali kártyán ez a név és alcím látszik.</p>
+                <p class="text-slate-500 text-[13px] mt-0.5">A főoldali kártyán és a család aloldalán ez a név és alcím látszik.</p>
               </div>
               <div class="p-5 grid sm:grid-cols-2 gap-5">
                 <div>
                   <label class="label" for="field-name">Név <span class="text-red-600">*</span></label>
-                  <input id="field-name" type="text" placeholder="pl. Kovács család" class="field">
+                  <input id="field-name" type="text" placeholder="pl. Kovács család" oninput="onFamilyNameInput(this.value)" class="field">
                 </div>
                 <div>
                   <label class="label" for="field-subtitle">Alcím</label>
                   <input id="field-subtitle" type="text" placeholder="pl. 9 éves · Duchenne-féle izomdisztrófia" class="field">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="label" for="field-slug">Az aloldal webcíme</label>
+                  <div class="flex items-stretch">
+                    <span class="inline-flex items-center px-2.5 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-[13px]">/csaladok/</span>
+                    <input id="field-slug" type="text" oninput="onFamilySlugInput()" class="field !rounded-l-none" placeholder="a-nevbol-keszul">
+                  </div>
+                  <p class="help">A névből készül, átnevezéskor nem változik. Ha már megosztottátok a linket, ne módosítsd.</p>
                 </div>
               </div>
             </div>
@@ -384,7 +393,7 @@
                     <button type="button" id="status-btn-uploading" class="status-seg-btn" onclick="setFormStatus('uploading')">Feltöltés alatt</button>
                     <button type="button" id="status-btn-archived" class="status-seg-btn" onclick="setFormStatus('archived')">Archivált</button>
                   </div>
-                  <p class="help">Csak az „Örökbefogadható” státuszú család jelenik meg a főoldalon.</p>
+                  <p class="help">A főoldalon csak az „Örökbefogadható” családok jelennek meg. Saját aloldala az örökbefogadható és az örökbefogadott családnak van; a többit csak te látod előnézetben.</p>
                 </div>
                 <div>
                   <label class="label" for="field-amount">Havi támogatási összeg</label>
@@ -743,7 +752,8 @@
     postFilter: 'all',
     editingPostId: null,
     postCover: '',
-    slugTouched: false
+    slugTouched: false,
+    familySlugTouched: false
   };
 
   // ---------------------------------------------------------------
@@ -1087,7 +1097,10 @@
     state.uploadedImages = [];
     state.coverImageIndex = null;
     setFormTitle('Új család');
+    state.familySlugTouched = false;
     document.getElementById('field-name').value = '';
+    document.getElementById('field-slug').value = '';
+    document.getElementById('family-view-wrap').classList.add('hidden');
     document.getElementById('field-subtitle').value = '';
     document.getElementById('field-amount').value = '';
     document.getElementById('field-applicants').value = 0;
@@ -1108,7 +1121,11 @@
     state.coverImageIndex = coverIdx >= 0 ? coverIdx : (state.uploadedImages.length ? 0 : null);
 
     setFormTitle(f.name);
+    state.familySlugTouched = true;
     document.getElementById('field-name').value = f.name;
+    document.getElementById('field-slug').value = f.slug || '';
+    document.getElementById('family-view-wrap').classList.remove('hidden');
+    document.getElementById('family-view-link').href = '/csaladok/' + encodeURIComponent(f.slug);
     document.getElementById('field-subtitle').value = f.subtitle;
     document.getElementById('field-amount').value = f.amount || '';
     document.getElementById('field-applicants').value = f.applicants;
@@ -1118,6 +1135,11 @@
     renderImageGrid();
     goToView('form');
   };
+
+  window.onFamilyNameInput = function (v) {
+    if (!state.familySlugTouched) document.getElementById('field-slug').value = slugify(v);
+  };
+  window.onFamilySlugInput = function () { state.familySlugTouched = true; };
 
   var formStatus = 'adoptable';
   window.setFormStatus = function (val) {
@@ -1145,6 +1167,7 @@
 
     var payload = {
       name: name,
+      slug: document.getElementById('field-slug').value.trim(),
       subtitle: document.getElementById('field-subtitle').value.trim(),
       status: formStatus,
       amount: parseInt(document.getElementById('field-amount').value, 10) || 0,

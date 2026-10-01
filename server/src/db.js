@@ -1,8 +1,11 @@
 import fs from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
+import { slugify } from './slug.js';
 
 // A főoldalon csak az örökbefogadhatók jelennek meg; az archivált és a feltöltés alatt álló családok csak az adminban.
 export const STATUSES = ['adoptable', 'adopted', 'uploading', 'archived'];
+// Saját aloldala (/csaladok/<webcím>) csak ezeknek nyilvános; a többit csak a bejelentkezett admin látja előnézetben.
+export const PUBLIC_STATUSES = ['adoptable', 'adopted'];
 export const POST_STATUSES = ['draft', 'published'];
 // A menü „Közös élményeink” és „Média megjelenések” pontjai is ezekre a kategóriákra mutatnak.
 export const POST_CATEGORIES = [
@@ -128,16 +131,40 @@ function migrate(db) {
     if (!cols.includes('wp_synced_at')) db.exec(`ALTER TABLE ${table} ADD COLUMN wp_synced_at TEXT`);
     db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${table}_wp_id ON ${table} (wp_id)`);
   }
+  // A családok aloldalának webcíme: a meglévő sorok a nevükből kapják meg.
+  if (!columns(db, 'families').includes('slug')) db.exec('ALTER TABLE families ADD COLUMN slug TEXT');
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS families_slug ON families (slug)');
+  const missing = db.prepare('SELECT id, name FROM families WHERE slug IS NULL ORDER BY id').all();
+  const setSlug = db.prepare('UPDATE families SET slug = ? WHERE id = ?');
+  for (const f of missing) setSlug.run(uniqueFamilySlug(db, familySlugBase(f.name), f.id), f.id);
+}
+
+function familySlugBase(name) {
+  return slugify(name) || 'csalad';
+}
+
+// Ha a webcím már foglalt, -2, -3, … végződést kap.
+function uniqueSlugIn(db, table, base, exceptId) {
+  const taken = db.prepare(`SELECT 1 FROM ${table} WHERE slug = ? AND id != ?`);
+  let slug = base;
+  for (let n = 2; taken.get(slug, exceptId); n += 1) {
+    slug = `${base.slice(0, 76).replace(/-+$/, '')}-${n}`;
+  }
+  return slug;
+}
+
+export function uniqueFamilySlug(db, base, exceptId = 0) {
+  return uniqueSlugIn(db, 'families', base, exceptId);
 }
 
 export function seed(db) {
   if (db.prepare("SELECT 1 FROM settings WHERE key = 'seeded'").get()) return;
   const insert = db.prepare(
-    "INSERT INTO families (name, subtitle, status, story, images) VALUES (?, ?, 'adoptable', ?, ?)",
+    "INSERT INTO families (name, slug, subtitle, status, story, images) VALUES (?, ?, ?, 'adoptable', ?, ?)",
   );
   for (const f of SEED_FAMILIES) {
     const images = [{ url: `/assets/img/${f.image}`, label: f.image, isCover: true }];
-    insert.run(f.name, f.subtitle, f.story, JSON.stringify(images));
+    insert.run(f.name, uniqueFamilySlug(db, familySlugBase(f.name)), f.subtitle, f.story, JSON.stringify(images));
   }
   db.prepare("INSERT INTO settings (key, value) VALUES ('seeded', '1')").run();
 }
@@ -146,6 +173,7 @@ function toFamily(row) {
   return {
     id: row.id,
     name: row.name,
+    slug: row.slug,
     subtitle: row.subtitle,
     status: row.status,
     amount: row.amount,
@@ -168,22 +196,49 @@ export function getFamily(db, id) {
   return row ? toFamily(row) : null;
 }
 
+export function getFamilyBySlug(db, slug) {
+  const row = db.prepare('SELECT * FROM families WHERE slug = ?').get(slug);
+  return row ? toFamily(row) : null;
+}
+
+// A nyilvános családlista (örökbefogadhatók vagy örökbefogadottak), lapozva.
+export function listPublicFamilies(db, { status = 'adoptable', limit = 12, offset = 0, excludeId = 0 } = {}) {
+  if (!PUBLIC_STATUSES.includes(status)) return { families: [], total: 0 };
+  const total = db.prepare('SELECT count(*) AS n FROM families WHERE status = ? AND id != ?').get(status, excludeId).n;
+  const rows = db.prepare(`SELECT * FROM families WHERE status = ? AND id != ?
+    ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`).all(status, excludeId, limit, offset);
+  return { families: rows.map(toFamily), total };
+}
+
+export function countFamiliesByStatus(db) {
+  const counts = Object.fromEntries(STATUSES.map((s) => [s, 0]));
+  for (const row of db.prepare('SELECT status, count(*) AS n FROM families GROUP BY status').all()) {
+    counts[row.status] = row.n;
+  }
+  return counts;
+}
+
+// A webcím a névből készül, ha nincs megadva; átnevezéskor megmarad, hogy a megosztott linkek ne romoljanak el.
 export function createFamily(db, f) {
+  const slug = uniqueFamilySlug(db, f.slug || familySlugBase(f.name));
   const { lastInsertRowid } = db.prepare(`
-    INSERT INTO families (name, subtitle, status, amount, applicants, story, images)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(f.name, f.subtitle, f.status, f.amount, f.applicants, f.story, JSON.stringify(f.images));
+    INSERT INTO families (name, slug, subtitle, status, amount, applicants, story, images)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(f.name, slug, f.subtitle, f.status, f.amount, f.applicants, f.story, JSON.stringify(f.images));
   return getFamily(db, lastInsertRowid);
 }
 
 export function updateFamily(db, id, f) {
-  const { changes } = db.prepare(`
+  const current = getFamily(db, id);
+  if (!current) return null;
+  const slug = uniqueFamilySlug(db, f.slug || current.slug || familySlugBase(f.name), id);
+  db.prepare(`
     UPDATE families
-    SET name = ?, subtitle = ?, status = ?, amount = ?, applicants = ?, story = ?, images = ?,
+    SET name = ?, slug = ?, subtitle = ?, status = ?, amount = ?, applicants = ?, story = ?, images = ?,
         updated_at = datetime('now')
     WHERE id = ?
-  `).run(f.name, f.subtitle, f.status, f.amount, f.applicants, f.story, JSON.stringify(f.images), id);
-  return changes ? getFamily(db, id) : null;
+  `).run(f.name, slug, f.subtitle, f.status, f.amount, f.applicants, f.story, JSON.stringify(f.images), id);
+  return getFamily(db, id);
 }
 
 export function deleteFamily(db, id) {
@@ -294,13 +349,8 @@ export function getPost(db, id) {
   return row ? toPost(row) : null;
 }
 
-// Ha a cím alapján készült URL már foglalt, -2, -3, … végződést kap.
 export function uniqueSlug(db, base, exceptId = 0) {
-  let slug = base;
-  for (let n = 2; db.prepare('SELECT 1 FROM posts WHERE slug = ? AND id != ?').get(slug, exceptId); n += 1) {
-    slug = `${base}-${n}`;
-  }
-  return slug;
+  return uniqueSlugIn(db, 'posts', base, exceptId);
 }
 
 export function createPost(db, p) {
@@ -351,8 +401,9 @@ export function upsertImportedFamily(db, wpId, f) {
       wp_synced_at = datetime('now') WHERE id = ?`).run(f.name, f.status, f.story, JSON.stringify(f.images), f.createdAt, existing.id);
     return existing.id;
   }
-  return Number(db.prepare(`INSERT INTO families (name, subtitle, status, story, images, created_at, wp_id, updated_at, wp_synced_at)
-    VALUES (?, '', ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`).run(f.name, f.status, f.story, JSON.stringify(f.images), f.createdAt, wpId).lastInsertRowid);
+  return Number(db.prepare(`INSERT INTO families (name, slug, subtitle, status, story, images, created_at, wp_id, updated_at,
+    wp_synced_at) VALUES (?, ?, '', ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`).run(f.name,
+    uniqueFamilySlug(db, familySlugBase(f.name)), f.status, f.story, JSON.stringify(f.images), f.createdAt, wpId).lastInsertRowid);
 }
 
 export function upsertImportedPost(db, wpId, p) {
