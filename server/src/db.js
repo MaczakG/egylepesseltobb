@@ -470,9 +470,6 @@ export function removeSeedFamilies(db) {
 
 // --- Oldalak (a régi WordPress-oldal aloldalai, pl. /alapitonk) ---------------
 
-export const PAGE_STATUSES = ['published', 'draft'];
-// Az oldal választható űrlapja: támogatói jelentkezés, kapcsolat, programjelentkezés, díjjelölés.
-export const PAGE_FORMS = ['', 'application', 'contact', 'program', 'nomination'];
 // Ezek a címek az alkalmazás saját útvonalai, oldal nem kaphatja meg őket.
 export const RESERVED_SLUGS = ['blog', 'csaladok', 'admin', 'api', 'assets', 'uploads', 'jelentkezes', 'index'];
 
@@ -518,10 +515,6 @@ export function updatePage(db, id, pg) {
     updated_at = datetime('now') WHERE id = ?`)
     .run(uniquePageSlug(db, pg.slug, id), pg.title, pg.content, JSON.stringify(pg.extras), pg.status, id);
   return changes ? getPage(db, id) : null;
-}
-
-export function deletePage(db, id) {
-  return db.prepare('DELETE FROM pages WHERE id = ?').run(id).changes > 0;
 }
 
 export function upsertImportedPage(db, wpId, pg) {

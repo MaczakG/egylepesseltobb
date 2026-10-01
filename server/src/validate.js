@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 import {
-  APPLICATION_STATUSES, MESSAGE_STATUSES, PAGE_FORMS, PAGE_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
+  APPLICATION_STATUSES, MESSAGE_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
 } from './db.js';
 import { slugify } from './slug.js';
 
@@ -101,21 +101,6 @@ export function validateFamily(body) {
     story,
     images: images(body.images),
   };
-}
-
-export function validatePage(body) {
-  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
-  const title = text(body.title, 'cím', 200, { required: true });
-  const slug = slugify(typeof body.slug === 'string' && body.slug.trim() ? body.slug : title);
-  if (!slug) throw new ValidationError('A címből nem készíthető webcím; adj meg egyet kézzel.');
-  const content = sanitizePage(typeof body.content === 'string' ? body.content : '');
-  if (content.length > 400_000) throw new ValidationError('Az oldal túl hosszú.');
-  if (!PAGE_STATUSES.includes(body.status)) throw new ValidationError('Érvénytelen állapot.');
-  const extras = body.extras && typeof body.extras === 'object' ? body.extras : {};
-  if (!PAGE_FORMS.includes(extras.form || '')) throw new ValidationError('Érvénytelen űrlap.');
-  const posts = (Array.isArray(extras.posts) ? extras.posts : String(extras.posts || '').split(/[\n,]+/))
-    .map((s) => slugify(String(s))).filter(Boolean).slice(0, 24);
-  return { title, slug, content, status: body.status, extras: { form: extras.form || '', families: extras.families === true, posts } };
 }
 
 export function validateSettings(body) {

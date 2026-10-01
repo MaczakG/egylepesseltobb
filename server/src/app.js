@@ -16,7 +16,7 @@ import { MESSAGE_FORMS, checkMessage, formSchema, renderMessageForm } from './fo
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
   ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
-  validateMessageStatus, validatePage, validatePost, validateSettings,
+  validateMessageStatus, validatePost, validateSettings,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -97,11 +97,6 @@ const LEGACY_REDIRECTS = {
   'feltoltes-alatt': '/csaladok',
   en: '/',
 };
-
-// Az oldal tartalmában hivatkozott feltöltött fájlok (képek és PDF-ek).
-function pageFiles(page) {
-  return [...page.content.matchAll(/(?:src|href)="(\/uploads\/[^"]+)"/g)].map((m) => m[1]);
-}
 
 // A bejegyzés tartalmában hivatkozott feltöltött képek (a törléskor felszabadítandók).
 function postImages(post) {
@@ -406,30 +401,6 @@ export function createApp({ db, config }) {
     });
     res.type(file.type === 'pdf' ? 'application/pdf' : file.type);
     res.sendFile(path.join(messagesDir, String(id), path.basename(file.stored)));
-  });
-
-  admin.get('/pages', (req, res) => res.json(store.listPages(db)));
-
-  admin.post('/pages', (req, res) => {
-    res.status(201).json(store.createPage(db, validatePage(req.body)));
-  });
-
-  admin.put('/pages/:id', (req, res) => {
-    const id = idParam(req);
-    const before = id && store.getPage(db, id);
-    if (!before) return res.status(404).json({ error: 'Az oldal nem található.' });
-    const updated = store.updatePage(db, id, validatePage(req.body));
-    removeUnusedUploads(pageFiles(before));
-    res.json(updated);
-  });
-
-  admin.delete('/pages/:id', (req, res) => {
-    const id = idParam(req);
-    const before = id && store.getPage(db, id);
-    if (!before) return res.status(404).json({ error: 'Az oldal nem található.' });
-    store.deletePage(db, id);
-    removeUnusedUploads(pageFiles(before));
-    res.json({ ok: true });
   });
 
   admin.get('/posts', (req, res) => res.json(store.listPosts(db)));

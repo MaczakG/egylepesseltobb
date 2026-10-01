@@ -8,6 +8,7 @@ import { createApp } from '../src/app.js';
 import { hashPassword } from '../src/auth.js';
 import { loadConfig } from '../src/config.js';
 import * as store from '../src/db.js';
+import { sanitizePage } from '../src/validate.js';
 import { PAGES_FILE, loadImportData, runImport, runPagesImport } from '../src/wpimport.js';
 
 const EMAIL = 'admin@pelda.hu';
@@ -169,34 +170,31 @@ describe('jelentkezési űrlap a „Jelentkezz támogatónak” oldalon', () => 
   });
 });
 
-describe('admin: oldalak', () => {
-  test('létrehozás, tisztított tartalom, foglalt webcím, piszkozat előnézete, törlés', async () => {
-    assert.equal((await api('GET', '/api/admin/pages', undefined, false)).status, 401);
-    const res = await api('POST', '/api/admin/pages', {
-      title: 'Blog', status: 'draft', extras: { form: '', families: false, posts: 'galaest, nincs ilyen' },
-      content: '<section><p class="eyebrow ismeretlen">Címke</p><script>alert(1)</script><div class="cards"><div class="card"><h3>Kártya</h3></div></div>'
-        + '<p><a href="/alapitonk">Belső</a> <a href="https://pelda.hu">Külső</a> <a href="javascript:alert(1)">Rossz</a></p>'
-        + '<img src="https://kulso.hu/kep.jpg" alt=""></section>',
-    });
-    assert.equal(res.status, 201);
-    const pg = await res.json();
-    assert.equal(pg.slug, 'blog-oldal', 'az alkalmazás saját útvonala nem lehet oldal');
-    assert.deepEqual(pg.extras.posts, ['galaest', 'nincs-ilyen']);
-    assert.equal(pg.content, '<section><p class="eyebrow">Címke</p><div class="cards"><div class="card"><h3>Kártya</h3></div></div>'
-      + '<p><a href="/alapitonk">Belső</a> <a href="https://pelda.hu" rel="noopener noreferrer" target="_blank">Külső</a> <a>Rossz</a></p></section>');
+describe('oldal tartalma és piszkozat', () => {
+  test('a tartalomból csak a dizájn elemei maradnak, a belső link ugyanabban a lapon nyílik', () => {
+    const html = sanitizePage('<section><p class="eyebrow ismeretlen">Címke</p><script>alert(1)</script><div class="cards"><div class="card"><h3>Kártya</h3></div></div>'
+      + '<p><a href="/alapitonk">Belső</a> <a href="https://pelda.hu">Külső</a> <a href="javascript:alert(1)">Rossz</a></p>'
+      + '<img src="https://kulso.hu/kep.jpg" alt=""><div style="color:red" class="x">Stílus</div></section>');
+    assert.equal(html, '<section><p class="eyebrow">Címke</p><div class="cards"><div class="card"><h3>Kártya</h3></div></div>'
+      + '<p><a href="/alapitonk">Belső</a> <a href="https://pelda.hu" rel="noopener noreferrer" target="_blank">Külső</a> <a>Rossz</a></p>'
+      + '<div>Stílus</div></section>');
+  });
 
-    assert.equal((await page('/blog-oldal')).status, 404, 'a piszkozat nem nyilvános');
+  test('a piszkozat oldal nem nyilvános, a bejelentkezett admin előnézetben látja', async () => {
+    const pg = store.createPage(db, {
+      slug: 'blog', title: 'Piszkozat', content: '<section><p>Szöveg.</p></section>', status: 'draft',
+      extras: { form: '', families: false, posts: ['galaest'] },
+    });
+    assert.equal(pg.slug, 'blog-oldal', 'az alkalmazás saját útvonala nem lehet oldal');
+    assert.equal((await page('/blog-oldal')).status, 404);
     const preview = await page('/blog-oldal', true);
     assert.equal(preview.status, 200);
     assert.equal(preview.headers.get('x-robots-tag'), 'noindex');
     assert.match(preview.html, /Előnézet: ez az oldal még nem nyilvános/);
     assert.match(preview.html, /href="\/blog\/galaest"/);
+  });
 
-    const upd = await api('PUT', `/api/admin/pages/${pg.id}`, { ...pg, title: 'Új oldal', slug: 'uj-oldal', status: 'published', extras: pg.extras });
-    assert.equal((await upd.json()).slug, 'uj-oldal');
-    assert.equal((await page('/uj-oldal')).status, 200);
-    assert.equal((await api('DELETE', `/api/admin/pages/${pg.id}`)).status, 200);
-    assert.equal((await page('/uj-oldal')).status, 404);
-    assert.equal((await api('PUT', '/api/admin/pages/999999', pg)).status, 404);
+  test('az oldalak adminfelülete és API-ja nincs meg', async () => {
+    assert.equal((await api('GET', '/api/admin/pages')).status, 404);
   });
 });
