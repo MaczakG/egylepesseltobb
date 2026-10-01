@@ -11,10 +11,8 @@ import {
 } from './pages.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
-  IMPORT_FILE, importStatus, isImportRunning, loadImportData, startImport,
-} from './wpimport.js';
-import {
-  ValidationError, detectImageType, validateFamily, validatePost, validateSettings,
+  ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
+  validatePost, validateSettings,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -23,6 +21,8 @@ const LOGIN_MAX_FAILURES = 10;
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const POSTS_PER_PAGE = 12;
 const FAMILIES_PER_PAGE = 12;
+const APPLICATION_WINDOW_MS = 60 * 60 * 1000;
+const APPLICATION_MAX_PER_IP = 5;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function parseCookies(header = '') {
@@ -111,14 +111,68 @@ export function createApp({ db, config }) {
   });
 
   // A gyerek (család) aloldala. Az archivált és a feltöltés alatti családot csak a bejelentkezett admin látja.
-  app.get('/csaladok/:slug', (req, res, next) => {
-    if (!SLUG.test(req.params.slug)) return next();
+  const pageFamily = (req) => {
+    if (!SLUG.test(req.params.slug)) return null;
     const family = store.getFamilyBySlug(db, req.params.slug);
     const isPublic = Boolean(family) && store.PUBLIC_STATUSES.includes(family.status);
-    if (!family || (!isPublic && !req.user)) return next();
+    return family && (isPublic || req.user) ? { family, isPublic } : null;
+  };
+
+  // A jelentkezési űrlapon az örökbefogadható családok közül lehet választani (név szerint rendezve).
+  const adoptableOptions = () => store.listPublicFamilies(db, { status: 'adoptable', limit: 10_000 }).families
+    .map((f) => ({ id: f.id, name: f.name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'hu'));
+
+  const sendFamilyPage = (req, res, { family, isPublic }, form = {}, status = 200) => {
     const more = store.listPublicFamilies(db, { status: 'adoptable', limit: 3, excludeId: family.id }).families;
     if (!isPublic) res.set('X-Robots-Tag', 'noindex');
-    sendHtml(res, renderFamilyPage(siteFrame(readIndex()), { family, more, baseUrl: baseUrl(req), preview: !isPublic }));
+    sendHtml(res, renderFamilyPage(siteFrame(readIndex()), {
+      family, more, baseUrl: baseUrl(req), preview: !isPublic,
+      form: { options: adoptableOptions(), ...store.getFormSettings(db), ...form },
+    }), status);
+  };
+
+  app.get('/csaladok/:slug', (req, res, next) => {
+    const found = pageFamily(req);
+    if (!found) return next();
+    sendFamilyPage(req, res, found, { submitted: req.query.jelentkezes === 'koszonjuk' });
+  });
+
+  // Támogatói jelentkezés. Sima űrlapküldés (JavaScript nélkül is megy); siker után átirányít (PRG),
+  // hibánál a hibaüzenetekkel és a beírt adatokkal adja vissza az oldalt.
+  const applicationsByIp = new Map();
+  app.post('/csaladok/:slug/jelentkezes', express.urlencoded({ extended: false, limit: '20kb' }), (req, res, next) => {
+    const found = pageFamily(req);
+    if (!found) return next();
+    const thanks = `/csaladok/${found.family.slug}?jelentkezes=koszonjuk#jelentkezes`;
+    const body = req.body || {};
+    // Rejtett mező: ember nem tölti ki, a spamrobotok igen. Nekik is „sikert” mutatunk, de nem mentjük.
+    if (body.website) return res.redirect(303, thanks);
+
+    const now = Date.now();
+    const recent = (applicationsByIp.get(req.ip) || []).filter((t) => t > now - APPLICATION_WINDOW_MS);
+    if (recent.length >= APPLICATION_MAX_PER_IP) {
+      return sendFamilyPage(req, res, found, {
+        error: 'Erről a címről már túl sok jelentkezés érkezett. Kérjük, próbáld újra később, vagy írj nekünk e-mailt.',
+      }, 429);
+    }
+
+    const { values, errors } = checkApplication(body, store.getFormSettings(db));
+    const target = values.familyId ? store.getFamily(db, values.familyId) : null;
+    if (values.familyId && (!target || target.status !== 'adoptable')) {
+      errors.familyId = 'Ez a család már nem várja a jelentkezéseket. Kérjük, válassz egy másikat.';
+    }
+    if (Object.keys(errors).length) return sendFamilyPage(req, res, found, { values, errors }, 400);
+
+    store.createApplication(db, values);
+    recent.push(now);
+    applicationsByIp.set(req.ip, recent);
+    if (applicationsByIp.size > 5000) {
+      for (const [ip, times] of applicationsByIp) {
+        if (!times.some((t) => t > now - APPLICATION_WINDOW_MS)) applicationsByIp.delete(ip);
+      }
+    }
+    res.redirect(303, thanks);
   });
 
   // Élesben az nginx szolgálja ki a statikus fájlokat; ez fejlesztéshez és tartaléknak kell.
@@ -276,15 +330,24 @@ export function createApp({ db, config }) {
 
   admin.get('/settings', (req, res) => res.json(store.getSettings(db)));
 
-  admin.get('/import', (req, res) => {
-    res.json({ available: fs.existsSync(IMPORT_FILE), running: isImportRunning(), status: importStatus(db) });
+  admin.get('/form-settings', (req, res) => res.json(store.getFormSettings(db)));
+
+  admin.put('/form-settings', (req, res) => {
+    res.json(store.saveFormSettings(db, validateFormSettings(req.body)));
   });
 
-  // Az import újrafuttatása (pl. ha képek maradtak ki): a háttérben fut, az állapot a GET-tel követhető.
-  admin.post('/import', (req, res) => {
-    if (!fs.existsSync(IMPORT_FILE)) return res.status(404).json({ error: 'Nincs importálható adat.' });
-    if (!isImportRunning()) startImport({ db, config, data: loadImportData() });
-    res.status(202).json({ running: true });
+  admin.get('/applications', (req, res) => res.json(store.listApplications(db)));
+
+  admin.put('/applications/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.getApplication(db, id)) return res.status(404).json({ error: 'A jelentkezés nem található.' });
+    res.json(store.updateApplicationStatus(db, id, validateApplicationStatus(req.body)));
+  });
+
+  admin.delete('/applications/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.deleteApplication(db, id)) return res.status(404).json({ error: 'A jelentkezés nem található.' });
+    res.json({ ok: true });
   });
 
   admin.put('/settings', (req, res) => {

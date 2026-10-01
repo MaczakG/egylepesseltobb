@@ -88,6 +88,21 @@ export function openDb(file) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS posts_public ON posts (status, published_at);
+    CREATE TABLE IF NOT EXISTS applications (
+      id INTEGER PRIMARY KEY,
+      family_id INTEGER,
+      family_name TEXT NOT NULL DEFAULT '',
+      last_name TEXT NOT NULL,
+      first_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      source TEXT NOT NULL DEFAULT '',
+      note TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'new',
+      consent_at TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
   migrate(db);
   return db;
@@ -241,7 +256,9 @@ export function updateFamily(db, id, f) {
   return getFamily(db, id);
 }
 
+// A család jelentkezései megmaradnak (a család neve el van mentve mellettük).
 export function deleteFamily(db, id) {
+  db.prepare('UPDATE applications SET family_id = NULL WHERE family_id = ?').run(id);
   return db.prepare('DELETE FROM families WHERE id = ?').run(id).changes > 0;
 }
 
@@ -424,4 +441,102 @@ export function removeSeedFamilies(db) {
   const names = SEED_FAMILIES.map((f) => f.name);
   return db.prepare(`DELETE FROM families WHERE wp_id IS NULL AND name IN (${names.map(() => '?').join(', ')})
     AND images LIKE '%/assets/img/story-%'`).run(...names).changes;
+}
+
+// --- Támogatói jelentkezések --------------------------------------------------
+
+export const APPLICATION_STATUSES = ['new', 'contacted', 'closed'];
+// A jelentkezési űrlap választható értékei; az adminban a Beállítások oldalon módosíthatók.
+export const DEFAULT_FORM_SETTINGS = {
+  amounts: [5000, 10000, 15000, 20000, 30000, 50000],
+  sources: ['Facebook', 'Instagram', 'Ismerősöm ajánlotta', 'Sajtó, média', 'Rendezvényen hallottam', 'Internetes keresés', 'Egyéb'],
+};
+
+export function getFormSettings(db) {
+  return { ...DEFAULT_FORM_SETTINGS, ...getSetting(db, 'application_form', {}) };
+}
+
+export function saveFormSettings(db, settings) {
+  setSetting(db, 'application_form', settings);
+  return getFormSettings(db);
+}
+
+function toApplication(row) {
+  return {
+    id: row.id,
+    familyId: row.family_id,
+    familyName: row.family_name,
+    lastName: row.last_name,
+    firstName: row.first_name,
+    email: row.email,
+    phone: row.phone,
+    amount: row.amount,
+    source: row.source,
+    note: row.note,
+    status: row.status,
+    consentAt: row.consent_at,
+    createdAt: row.created_at,
+  };
+}
+
+// Az automatikus státuszszabály egy családra (új jelentkezéskor); csak az örökbefogadható és az
+// örökbefogadott státusz között vált, az archivált és a feltöltés alatti családhoz nem nyúl.
+export function applyAutoStatus(db, familyId) {
+  const { autoEnabled, threshold, autoStatus } = getSettings(db);
+  if (!autoEnabled) return false;
+  return db.prepare(`UPDATE families SET status = ?, updated_at = datetime('now')
+    WHERE id = ? AND applicants >= ? AND status != ? AND status IN ('adoptable', 'adopted')`)
+    .run(autoStatus, familyId, threshold, autoStatus).changes > 0;
+}
+
+// A jelentkezés eggyel növeli a választott család jelentkezőinek számát, és lefuttatja rá a szabályt.
+export function createApplication(db, a) {
+  db.exec('BEGIN');
+  try {
+    const family = db.prepare('SELECT id, name FROM families WHERE id = ?').get(a.familyId);
+    const { lastInsertRowid } = db.prepare(`INSERT INTO applications
+      (family_id, family_name, last_name, first_name, email, phone, amount, source, note, consent_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`)
+      .run(family.id, family.name, a.lastName, a.firstName, a.email, a.phone, a.amount, a.source, a.note);
+    db.prepare("UPDATE families SET applicants = applicants + 1, updated_at = datetime('now') WHERE id = ?").run(family.id);
+    applyAutoStatus(db, family.id);
+    db.exec('COMMIT');
+    return getApplication(db, lastInsertRowid);
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
+export function getApplication(db, id) {
+  const row = db.prepare('SELECT * FROM applications WHERE id = ?').get(id);
+  return row ? toApplication(row) : null;
+}
+
+export function listApplications(db) {
+  return db.prepare('SELECT * FROM applications ORDER BY created_at DESC, id DESC').all().map(toApplication);
+}
+
+export function updateApplicationStatus(db, id, status) {
+  db.prepare('UPDATE applications SET status = ? WHERE id = ?').run(status, id);
+  return getApplication(db, id);
+}
+
+// Törléskor (pl. kéretlen jelentkezésnél) a család jelentkezőinek száma is eggyel csökken.
+export function deleteApplication(db, id) {
+  const app = getApplication(db, id);
+  if (!app) return false;
+  db.exec('BEGIN');
+  try {
+    db.prepare('DELETE FROM applications WHERE id = ?').run(id);
+    if (app.familyId) {
+      db.prepare("UPDATE families SET applicants = max(applicants - 1, 0), updated_at = datetime('now') WHERE id = ?")
+        .run(app.familyId);
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  return true;
 }

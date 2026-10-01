@@ -67,6 +67,25 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - A webcím a névből készül, és átnevezéskor nem változik; az adminban a család adatlapján átírható. Ugyanott az „Aloldal ↗” gomb megnyitja az oldalt.
 - Aloldala az örökbefogadható és az örökbefogadott családoknak van. Az archivált és a feltöltés alatti családot csak bejelentkezett adminisztrátor látja, előnézetként.
 - Családlista: `/csaladok` (örökbefogadhatók) és `/csaladok?statusz=orokbefogadott`. A menü „Örökbefogadható / Örökbefogadott családok” pontja ide mutat.
+
+## Támogatói jelentkezések
+
+- Minden család aloldalán van egy „Jelentkezem támogatónak” űrlap:
+  - vezetéknév, keresztnév, e-mail, telefonszám;
+  - havi összeg és a támogatni kívánt család (az örökbefogadhatók közül, az aktuális előválasztva);
+  - „Honnan hallott rólunk?”, megjegyzés;
+  - az adatkezelési tájékoztató elfogadása.
+- Az űrlap JavaScript nélkül is működik. Hibás adatnál a hibák a mezők alatt jelennek meg, a beírt adatok megmaradnak; siker után köszönő üzenet jelenik meg.
+- Minden jelentkezés eggyel növeli a választott család **jelentkezőinek számát**, és lefut rá az automatikus státuszváltás (Beállítások): a küszöb elérésekor a család a beállított státuszt kapja.
+- Az adminban a **Jelentkezések** menüpont listázza őket:
+  - a menüpont mellett az új jelentkezések száma látszik;
+  - állapot: Új / Kapcsolatban / Lezárt;
+  - keresés név, e-mail, telefonszám vagy család szerint;
+  - CSV-export (Excelben is jól nyílik).
+- Jelentkezés törlésekor (pl. kéretlen beküldés) a család jelentkezőinek száma eggyel csökken; a státuszt nem állítja vissza.
+- A havi összegek és a „Honnan hallott rólunk?” válaszai a **Beállítások → Jelentkezési űrlap** kártyán módosíthatók.
+- Védelem a kéretlen beküldések ellen: egy rejtett mező (a robotok kitöltik, és akkor nem mentjük), valamint IP-címenként óránként legfeljebb 5 jelentkezés.
+- Az adatkezelési tájékoztató linkje a lábléc „Adatkezelési tájékoztató” linkjét követi; amíg az `#`, az űrlapon sima szöveg.
 - Az adatok a szerver lemezén vannak: a `destroy` velük együtt törli a szervert. Naponta mentés készül Google Drive-ra (lásd lent).
 
 ## Blog
@@ -84,7 +103,7 @@ Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad t
   - a családok a WordPress-kategóriájuk szerint kapnak státuszt (örökbefogadható, örökbefogadott, feltöltés alatt; a „kategória nélküliek” archiváltak), és a három minta-család helyére kerülnek;
   - a rendezvénygalériák (aláírási ceremóniák, családi napok, gálaest, Thai koncert) galériás blogbejegyzések lesznek.
 - A képeket a szerver tölti le az egylepesseltobb.hu-ról, és webre méretezi (nagy kép 1600 px, bélyegkép 480 px, WebP); ez a kb. 700 képpel néhány percig tart.
-- Az állapota az adminban a **Beállítások → Import a régi oldalról** kártyán látszik. Ha valamelyik kép nem jött le, az **Import újrafuttatása** csak a hiányzókat próbálja újra; a már importált tartalmat nem duplikálja, és az adminban azóta módosított családokhoz és bejegyzésekhez nem nyúl.
+- Az import a háttérben fut, az adminban nem jelenik meg. Ha megszakad (pl. újraindul a szerver), a következő induláskor folytatódik: a már letöltött képeket nem tölti le újra, a már importált tartalmat nem duplikálja, és az adminban azóta módosított családokhoz és bejegyzésekhez nem nyúl.
 - Ha nincs rá szükség: `WP_IMPORT=0` a `/etc/egylepesseltobb/app.env`-ben.
 
 ## Napi mentés Google Drive-ra

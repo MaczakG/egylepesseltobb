@@ -107,8 +107,10 @@ describe('a gyerek aloldala', () => {
     assert.deepEqual([...html.matchAll(/<a href="([^"]+)" data-lightbox/g)].map((m) => m[1]),
       ['/assets/img/story-noel.webp', '/assets/img/story-anna.webp']);
     assert.match(html, /id="gallery-lightbox"/);
-    // „Segíteni szeretnék”: e-mail a lábléc címére, a család nevével a tárgyban.
-    assert.match(html, /href="mailto:info@egylepesseltobb\.hu\?subject=%C3%96r%C3%B6kbefogad%C3%A1s%3A%20B\.%20Lili%20%C3%A9s%20csal%C3%A1dja"/);
+    // Jelentkezési űrlap, a család előválasztva; a kérdésekre a lábléc e-mail címe.
+    assert.match(html, /<form method="post" action="\/csaladok\/b-lili-es-csaladja\/jelentkezes"/);
+    assert.match(html, new RegExp(`<option value="${f.id}" selected>B\\. Lili és családja</option>`));
+    assert.match(html, /href="mailto:info@egylepesseltobb\.hu"/);
     assert.match(html, /facebook\.com\/sharer\/sharer\.php\?u=http%3A%2F%2F127\.0\.0\.1%3A\d+%2Fcsaladok%2Fb-lili-es-csaladja/);
     // Belső adatok nem kerülnek ki.
     assert.doesNotMatch(html, /987654|987 654/);
@@ -126,7 +128,10 @@ describe('a gyerek aloldala', () => {
     const { status, html } = await page('/csaladok/orokbefogadott-otto');
     assert.equal(status, 200);
     assert.match(html, /már megtalálta a támogatóit/);
-    assert.doesNotMatch(html, /mailto:[^"]*subject=/);
+    // Az űrlapon a még segítségre váró családok közül lehet választani, ő maga nincs köztük.
+    assert.match(html, /Jelentkezem támogatónak/);
+    assert.match(html, /<option value="" selected>Válassz családot<\/option>/);
+    assert.doesNotMatch(html, />Örökbefogadott Ottó<\/option>/);
     assert.match(html, /href="\/csaladok\?statusz=orokbefogadott"[^>]*>← Vissza a családokhoz/);
   });
 

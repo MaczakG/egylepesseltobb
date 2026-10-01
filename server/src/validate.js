@@ -1,5 +1,7 @@
 import sanitizeHtml from 'sanitize-html';
-import { POST_CATEGORIES, POST_STATUSES, STATUSES } from './db.js';
+import {
+  APPLICATION_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
+} from './db.js';
 import { slugify } from './slug.js';
 
 export class ValidationError extends Error {}
@@ -82,6 +84,56 @@ export function validateSettings(body) {
   const threshold = integer(body.threshold, 'küszöb', 100_000);
   if (threshold < 1) throw new ValidationError('A küszöb legalább 1 legyen.');
   return { threshold, autoStatus: body.autoStatus, autoEnabled: body.autoEnabled === true };
+}
+
+// A nyilvános jelentkezési űrlap: mezőnkénti hibaüzenetekkel, hogy az oldal a hibák mellé vissza tudja írni az értékeket.
+const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/;
+const PHONE = /^[+()\-\s\d/]{6,30}$/;
+
+export function checkApplication(body, { amounts, sources }) {
+  const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const values = {
+    lastName: str(body.last_name, 100),
+    firstName: str(body.first_name, 100),
+    email: str(body.email, 200),
+    phone: str(body.phone, 30),
+    amount: Number.parseInt(String(body.amount || '').replace(/\D/g, ''), 10) || 0,
+    familyId: Number.parseInt(body.family_id, 10) || 0,
+    source: str(body.source, 100),
+    note: str(body.note, 2000),
+    consent: ['on', '1', 'true'].includes(body.consent),
+  };
+  const errors = {};
+  if (!values.lastName) errors.lastName = 'Add meg a vezetékneved.';
+  if (!values.firstName) errors.firstName = 'Add meg a keresztneved.';
+  if (!EMAIL.test(values.email)) errors.email = 'Adj meg egy érvényes e-mail címet.';
+  if (!PHONE.test(values.phone) || values.phone.replace(/\D/g, '').length < 7) errors.phone = 'Adj meg egy érvényes telefonszámot.';
+  if (!amounts.includes(values.amount)) errors.amount = 'Válassz összeget.';
+  if (!values.familyId) errors.familyId = 'Válaszd ki, melyik családot szeretnéd támogatni.';
+  if (!sources.includes(values.source)) errors.source = 'Válassz a felsoroltak közül.';
+  if (!values.consent) errors.consent = 'A jelentkezéshez el kell fogadnod az adatkezelési tájékoztatót.';
+  return { values, errors };
+}
+
+// Az űrlap választható értékei (Beállítások): soronként egy összeg, illetve egy válaszlehetőség.
+export function validateFormSettings(body) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const list = (value) => (Array.isArray(value) ? value : String(value || '').split('\n'))
+    .map((v) => String(v).trim()).filter(Boolean);
+  const amounts = [...new Set(list(body.amounts).map((v) => Number(v.replace(/[\s.]|Ft$/gi, ''))))];
+  if (!amounts.length || amounts.length > 20 || amounts.some((n) => !Number.isInteger(n) || n < 1 || n > 10_000_000)) {
+    throw new ValidationError('Az összegek 1 és 10 000 000 közötti egész számok legyenek (1–20 db).');
+  }
+  const sources = [...new Set(list(body.sources))];
+  if (!sources.length || sources.length > 20 || sources.some((v) => v.length > 100)) {
+    throw new ValidationError('A „Honnan hallott rólunk?” válaszai 1–20 db, egyenként legfeljebb 100 karakter.');
+  }
+  return { amounts: amounts.sort((a, b) => a - b), sources };
+}
+
+export function validateApplicationStatus(body) {
+  if (!body || !APPLICATION_STATUSES.includes(body.status)) throw new ValidationError('Érvénytelen állapot.');
+  return body.status;
 }
 
 // A fájl első bájtjai alapján döntünk, nem a böngésző által küldött típus alapján.

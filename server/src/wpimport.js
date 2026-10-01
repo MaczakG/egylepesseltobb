@@ -156,7 +156,7 @@ export async function runImport({ db, config, data, fetchImage = fetchFromWeb, l
   return status;
 }
 
-// Egyszerre csak egy import futhat (indításkor és az admin „újrafuttatás” gombjára is indulhat).
+// Egyszerre csak egy import futhat.
 let running = null;
 
 export function startImport(options) {
@@ -164,8 +164,4 @@ export function startImport(options) {
     running = runImport(options).finally(() => { running = null; });
   }
   return running;
-}
-
-export function isImportRunning() {
-  return running !== null;
 }
