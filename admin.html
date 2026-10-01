@@ -668,7 +668,7 @@
 
         <div class="mb-6">
           <h1 class="text-xl font-semibold text-slate-900">Beállítások</h1>
-          <p class="text-slate-500 mt-1">Az automatizmusok, a jelentkezési űrlap és a fiók biztonsági beállításai.</p>
+          <p class="text-slate-500 mt-1">Az automatizmusok, az űrlapok választható értékei és a fiók biztonsági beállításai.</p>
         </div>
 
         <div class="card divide-y divide-slate-200">
@@ -722,6 +722,28 @@
               </div>
               <div class="flex justify-end">
                 <button onclick="saveFormSettings()" class="btn btn-primary">Mentés</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6 p-5 sm:p-6">
+            <div>
+              <h2 class="font-semibold text-slate-900">Váradi Eszter-díj jelölés</h2>
+              <p class="text-slate-500 text-[13px] mt-1">A <a href="/varadi-eszter-dijra-jeloles" target="_blank" rel="noopener" class="text-brand-700 underline">jelölési űrlap</a> legördülő listái. Soronként egy érték, a sorrend az űrlapon is ez lesz. Ha a nagykövetek listája üres, a mező nem jelenik meg.</p>
+            </div>
+            <div class="md:col-span-2 space-y-5">
+              <div class="grid sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="label" for="nom-categories">Díj kategóriák</label>
+                  <textarea id="nom-categories" rows="10" class="field"></textarea>
+                </div>
+                <div>
+                  <label class="label" for="nom-ambassadors">Nagykövetek</label>
+                  <textarea id="nom-ambassadors" rows="10" class="field"></textarea>
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button onclick="saveNominationSettings()" class="btn btn-primary">Mentés</button>
               </div>
             </div>
           </div>
@@ -1022,6 +1044,7 @@
     if (view === 'settings') {
       renderSettings();
       loadFormSettings();
+      loadNominationSettings();
     }
   };
 
@@ -1961,6 +1984,29 @@
       document.getElementById('form-amounts').value = f.amounts.join('\n');
       document.getElementById('form-sources').value = f.sources.join('\n');
       showToast('Az űrlap beállításai mentve lettek.');
+    }).catch(function (e) { showToast(e.message); });
+  };
+
+  // ---------------------------------------------------------------
+  // Váradi Eszter-díj jelölés legördülő listái (Beállítások)
+  // ---------------------------------------------------------------
+  function fillNominationSettings(n) {
+    document.getElementById('nom-categories').value = n.categories.join('\n');
+    document.getElementById('nom-ambassadors').value = n.ambassadors.join('\n');
+  }
+
+  function loadNominationSettings() {
+    return api('GET', '/api/admin/nomination-settings').then(fillNominationSettings)
+      .catch(function (e) { showToast(e.message); });
+  }
+
+  window.saveNominationSettings = function () {
+    api('PUT', '/api/admin/nomination-settings', {
+      categories: document.getElementById('nom-categories').value,
+      ambassadors: document.getElementById('nom-ambassadors').value
+    }).then(function (n) {
+      fillNominationSettings(n);
+      showToast('A jelölési űrlap listái mentve lettek.');
     }).catch(function (e) { showToast(e.message); });
   };
 

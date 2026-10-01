@@ -553,6 +553,24 @@ export function saveFormSettings(db, settings) {
   return getFormSettings(db);
 }
 
+// A Váradi Eszter-díj jelölés legördülő listái (a régi oldal űrlapja szerint); az adminban a Beállítások oldalon módosíthatók.
+export const DEFAULT_NOMINATION_SETTINGS = {
+  categories: ['Az Év Önkéntese', 'Az Év Magánszemély Támogatója', 'Az Év Céges Támogatója', 'Az Év Előadója',
+    'Az Év Előadóművésze', 'Az Év Nagykövete', 'Az Év Médiatámogatója', 'Az Év Gyermekorvosa',
+    'Az Év Egészségügyi Dolgozója', 'Az Év Utánpótlás Női Sportolója', 'Az Év Utánpótlás Férfi Sportolója',
+    'Életműdíj', 'Különdíj', 'Az Év Női Paralimpikonja', 'Az Év Férfi Paralimpikonja'],
+  ambassadors: ['Győrfi Pál', 'Kucsera Gábor', 'Andrásfi Tibor', 'Kovács-Dobos Evelin'],
+};
+
+export function getNominationSettings(db) {
+  return { ...DEFAULT_NOMINATION_SETTINGS, ...getSetting(db, 'nomination_form', {}) };
+}
+
+export function saveNominationSettings(db, settings) {
+  setSetting(db, 'nomination_form', settings);
+  return getNominationSettings(db);
+}
+
 function toApplication(row) {
   return {
     id: row.id,

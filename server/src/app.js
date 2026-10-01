@@ -12,11 +12,11 @@ import {
   renderNotFound, renderPage, siteFrame,
 } from './pages.js';
 import { IMPORT_FILE, legacyPostSlugs, loadImportData } from './wpimport.js';
-import { MESSAGE_FORMS, checkMessage, formSchema, renderMessageForm } from './forms.js';
+import { checkMessage, formSchema, messageForm, renderMessageForm } from './forms.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
   ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
-  validateMessageStatus, validatePost, validateSettings,
+  validateMessageStatus, validateNominationSettings, validatePost, validateSettings,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -435,6 +435,12 @@ export function createApp({ db, config }) {
     res.json(store.saveFormSettings(db, validateFormSettings(req.body)));
   });
 
+  admin.get('/nomination-settings', (req, res) => res.json(store.getNominationSettings(db)));
+
+  admin.put('/nomination-settings', (req, res) => {
+    res.json(store.saveNominationSettings(db, validateNominationSettings(req.body)));
+  });
+
   admin.get('/applications', (req, res) => res.json(store.listApplications(db)));
 
   admin.put('/applications/:id', (req, res) => {
@@ -483,8 +489,9 @@ export function createApp({ db, config }) {
     if (page.extras.form === 'application') {
       formHtml = applicationForm(frame, { action: `/${page.slug}/jelentkezes` },
         { options: adoptableOptions(), ...store.getFormSettings(db), ...form });
-    } else if (MESSAGE_FORMS[page.extras.form]) {
-      formHtml = renderMessageForm(MESSAGE_FORMS[page.extras.form], { action: `/${page.slug}/urlap`, privacyUrl: frame.privacyUrl, ...form });
+    } else if (messageForm(page.extras.form)) {
+      formHtml = renderMessageForm(messageForm(page.extras.form, store.getNominationSettings(db)),
+        { action: `/${page.slug}/urlap`, privacyUrl: frame.privacyUrl, ...form });
     }
     if (!isPublic) res.set('X-Robots-Tag', 'noindex');
     sendHtml(res, renderPage(frame, {
@@ -513,7 +520,7 @@ export function createApp({ db, config }) {
   const messagesByIp = new Map();
   app.post('/:slug/urlap', formBody, async (req, res, next) => {
     const found = contentPage(req);
-    const def = found && MESSAGE_FORMS[found.page.extras.form];
+    const def = found && messageForm(found.page.extras.form, store.getNominationSettings(db));
     if (!def) return next();
     const thanks = `/${found.page.slug}?jelentkezes=koszonjuk#jelentkezes`;
     const send = (form, status) => sendContentPage(req, res, found, form, status);

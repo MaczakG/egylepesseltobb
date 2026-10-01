@@ -83,6 +83,7 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
   - **Kapcsolati űrlap** (az 1% adó oldalon): név, e-mail, üzenet;
   - **Jelentkezés a programba** (Kerülj be programunkba): név, e-mail, telefonszám, a gyermek története, orvosi dokumentumok feltöltése (PDF vagy kép, legfeljebb 5 fájl, egyenként max. 10 MB);
   - **Váradi Eszter-díj jelölés**: jelölő adatai, jelölt neve, díjkategória, nagykövet, indoklás (legalább 200 karakter).
+- A díjjelölés legördülő listái (díjkategóriák, nagykövetek) az adminban a **Beállítások** oldalon szerkeszthetők, soronként egy értékkel; a változás az űrlapon azonnal megjelenik, és csak a listában szereplő érték küldhető be. Üres nagykövetlistánál a mező nem jelenik meg.
 - Mindegyikhez kell az adatkezelési tájékoztató elfogadása; ugyanaz a védelem a kéretlen beküldések ellen, mint a támogatói jelentkezésnél.
 - Az adminban az **Üzenetek** menüpontban jelennek meg (a menüpont mellett az újak száma), típus szerint szűrhetők, állapotuk „Új” vagy „Feldolgozva”, és törölhetők.
 - A feltöltött dokumentumok nem nyilvánosak: a szerveren a `/var/lib/egylepesseltobb/private` mappába kerülnek (csak az alkalmazás olvashatja), és csak bejelentkezett adminisztrátor töltheti le őket az üzenetnél. Az üzenet törlésekor a fájlok is törlődnek. A napi mentés ezeket is tartalmazza.

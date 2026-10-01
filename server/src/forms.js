@@ -1,5 +1,6 @@
 // A régi oldal további űrlapjai (kapcsolat, programjelentkezés, díjjelölés). A mezők a régi űrlapokat követik;
 // a beküldések az adminban az „Üzenetek” menüpontban jelennek meg.
+import { DEFAULT_NOMINATION_SETTINGS } from './db.js';
 import { escapeHtml } from './render.js';
 
 const NAME = { name: 'name', label: 'Név', type: 'text', required: true, max: 120, autocomplete: 'name' };
@@ -34,14 +35,11 @@ export const MESSAGE_FORMS = {
           { name: 'nominee', label: 'Jelölt neve', type: 'text', required: true, max: 160 },
           {
             name: 'category', label: 'Díj kategória', type: 'select', required: true, placeholder: 'Válasszon',
-            options: ['Az Év Önkéntese', 'Az Év Magánszemély Támogatója', 'Az Év Céges Támogatója', 'Az Év Előadója',
-              'Az Év Előadóművésze', 'Az Év Nagykövete', 'Az Év Médiatámogatója', 'Az Év Gyermekorvosa',
-              'Az Év Egészségügyi Dolgozója', 'Az Év Utánpótlás Női Sportolója', 'Az Év Utánpótlás Férfi Sportolója',
-              'Életműdíj', 'Különdíj', 'Az Év Női Paralimpikonja', 'Az Év Férfi Paralimpikonja'],
+            options: DEFAULT_NOMINATION_SETTINGS.categories,
           },
           {
             name: 'ambassador', label: 'Nagykövet', type: 'select', placeholder: 'Válasszon',
-            options: ['Győrfi Pál', 'Kucsera Gábor', 'Andrásfi Tibor', 'Kovács-Dobos Evelin'],
+            options: DEFAULT_NOMINATION_SETTINGS.ambassadors,
           },
           { name: 'reason', label: 'Indoklás', type: 'textarea', required: true, min: 200, max: 10000, rows: 7, help: 'Legalább 200 karakter.' },
         ],
@@ -51,6 +49,23 @@ export const MESSAGE_FORMS = {
 };
 
 export const MESSAGE_FORM_TYPES = Object.keys(MESSAGE_FORMS);
+
+// Az űrlap a mentett beállításokkal: a díjjelölés kategóriái és nagykövetei az adminban szerkeszthetők.
+// Üres nagykövetlistánál a (nem kötelező) mező el is marad.
+export function messageForm(key, nomination = DEFAULT_NOMINATION_SETTINGS) {
+  const def = MESSAGE_FORMS[key];
+  if (key !== 'nomination' || !def) return def;
+  const options = { category: nomination.categories, ambassador: nomination.ambassadors };
+  return {
+    ...def,
+    sections: def.sections.map((section) => ({
+      ...section,
+      fields: section.fields
+        .map((f) => (options[f.name] ? { ...f, options: options[f.name] } : f))
+        .filter((f) => f.type !== 'select' || f.required || f.options.length),
+    })),
+  };
+}
 
 const fieldsOf = (def) => def.sections.flatMap((s) => s.fields).filter((f) => f.type !== 'file');
 

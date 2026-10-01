@@ -156,6 +156,22 @@ export function validateFormSettings(body) {
   return { amounts: amounts.sort((a, b) => a - b), sources };
 }
 
+// A díjjelölés legördülő listái (Beállítások): soronként egy kategória, illetve egy nagykövet.
+export function validateNominationSettings(body) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const list = (value) => [...new Set((Array.isArray(value) ? value : String(value || '').split('\n'))
+    .map((v) => String(v).trim()).filter(Boolean))];
+  const categories = list(body.categories);
+  if (!categories.length || categories.length > 40 || categories.some((v) => v.length > 100)) {
+    throw new ValidationError('A díjkategóriák 1–40 db, egyenként legfeljebb 100 karakter.');
+  }
+  const ambassadors = list(body.ambassadors);
+  if (ambassadors.length > 40 || ambassadors.some((v) => v.length > 100)) {
+    throw new ValidationError('A nagykövetek legfeljebb 40-en, egyenként legfeljebb 100 karakter.');
+  }
+  return { categories, ambassadors };
+}
+
 export function validateMessageStatus(body) {
   if (!body || !MESSAGE_STATUSES.includes(body.status)) throw new ValidationError('Érvénytelen állapot.');
   return body.status;

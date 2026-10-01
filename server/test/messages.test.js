@@ -136,6 +136,42 @@ describe('űrlapok az oldalakon', () => {
   });
 });
 
+describe('admin: a díjjelölés legördülő listái', () => {
+  test('alapértékek, mentés, és az űrlapon és az ellenőrzésben azonnal érvényesek', async () => {
+    assert.equal((await fetch(`${base}/api/admin/nomination-settings`)).status, 401);
+    const defaults = await (await admin('GET', '/api/admin/nomination-settings')).json();
+    assert.deepEqual(defaults, store.DEFAULT_NOMINATION_SETTINGS);
+    assert.equal(defaults.categories.length, 15);
+
+    const saved = await (await admin('PUT', '/api/admin/nomination-settings', {
+      categories: 'Az Év Önkéntese\n\n  Az Év Mentora  \nAz Év Önkéntese', ambassadors: 'Új Nagykövet',
+    })).json();
+    assert.deepEqual(saved, { categories: ['Az Év Önkéntese', 'Az Év Mentora'], ambassadors: ['Új Nagykövet'] });
+    const html = await (await fetch(`${base}/jeloles`)).text();
+    assert.match(html, /<option value="Az Év Mentora">Az Év Mentora<\/option>/);
+    assert.match(html, /<option value="Új Nagykövet">Új Nagykövet<\/option>/);
+    assert.doesNotMatch(html, /Az Év Gyermekorvosa|Győrfi Pál/);
+
+    const fields = { name: 'Jelölő', email: 'j@pelda.hu', nominee: 'Dr. Példa', reason: REASON, consent: 'on' };
+    assert.equal((await post('jeloles', form({ ...fields, category: 'Az Év Gyermekorvosa' }), urlencoded)).status, 400, 'a törölt kategória már nem választható');
+    assert.equal((await post('jeloles', form({ ...fields, category: 'Az Év Mentora', ambassador: 'Győrfi Pál' }), urlencoded)).status, 400);
+    assert.equal((await post('jeloles', form({ ...fields, category: 'Az Év Mentora', ambassador: 'Új Nagykövet' }), urlencoded)).status, 303);
+    assert.equal(store.listMessages(db)[0].data.category, 'Az Év Mentora');
+
+    // Üres nagykövetlista: a mező eltűnik az űrlapról.
+    await admin('PUT', '/api/admin/nomination-settings', { categories: 'Az Év Mentora', ambassadors: '' });
+    assert.doesNotMatch(await (await fetch(`${base}/jeloles`)).text(), /name="ambassador"/);
+    assert.equal((await post('jeloles', form({ ...fields, category: 'Az Év Mentora' }), urlencoded)).status, 303);
+
+    await admin('PUT', '/api/admin/nomination-settings', store.DEFAULT_NOMINATION_SETTINGS);
+  });
+
+  test('hibás értékek: 400', async () => {
+    assert.equal((await admin('PUT', '/api/admin/nomination-settings', { categories: '', ambassadors: 'A' })).status, 400);
+    assert.equal((await admin('PUT', '/api/admin/nomination-settings', { categories: 'x'.repeat(101), ambassadors: '' })).status, 400);
+  });
+});
+
 describe('admin: üzenetek', () => {
   test('lista a mezők címkéivel, dokumentum letöltése csak bejelentkezve, állapot, törlés a fájlokkal együtt', async () => {
     assert.equal((await fetch(`${base}/api/admin/messages`)).status, 401);
