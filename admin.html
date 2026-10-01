@@ -3,33 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Egy Lépéssel Több — Admin felület</title>
+<meta name="robots" content="noindex, nofollow">
+<title>Egy Lépéssel Több — Admin</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script>
   tailwind.config = {
     theme: {
       extend: {
         colors: {
-          navy: {
+          // A márka sötétkékje az elsődleges szín; a semleges tónusok a Tailwind slate skálájából jönnek.
+          brand: {
             50: '#eef2f4', 100: '#dde4e8', 200: '#b9c5cd', 300: '#94a7b3',
             400: '#708998', 500: '#4c6b7d', 600: '#3d5568', 700: '#334758',
-            800: '#263640', 900: '#1a252d'
+            800: '#263640', 900: '#1a252d', 950: '#121a20'
           },
-          sand: {
-            50: '#fdfbf7', 100: '#f8f1e4', 200: '#f0e4cb', 300: '#e8d7b2',
-            400: '#e2d3ab', 500: '#dac7a0', 600: '#c3ac7e', 700: '#a68c5c',
-            800: '#7d6944', 900: '#544632'
-          },
-          danger: { 50: '#fbf0ee', 500: '#b3554a', 600: '#9c4a41' }
+          sand: { 400: '#e2d3ab', 500: '#dac7a0', 600: '#c3ac7e' }
         },
         fontFamily: {
-          serif: ['"Baloo 2"', 'ui-rounded', 'sans-serif'],
-          sans: ['Nunito', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif']
         }
       }
     }
@@ -37,339 +33,488 @@
 </script>
 
 <style>
-  body { font-family: 'Nunito', sans-serif; }
-  h1, h2, h3, .font-display { font-family: 'Baloo 2', sans-serif; }
+  body { font-feature-settings: 'cv11', 'ss01'; }
+  .tabular { font-variant-numeric: tabular-nums; }
 
-  .nav-item { display: flex; align-items: center; width: 100%; box-sizing: border-box; gap: 0.75rem; padding: 0.7rem 1rem; border-radius: 0.65rem; color: rgba(255,255,255,0.7); font-weight: 600; font-size: 0.9rem; border-left: 3px solid transparent; transition: all 0.15s ease; cursor: pointer; text-align: left; }
+  .nav-item { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; color: rgba(255,255,255,0.68); font-size: 0.875rem; font-weight: 500; text-align: left; transition: background-color 0.12s ease, color 0.12s ease; }
   .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
-  .nav-item.active { background: rgba(218,199,160,0.12); color: #fff; border-left-color: #dac7a0; }
+  .nav-item.active { background: rgba(255,255,255,0.10); color: #fff; box-shadow: inset 2px 0 0 #dac7a0; }
 
-  /* Status segmented control — outer pill defines the exact height every
-     segment fills; segments never depend on text length to size themselves. */
-  .status-seg { display: inline-flex; align-items: stretch; width: 100%; height: 46px; padding: 4px; box-sizing: border-box; border-radius: 9999px; background: #eef2f4; border: 1px solid #dde4e8; }
-  .status-seg-btn { flex: 1 1 0%; min-width: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; line-height: 1; white-space: nowrap; padding: 0 0.5rem; color: #708998; }
-  .status-seg-btn.active { background: #dac7a0; color: #1a252d; }
+  .filter-btn { color: #475569; }
+  .filter-btn:hover { color: #0f172a; }
+  .filter-btn.active { background: #fff; color: #0f172a; box-shadow: 0 1px 2px rgba(15,23,42,0.08), 0 0 0 1px rgba(15,23,42,0.06); }
+  .filter-btn .count { background: #e2e8f0; color: #475569; }
+  .filter-btn.active .count { background: #334758; color: #fff; }
 
-  #story-editable { min-height: 220px; }
+  .sort-btn { display: inline-flex; align-items: center; gap: 0.25rem; text-transform: inherit; letter-spacing: inherit; font-weight: inherit; }
+  .sort-btn:hover { color: #0f172a; }
+  .sort-btn .sort-ind { opacity: 0; }
+  .sort-btn.sorted .sort-ind, .sort-btn:hover .sort-ind { opacity: 1; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 0.5rem; background: #f1f5f9; border: 1px solid #e2e8f0; }
+  .status-seg-btn { padding: 0.4rem 0.5rem; border-radius: 0.375rem; font-size: 0.8125rem; font-weight: 500; color: #64748b; white-space: nowrap; }
+  .status-seg-btn.active { background: #fff; color: #0f172a; box-shadow: 0 1px 2px rgba(15,23,42,0.1), 0 0 0 1px rgba(15,23,42,0.06); }
+
+  .field { width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid #cbd5e1; background: #fff; font-size: 0.875rem; color: #0f172a; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+  .field::placeholder { color: #94a3b8; }
+  .field:focus { outline: none; border-color: #4c6b7d; box-shadow: 0 0 0 3px rgba(76,107,125,0.18); }
+  .label { display: block; font-size: 0.8125rem; font-weight: 500; color: #334155; margin-bottom: 0.375rem; }
+  .help { font-size: 0.75rem; color: #64748b; margin-top: 0.375rem; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem 0.875rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; transition: background-color 0.12s ease, border-color 0.12s ease; white-space: nowrap; }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn-primary { background: #334758; color: #fff; box-shadow: 0 1px 2px rgba(15,23,42,0.12); }
+  .btn-primary:hover:not(:disabled) { background: #263640; }
+  .btn-secondary { background: #fff; color: #334155; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+  .btn-secondary:hover:not(:disabled) { background: #f8fafc; }
+  .btn-danger { background: #b42318; color: #fff; }
+  .btn-danger:hover:not(:disabled) { background: #912018; }
+  .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 0.375rem; color: #64748b; }
+  .icon-btn:hover { background: #f1f5f9; color: #0f172a; }
+  .icon-btn.danger:hover { background: #fef3f2; color: #b42318; }
+
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+
+  .editor-btn { min-width: 30px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 0.25rem; font-size: 0.8rem; font-weight: 600; color: #334155; padding: 0 6px; }
+  .editor-btn:hover { background: #e2e8f0; }
+
+  #story-editable { min-height: 260px; }
   #story-editable:focus { outline: none; }
   #story-editable p { margin-bottom: 0.75em; }
-  #story-editable h2 { font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; font-weight: 700; margin: 0.6em 0 0.3em; color: #334758; }
-  #story-editable h3 { font-family: 'Baloo 2', sans-serif; font-size: 1.15rem; font-weight: 700; margin: 0.5em 0 0.3em; color: #334758; }
+  #story-editable h2 { font-size: 1.25rem; font-weight: 600; margin: 0.6em 0 0.3em; color: #0f172a; }
+  #story-editable h3 { font-size: 1.05rem; font-weight: 600; margin: 0.5em 0 0.3em; color: #0f172a; }
   #story-editable ul { list-style: disc; padding-left: 1.4em; margin-bottom: 0.75em; }
   #story-editable ol { list-style: decimal; padding-left: 1.4em; margin-bottom: 0.75em; }
-  #story-editable blockquote { border-left: 3px solid #dac7a0; padding-left: 1em; color: #4c6b7d; font-style: italic; margin: 0.6em 0; }
-  #story-editable a { color: #a68c5c; text-decoration: underline; }
+  #story-editable blockquote { border-left: 3px solid #cbd5e1; padding-left: 1em; color: #475569; margin: 0.6em 0; }
+  #story-editable a { color: #334758; text-decoration: underline; }
 
-  .toggle-track { width: 46px; height: 26px; border-radius: 999px; background: #b9c5cd; position: relative; transition: background 0.2s ease; cursor: pointer; flex-shrink: 0; }
-  .toggle-track.on { background: #dac7a0; }
-  .toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 999px; background: #fff; transition: transform 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-  .toggle-track.on .toggle-knob { transform: translateX(20px); }
+  .toggle-track { width: 36px; height: 20px; border-radius: 999px; background: #cbd5e1; position: relative; transition: background 0.15s ease; cursor: pointer; flex-shrink: 0; display: inline-block; }
+  .toggle-track.on { background: #334758; }
+  .toggle-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff; transition: transform 0.15s ease; box-shadow: 0 1px 2px rgba(15,23,42,0.3); }
+  .toggle-track.on .toggle-knob { transform: translateX(16px); }
 
-  .drop-zone { border: 2px dashed #b9c5cd; transition: border-color 0.15s ease, background 0.15s ease; }
-  .drop-zone.drag-over { border-color: #dac7a0; background: #fdfbf7; }
+  .drop-zone { border: 1px dashed #cbd5e1; background: #f8fafc; transition: border-color 0.12s ease, background 0.12s ease; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: #4c6b7d; background: #f1f5f9; }
 
-  #sidebar { transition: transform 0.25s ease; }
+  #sidebar { transition: transform 0.2s ease; }
   @media (max-width: 1023px) {
     #sidebar { position: fixed; inset: 0 auto 0 0; z-index: 40; transform: translateX(-100%); }
     #sidebar.open { transform: translateX(0); }
-    #sidebar-backdrop { transition: opacity 0.2s ease; }
   }
 
-  .table-scroll { -webkit-overflow-scrolling: touch; }
-
-  #toast { transition: opacity 0.25s ease, transform 0.25s ease; }
+  #toast { transition: opacity 0.2s ease, transform 0.2s ease; }
 </style>
 </head>
-<body class="bg-sand-50 text-navy-800 antialiased">
+<body class="bg-slate-50 text-slate-900 antialiased text-sm">
 
 <div class="flex h-screen overflow-hidden">
 
   <!-- ============ SIDEBAR ============ -->
-  <div id="sidebar-backdrop" onclick="closeSidebar()" class="hidden fixed inset-0 bg-navy-900/50 z-30 lg:hidden"></div>
+  <div id="sidebar-backdrop" onclick="closeSidebar()" class="hidden fixed inset-0 bg-slate-900/50 z-30 lg:hidden"></div>
 
-  <aside id="sidebar" class="w-64 bg-navy-800 text-white flex flex-col shrink-0">
-    <div class="h-20 flex items-center gap-3 px-6 border-b border-white/10">
-      <div class="w-10 h-10 rounded-xl bg-sand-500 text-navy-900 font-display font-bold flex items-center justify-center text-sm shrink-0">ELT</div>
+  <aside id="sidebar" class="w-64 bg-brand-950 text-white flex flex-col shrink-0">
+    <div class="h-14 flex items-center gap-3 px-5 border-b border-white/10">
+      <div class="w-8 h-8 rounded-md bg-sand-500 text-brand-900 font-bold flex items-center justify-center text-xs tracking-tight shrink-0">ELT</div>
       <div class="min-w-0">
-        <p class="font-display font-semibold text-sm leading-tight truncate">Egy Lépéssel Több</p>
-        <p class="text-xs text-white/50 leading-tight">Admin felület</p>
+        <p class="font-semibold text-sm leading-tight truncate">Egy Lépéssel Több</p>
+        <p class="text-[11px] text-white/50 leading-tight">Alapítványi adminisztráció</p>
       </div>
     </div>
 
-    <nav class="flex-1 px-3 py-6 space-y-1">
-      <button class="nav-item active" data-view="list" onclick="goToView('list')">
-        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
-        Családok
-      </button>
-      <button class="nav-item" data-view="form" onclick="openNewFamilyForm()">
-        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        Új család
-      </button>
-      <button class="nav-item" data-view="settings" onclick="goToView('settings')">
-        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.774.773c.39.39.44.995.12 1.45l-.527.738c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.455.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.454.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.142-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Beállítások
-      </button>
+    <nav class="flex-1 px-3 py-5 space-y-6 overflow-y-auto">
+      <div>
+        <p class="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">Tartalom</p>
+        <div class="space-y-0.5">
+          <button class="nav-item active" data-view="list" onclick="goToView('list')">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+            Családok
+          </button>
+          <button class="nav-item" data-view="form" onclick="openNewFamilyForm()">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Új család
+          </button>
+        </div>
+      </div>
+      <div>
+        <p class="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">Rendszer</p>
+        <div class="space-y-0.5">
+          <button class="nav-item" data-view="settings" onclick="goToView('settings')">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg>
+            Beállítások
+          </button>
+          <a href="/" target="_blank" rel="noopener" class="nav-item">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+            Weboldal megtekintése
+          </a>
+        </div>
+      </div>
     </nav>
 
-    <div class="p-4 border-t border-white/10 space-y-3">
-      <a href="/" target="_blank" rel="noopener" class="block text-xs font-semibold text-white/70 hover:text-sand-400 transition-colors">Weboldal megtekintése ↗</a>
-      <p class="text-xs text-white/40">Egy Lépéssel Több Alapítvány · belső admin</p>
+    <div class="p-3 border-t border-white/10">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div id="user-initial" class="w-8 h-8 rounded-full bg-white/10 text-white font-semibold text-xs flex items-center justify-center shrink-0">A</div>
+        <div class="min-w-0 flex-1">
+          <p id="user-email" class="text-xs font-medium text-white truncate"></p>
+          <p class="text-[11px] text-white/45">Adminisztrátor</p>
+        </div>
+        <button onclick="logout()" class="p-1.5 rounded-md text-white/60 hover:text-white hover:bg-white/10" title="Kijelentkezés" aria-label="Kijelentkezés">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+        </button>
+      </div>
     </div>
   </aside>
 
   <!-- ============ MAIN ============ -->
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
     <!-- Topbar -->
-    <header class="h-16 sm:h-20 bg-white border-b border-navy-100 flex items-center justify-between gap-3 px-4 sm:px-8 shrink-0">
-      <div class="flex items-center gap-3 min-w-0">
-        <button onclick="openSidebar()" class="lg:hidden text-navy-700 p-2 -ml-2" aria-label="Menü">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-        </button>
-        <h1 id="page-title" class="font-display text-lg sm:text-2xl font-semibold text-navy-800 truncate">Családok</h1>
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between gap-3 px-4 sm:px-6 shrink-0">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="lg:hidden -ml-1">
+          <button onclick="openSidebar()" class="icon-btn" aria-label="Menü">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          </button>
+        </span>
+        <nav class="flex items-center gap-1.5 text-sm min-w-0" aria-label="Morzsamenü">
+          <span class="text-slate-500 hidden sm:inline">Adminisztráció</span>
+          <svg class="w-4 h-4 text-slate-300 hidden sm:inline shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+          <span id="page-title" class="font-medium text-slate-900 truncate">Családok</span>
+        </nav>
       </div>
-
-      <div class="flex items-center gap-3 sm:gap-5 shrink-0">
-        <div class="relative hidden sm:block">
-          <svg class="w-4 h-4 text-navy-300 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 10.5a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" /></svg>
-          <input id="search-input" type="text" placeholder="Keresés név alapján…" oninput="onSearchInput(this.value)" class="pl-9 pr-4 py-2 w-56 xl:w-72 rounded-full border border-navy-100 bg-sand-50 text-sm text-navy-800 placeholder:text-navy-300 focus:outline-none focus:ring-2 focus:ring-sand-400">
-        </div>
-        <div class="flex items-center gap-2.5">
-          <div id="user-initial" class="w-9 h-9 rounded-full bg-navy-700 text-white font-display font-semibold text-sm flex items-center justify-center shrink-0">A</div>
-          <span id="user-email" class="hidden md:block text-sm font-semibold text-navy-700"></span>
-          <button onclick="logout()" class="text-xs font-semibold text-navy-500 hover:text-danger-600 px-2 py-1 rounded-lg hover:bg-danger-50 transition-colors">Kijelentkezés</button>
-        </div>
+      <div class="relative hidden sm:block">
+        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 10.5a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"/></svg>
+        <input id="search-input" type="search" placeholder="Keresés név alapján…" oninput="onSearchInput(this.value)" class="field !pl-8 !py-1.5 w-56 xl:w-72">
       </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-4 sm:p-8">
+    <main class="flex-1 overflow-y-auto">
+      <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
 
       <!-- ============ LIST VIEW ============ -->
       <section id="view-list">
 
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div class="inline-flex bg-white rounded-full p-1 border border-navy-100 self-start">
-            <button class="filter-btn px-4 py-1.5 rounded-full text-sm font-semibold transition-colors" data-filter="all" onclick="setStatusFilter('all')">Mind</button>
-            <button class="filter-btn px-4 py-1.5 rounded-full text-sm font-semibold transition-colors" data-filter="adoptable" onclick="setStatusFilter('adoptable')">Örökbefogadható</button>
-            <button class="filter-btn px-4 py-1.5 rounded-full text-sm font-semibold transition-colors" data-filter="adopted" onclick="setStatusFilter('adopted')">Örökbefogadott</button>
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-xl font-semibold text-slate-900">Családok</h1>
+            <p class="text-slate-500 mt-1">A főoldalon az „Örökbefogadható” státuszú családok jelennek meg.</p>
           </div>
-          <button onclick="openNewFamilyForm()" class="inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold text-sm px-5 py-2.5 rounded-full transition-colors self-start">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          <button onclick="openNewFamilyForm()" class="btn btn-primary self-start sm:self-auto">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
             Új család
           </button>
         </div>
 
-        <!-- Desktop table -->
-        <div class="hidden md:block bg-white rounded-2xl border border-navy-100 overflow-hidden">
-          <div class="overflow-x-auto table-scroll">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-xs text-navy-400 uppercase tracking-wide border-b border-navy-100">
-                  <th class="px-5 py-4 font-semibold">Család</th>
-                  <th class="px-5 py-4 font-semibold">Státusz</th>
-                  <th class="px-5 py-4 font-semibold">Jelentkezők</th>
-                  <th class="px-5 py-4 font-semibold">Létrehozva</th>
-                  <th class="px-5 py-4 font-semibold text-right">Műveletek</th>
-                </tr>
-              </thead>
-              <tbody id="table-body"></tbody>
-            </table>
+        <!-- KPI -->
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
+          <div class="card p-4">
+            <p class="text-xs font-medium text-slate-500">Összes család</p>
+            <p id="kpi-total" class="tabular text-xl sm:text-2xl font-semibold text-slate-900 mt-1 whitespace-nowrap">–</p>
           </div>
-          <p id="table-empty" class="hidden text-center text-navy-400 text-sm py-14">Nincs a szűrésnek megfelelő család.</p>
+          <div class="card p-4">
+            <p class="text-xs font-medium text-slate-500">Örökbefogadható</p>
+            <p id="kpi-adoptable" class="tabular text-xl sm:text-2xl font-semibold text-slate-900 mt-1 whitespace-nowrap">–</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-xs font-medium text-slate-500">Örökbefogadott</p>
+            <p id="kpi-adopted" class="tabular text-xl sm:text-2xl font-semibold text-slate-900 mt-1 whitespace-nowrap">–</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-xs font-medium text-slate-500">Nyitott havi támogatási igény</p>
+            <p id="kpi-amount" class="tabular text-xl sm:text-2xl font-semibold text-slate-900 mt-1 whitespace-nowrap">–</p>
+          </div>
         </div>
 
-        <!-- Mobile cards -->
-        <div id="card-list" class="md:hidden space-y-4"></div>
-        <p id="card-empty" class="hidden md:hidden text-center text-navy-400 text-sm py-14">Nincs a szűrésnek megfelelő család.</p>
+        <div class="card overflow-hidden">
+          <!-- Toolbar -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b border-slate-200">
+            <div class="max-w-full overflow-x-auto self-start"><div class="inline-flex bg-slate-100 rounded-md p-0.5">
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="all" onclick="setStatusFilter('all')">Mind <span id="count-all" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="adoptable" onclick="setStatusFilter('adoptable')">Örökbefogadható <span id="count-adoptable" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="adopted" onclick="setStatusFilter('adopted')">Örökbefogadott <span id="count-adopted" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+            </div></div>
+            <p id="result-count" class="text-xs text-slate-500"></p>
+          </div>
+
+          <!-- Desktop table -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr class="text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <th class="px-4 py-2.5"><button class="sort-btn" data-sort="name" onclick="setSort('name')">Család <span class="sort-ind">↕</span></button></th>
+                  <th class="px-4 py-2.5">Státusz</th>
+                  <th class="px-4 py-2.5"><button class="sort-btn" data-sort="applicants" onclick="setSort('applicants')">Jelentkezők <span class="sort-ind">↕</span></button></th>
+                  <th class="px-4 py-2.5 text-right"><button class="sort-btn" data-sort="amount" onclick="setSort('amount')">Havi összeg <span class="sort-ind">↕</span></button></th>
+                  <th class="px-4 py-2.5"><button class="sort-btn" data-sort="createdAt" onclick="setSort('createdAt')">Létrehozva <span class="sort-ind">↕</span></button></th>
+                  <th class="px-4 py-2.5 text-right"><span class="sr-only">Műveletek</span></th>
+                </tr>
+              </thead>
+              <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+            <div id="table-empty" class="hidden text-center py-16">
+              <p class="font-medium text-slate-900">Nincs találat</p>
+              <p class="text-slate-500 mt-1">Nincs a szűrésnek megfelelő család.</p>
+            </div>
+          </div>
+
+          <!-- Mobile list -->
+          <div id="card-list" class="md:hidden divide-y divide-slate-100"></div>
+          <div id="card-empty" class="hidden md:hidden text-center py-14">
+            <p class="font-medium text-slate-900">Nincs találat</p>
+            <p class="text-slate-500 mt-1">Nincs a szűrésnek megfelelő család.</p>
+          </div>
+        </div>
 
       </section>
 
       <!-- ============ FORM VIEW ============ -->
-      <section id="view-form" class="hidden max-w-4xl">
+      <section id="view-form" class="hidden">
 
-        <button onclick="goToView('list')" class="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-500 hover:text-navy-800 mb-6 transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-          Vissza a listához
-        </button>
-
-        <div class="bg-white rounded-2xl border border-navy-100 p-5 sm:p-8 space-y-8">
-
-          <div class="grid sm:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-semibold text-navy-700 mb-2">Család neve</label>
-              <input id="field-name" type="text" placeholder="pl. Kovács család" class="w-full px-4 py-2.5 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-navy-700 mb-2">Rövid alcím</label>
-              <input id="field-subtitle" type="text" placeholder="pl. 9 éves · Duchenne-féle izomdisztrófia" class="w-full px-4 py-2.5 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
-            </div>
-          </div>
-
-          <div class="grid sm:grid-cols-3 gap-6">
-            <div>
-              <label class="block text-sm font-semibold text-navy-700 mb-2">Státusz</label>
-              <div class="status-seg">
-                <button type="button" id="status-btn-adoptable" class="status-seg-btn" onclick="setFormStatus('adoptable')">Örökbefogadható</button>
-                <button type="button" id="status-btn-adopted" class="status-seg-btn" onclick="setFormStatus('adopted')">Örökbefogadott</button>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-navy-700 mb-2">Havi támogatási összeg</label>
-              <div class="relative">
-                <input id="field-amount" type="number" min="0" step="1000" placeholder="45000" class="w-full h-[46px] box-border px-4 pr-12 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
-                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-navy-400 text-sm font-semibold">Ft</span>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-navy-700 mb-2">Jelentkezők száma</label>
-              <input id="field-applicants" type="number" min="0" step="1" oninput="onApplicantsChange(this.value)" class="w-full h-[46px] box-border px-4 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-navy-800">
-              <p id="applicants-auto-hint" class="hidden text-xs text-sand-700 mt-1.5">Automatikus szabály alapján javasolt státusz frissült.</p>
-            </div>
-          </div>
-
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
           <div>
-            <label class="block text-sm font-semibold text-navy-700 mb-2">Képek</label>
-            <div id="drop-zone" class="drop-zone rounded-2xl p-8 text-center cursor-pointer" onclick="document.getElementById('file-input').click()">
-              <svg class="w-8 h-8 mx-auto text-navy-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 8.25L12 3.75m0 0L7.5 8.25M12 3.75v13.5"/></svg>
-              <p class="text-sm font-semibold text-navy-600">Húzd ide a képeket, vagy kattints a tallózáshoz</p>
-              <p id="upload-hint" class="text-xs text-navy-400 mt-1">Több kép is feltölthető · JPG, PNG, WEBP · max. 10 MB</p>
-              <input id="file-input" type="file" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
-            </div>
-            <div id="image-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4"></div>
+            <button onclick="goToView('list')" class="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-slate-900 mb-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+              Családok
+            </button>
+            <h1 id="form-title" class="text-xl font-semibold text-slate-900">Új család</h1>
           </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button onclick="goToView('list')" class="btn btn-secondary">Mégse</button>
+            <button id="save-family-btn" onclick="saveFamily()" class="btn btn-primary">Mentés</button>
+          </div>
+        </div>
 
-          <div>
-            <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
-              <label class="block text-sm font-semibold text-navy-700">Család története</label>
-              <label class="flex items-center gap-2 text-xs font-semibold text-navy-500 cursor-pointer select-none">
-                HTML forrás
-                <span id="html-toggle" class="toggle-track" onclick="toggleHtmlSource()"><span class="toggle-knob"></span></span>
-              </label>
-            </div>
+        <div class="grid lg:grid-cols-3 gap-6 items-start">
 
-            <div class="rounded-xl border border-navy-100 overflow-hidden">
-              <div id="editor-toolbar" class="flex flex-wrap items-center gap-0.5 bg-sand-50 border-b border-navy-100 p-1.5">
-                <button onmousedown="event.preventDefault()" onclick="doCmd('bold')" class="editor-btn" title="Félkövér"><b>B</b></button>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('italic')" class="editor-btn italic" title="Dőlt"><i>I</i></button>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('underline')" class="editor-btn underline" title="Aláhúzott">U</button>
-                <span class="w-px h-5 bg-navy-200 mx-1"></span>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('formatBlock','H2')" class="editor-btn text-xs font-bold" title="Alcím H2">H2</button>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('formatBlock','H3')" class="editor-btn text-xs font-bold" title="Alcím H3">H3</button>
-                <span class="w-px h-5 bg-navy-200 mx-1"></span>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('insertUnorderedList')" class="editor-btn" title="Felsorolás">•≡</button>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('insertOrderedList')" class="editor-btn" title="Számozott lista">1.≡</button>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('formatBlock','BLOCKQUOTE')" class="editor-btn" title="Idézet">❝</button>
-                <button onmousedown="event.preventDefault()" onclick="doLink()" class="editor-btn" title="Link beszúrása">🔗</button>
-                <span class="w-px h-5 bg-navy-200 mx-1"></span>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('undo')" class="editor-btn" title="Visszavonás">↺</button>
-                <button onmousedown="event.preventDefault()" onclick="doCmd('redo')" class="editor-btn" title="Újra">↻</button>
+          <div class="lg:col-span-2 space-y-6">
+            <div class="card">
+              <div class="px-5 py-4 border-b border-slate-200">
+                <h2 class="font-semibold text-slate-900">Alapadatok</h2>
+                <p class="text-slate-500 text-[13px] mt-0.5">A főoldali kártyán ez a név és alcím látszik.</p>
               </div>
-              <div id="story-editable" contenteditable="true" class="p-4 text-sm text-navy-700 leading-relaxed bg-white"></div>
-              <textarea id="story-source" class="hidden w-full p-4 text-xs font-mono text-navy-700 bg-navy-900/95 text-white leading-relaxed" style="min-height:220px;" spellcheck="false"></textarea>
+              <div class="p-5 grid sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="label" for="field-name">Név <span class="text-red-600">*</span></label>
+                  <input id="field-name" type="text" placeholder="pl. Kovács család" class="field">
+                </div>
+                <div>
+                  <label class="label" for="field-subtitle">Alcím</label>
+                  <input id="field-subtitle" type="text" placeholder="pl. 9 éves · Duchenne-féle izomdisztrófia" class="field">
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 class="font-semibold text-slate-900">Történet</h2>
+                  <p class="text-slate-500 text-[13px] mt-0.5">A főoldalon az első néhány mondat jelenik meg.</p>
+                </div>
+                <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer select-none">
+                  HTML forrás
+                  <span id="html-toggle" class="toggle-track" onclick="toggleHtmlSource()"><span class="toggle-knob"></span></span>
+                </label>
+              </div>
+              <div class="p-5">
+                <div class="rounded-md border border-slate-300 overflow-hidden">
+                  <div id="editor-toolbar" class="flex flex-wrap items-center gap-0.5 bg-slate-50 border-b border-slate-200 p-1">
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('bold')" class="editor-btn" title="Félkövér"><b>B</b></button>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('italic')" class="editor-btn" title="Dőlt"><i>I</i></button>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('underline')" class="editor-btn underline" title="Aláhúzott">U</button>
+                    <span class="w-px h-4 bg-slate-300 mx-1"></span>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('formatBlock','H2')" class="editor-btn text-xs" title="Alcím (H2)">H2</button>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('formatBlock','H3')" class="editor-btn text-xs" title="Alcím (H3)">H3</button>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('formatBlock','P')" class="editor-btn text-xs" title="Bekezdés">¶</button>
+                    <span class="w-px h-4 bg-slate-300 mx-1"></span>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('insertUnorderedList')" class="editor-btn" title="Felsorolás">•≡</button>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('insertOrderedList')" class="editor-btn" title="Számozott lista">1.≡</button>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('formatBlock','BLOCKQUOTE')" class="editor-btn" title="Idézet">❝</button>
+                    <button onmousedown="event.preventDefault()" onclick="doLink()" class="editor-btn" title="Link beszúrása">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/></svg>
+                    </button>
+                    <span class="w-px h-4 bg-slate-300 mx-1"></span>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('undo')" class="editor-btn" title="Visszavonás">↺</button>
+                    <button onmousedown="event.preventDefault()" onclick="doCmd('redo')" class="editor-btn" title="Újra">↻</button>
+                  </div>
+                  <div id="story-editable" contenteditable="true" class="p-4 text-sm text-slate-700 leading-relaxed bg-white"></div>
+                  <textarea id="story-source" class="hidden w-full p-4 text-xs font-mono leading-relaxed bg-slate-900 text-slate-100" style="min-height:260px;" spellcheck="false"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="px-5 py-4 border-b border-slate-200">
+                <h2 class="font-semibold text-slate-900">Képek</h2>
+                <p class="text-slate-500 text-[13px] mt-0.5">A borítókép jelenik meg a főoldali kártyán.</p>
+              </div>
+              <div class="p-5">
+                <div id="drop-zone" class="drop-zone rounded-md px-6 py-8 text-center cursor-pointer" onclick="document.getElementById('file-input').click()">
+                  <svg class="w-7 h-7 mx-auto text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.750h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+                  <p class="text-sm text-slate-700"><span class="font-medium text-brand-700">Kattints a feltöltéshez</span> vagy húzd ide a képeket</p>
+                  <p id="upload-hint" class="text-xs text-slate-500 mt-1">Több kép is feltölthető · JPG, PNG, WEBP · max. 10 MB</p>
+                  <input id="file-input" type="file" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
+                </div>
+                <div id="image-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4"></div>
+              </div>
             </div>
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-2 border-t border-navy-100">
-            <button onclick="goToView('list')" class="px-5 py-2.5 rounded-full text-sm font-semibold text-navy-600 hover:bg-navy-50 transition-colors">Mégse</button>
-            <button id="save-family-btn" onclick="saveFamily()" class="px-6 py-2.5 rounded-full text-sm font-semibold bg-navy-700 hover:bg-navy-800 text-white transition-colors disabled:opacity-50">Mentés</button>
+          <div class="space-y-6 lg:sticky lg:top-0">
+            <div class="card">
+              <div class="px-5 py-4 border-b border-slate-200">
+                <h2 class="font-semibold text-slate-900">Státusz és támogatás</h2>
+              </div>
+              <div class="p-5 space-y-5">
+                <div>
+                  <span class="label">Státusz</span>
+                  <div class="seg">
+                    <button type="button" id="status-btn-adoptable" class="status-seg-btn" onclick="setFormStatus('adoptable')">Örökbefogadható</button>
+                    <button type="button" id="status-btn-adopted" class="status-seg-btn" onclick="setFormStatus('adopted')">Örökbefogadott</button>
+                  </div>
+                  <p class="help">Örökbefogadható státusszal jelenik meg a főoldalon.</p>
+                </div>
+                <div>
+                  <label class="label" for="field-amount">Havi támogatási összeg</label>
+                  <div class="relative">
+                    <input id="field-amount" type="number" min="0" step="1000" placeholder="45000" class="field tabular !pr-10">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-[13px]">Ft</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="label" for="field-applicants">Jelentkezők száma</label>
+                  <input id="field-applicants" type="number" min="0" step="1" oninput="onApplicantsChange(this.value)" class="field tabular">
+                  <p id="applicants-auto-hint" class="hidden mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-2">Az automatikus szabály alapján a státusz módosult. Mentés előtt még visszaállíthatod.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
       </section>
 
       <!-- ============ SETTINGS VIEW ============ -->
-      <section id="view-settings" class="hidden max-w-3xl">
-        <div class="bg-white rounded-2xl border border-navy-100 p-6 sm:p-10">
+      <section id="view-settings" class="hidden">
 
-          <h2 class="font-display text-lg font-semibold text-navy-800 mb-1">Automatikus státuszváltás</h2>
-          <p class="text-sm text-navy-400 mb-8">Ez a szabály minden családra érvényes, és a jelentkezők számának változásakor automatikusan fut le.</p>
+        <div class="mb-6">
+          <h1 class="text-xl font-semibold text-slate-900">Beállítások</h1>
+          <p class="text-slate-500 mt-1">Az automatizmusok és a fiók biztonsági beállításai.</p>
+        </div>
 
-          <div class="flex items-start gap-4 mb-8">
-            <span id="automation-toggle" class="toggle-track mt-1" onclick="toggleAutomation()"><span class="toggle-knob"></span></span>
+        <div class="card divide-y divide-slate-200">
+          <div class="grid md:grid-cols-3 gap-6 p-5 sm:p-6">
             <div>
-              <p class="font-semibold text-navy-800 text-sm">Automatizmus engedélyezése</p>
-              <p class="text-xs text-navy-400 mt-0.5">Ha ki van kapcsolva, a státuszt csak kézzel lehet módosítani.</p>
+              <h2 class="font-semibold text-slate-900">Automatikus státuszváltás</h2>
+              <p class="text-slate-500 text-[13px] mt-1">Mentéskor az összes családra lefut, és a szerkesztőben is javaslatot tesz a jelentkezők számának változásakor.</p>
+            </div>
+            <div class="md:col-span-2 space-y-5">
+              <div class="flex items-start gap-3">
+                <span id="automation-toggle" class="toggle-track mt-0.5" onclick="toggleAutomation()"><span class="toggle-knob"></span></span>
+                <div>
+                  <p class="font-medium text-slate-900">Automatizmus engedélyezése</p>
+                  <p class="text-slate-500 text-[13px]">Kikapcsolva a státusz csak kézzel módosítható.</p>
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="label" for="settings-threshold">Jelentkezői küszöb (fő)</label>
+                  <input id="settings-threshold" type="number" min="1" step="1" class="field tabular">
+                </div>
+                <div>
+                  <label class="label" for="settings-auto-status">Új státusz a küszöb elérésekor</label>
+                  <select id="settings-auto-status" class="field">
+                    <option value="adoptable">Örökbefogadható</option>
+                    <option value="adopted">Örökbefogadott</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button onclick="saveSettings()" class="btn btn-primary">Mentés</button>
+              </div>
             </div>
           </div>
 
-          <p class="text-lg sm:text-xl leading-relaxed text-navy-700 font-medium bg-sand-50 rounded-2xl p-6 border border-sand-200">
-            Ha egy család jelentkezőinek száma eléri a
-            <input id="settings-threshold" type="number" min="1" step="1" class="inline-block w-20 text-center px-2 py-1 mx-1 rounded-lg border border-navy-200 bg-white font-display font-bold text-navy-800 focus:outline-none focus:ring-2 focus:ring-sand-400">
-            főt, a státusza automatikusan
-            <select id="settings-auto-status" class="inline-block px-3 py-1.5 mx-1 rounded-lg border border-navy-200 bg-white font-display font-bold text-navy-800 focus:outline-none focus:ring-2 focus:ring-sand-400">
-              <option value="adoptable">Örökbefogadható</option>
-              <option value="adopted">Örökbefogadott</option>
-            </select>
-            legyen.
-          </p>
-
-          <div class="flex justify-end mt-8 pt-6 border-t border-navy-100">
-            <button onclick="saveSettings()" class="px-6 py-2.5 rounded-full text-sm font-semibold bg-navy-700 hover:bg-navy-800 text-white transition-colors">Mentés</button>
-          </div>
-
-        </div>
-
-        <div class="bg-white rounded-2xl border border-navy-100 p-6 sm:p-10 mt-6">
-          <h2 class="font-display text-lg font-semibold text-navy-800 mb-1">Jelszó módosítása</h2>
-          <p class="text-sm text-navy-400 mb-6">Legalább 10 karakter. A módosítás után a többi eszközön újra be kell jelentkezni.</p>
-          <div class="grid sm:grid-cols-3 gap-4">
-            <input id="pw-current" type="password" autocomplete="current-password" placeholder="Jelenlegi jelszó" class="w-full px-4 py-2.5 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-sm">
-            <input id="pw-new" type="password" autocomplete="new-password" placeholder="Új jelszó" class="w-full px-4 py-2.5 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-sm">
-            <input id="pw-confirm" type="password" autocomplete="new-password" placeholder="Új jelszó még egyszer" class="w-full px-4 py-2.5 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-sm">
-          </div>
-          <div class="flex justify-end mt-6">
-            <button onclick="changePassword()" class="px-6 py-2.5 rounded-full text-sm font-semibold bg-navy-700 hover:bg-navy-800 text-white transition-colors">Jelszó módosítása</button>
+          <div class="grid md:grid-cols-3 gap-6 p-5 sm:p-6">
+            <div>
+              <h2 class="font-semibold text-slate-900">Jelszó módosítása</h2>
+              <p class="text-slate-500 text-[13px] mt-1">Legalább 10 karakter. A módosítás után a többi eszközön újra be kell jelentkezni.</p>
+            </div>
+            <div class="md:col-span-2 space-y-5">
+              <div class="max-w-md space-y-4">
+                <div>
+                  <label class="label" for="pw-current">Jelenlegi jelszó</label>
+                  <input id="pw-current" type="password" autocomplete="current-password" class="field">
+                </div>
+                <div>
+                  <label class="label" for="pw-new">Új jelszó</label>
+                  <input id="pw-new" type="password" autocomplete="new-password" class="field">
+                </div>
+                <div>
+                  <label class="label" for="pw-confirm">Új jelszó megerősítése</label>
+                  <input id="pw-confirm" type="password" autocomplete="new-password" class="field">
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button onclick="changePassword()" class="btn btn-primary">Jelszó módosítása</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
+      </div>
     </main>
   </div>
 </div>
 
 <!-- ============ LOGIN ============ -->
-<div id="login-screen" class="fixed inset-0 z-[60] bg-navy-800 flex items-center justify-center px-4">
-  <form id="login-form" onsubmit="return submitLogin(event)" class="invisible bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl">
-    <div class="flex items-center gap-3 mb-8">
-      <div class="w-10 h-10 rounded-xl bg-sand-500 text-navy-900 font-display font-bold flex items-center justify-center text-sm shrink-0">ELT</div>
-      <div>
-        <p class="font-display font-semibold text-navy-800 leading-tight">Egy Lépéssel Több</p>
-        <p class="text-xs text-navy-400 leading-tight">Admin felület</p>
+<div id="login-screen" class="fixed inset-0 z-[60] bg-slate-100 flex items-center justify-center px-4">
+  <div class="w-full max-w-sm">
+    <form id="login-form" onsubmit="return submitLogin(event)" class="invisible">
+      <div class="flex items-center gap-3 mb-8 justify-center">
+        <div class="w-10 h-10 rounded-md bg-brand-900 text-sand-500 font-bold flex items-center justify-center text-sm">ELT</div>
+        <div>
+          <p class="font-semibold text-slate-900 leading-tight">Egy Lépéssel Több</p>
+          <p class="text-xs text-slate-500 leading-tight">Alapítványi adminisztráció</p>
+        </div>
       </div>
-    </div>
-    <label class="block text-sm font-semibold text-navy-700 mb-2" for="login-email">E-mail cím</label>
-    <input id="login-email" type="email" autocomplete="username" required class="w-full px-4 py-2.5 mb-4 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-sm">
-    <label class="block text-sm font-semibold text-navy-700 mb-2" for="login-password">Jelszó</label>
-    <input id="login-password" type="password" autocomplete="current-password" required class="w-full px-4 py-2.5 mb-2 rounded-xl border border-navy-100 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-sand-400 text-sm">
-    <p id="login-error" class="hidden text-sm text-danger-600 mt-2"></p>
-    <button id="login-btn" type="submit" class="w-full mt-6 px-6 py-3 rounded-full text-sm font-semibold bg-navy-700 hover:bg-navy-800 text-white transition-colors disabled:opacity-50">Bejelentkezés</button>
-  </form>
+      <div class="card p-6 sm:p-8">
+        <h1 class="text-lg font-semibold text-slate-900">Bejelentkezés</h1>
+        <p class="text-slate-500 text-[13px] mt-1 mb-6">Lépj be a fiókodba a folytatáshoz.</p>
+        <label class="label" for="login-email">E-mail cím</label>
+        <input id="login-email" type="email" autocomplete="username" required class="field mb-4">
+        <label class="label" for="login-password">Jelszó</label>
+        <input id="login-password" type="password" autocomplete="current-password" required class="field">
+        <p id="login-error" class="hidden mt-3 text-[13px] text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2"></p>
+        <button id="login-btn" type="submit" class="btn btn-primary w-full mt-6">Bejelentkezés</button>
+      </div>
+      <p class="text-center text-xs text-slate-500 mt-6">Csak az alapítvány munkatársai számára.</p>
+    </form>
+  </div>
 </div>
 
 <!-- ============ DELETE MODAL ============ -->
-<div id="delete-modal" class="hidden fixed inset-0 z-50 items-center justify-center px-4 bg-navy-900/60 backdrop-blur-sm">
-  <div class="bg-white rounded-2xl p-7 max-w-sm w-full">
-    <h3 class="font-display text-lg font-semibold text-navy-800 mb-2">Család törlése</h3>
-    <p id="delete-modal-text" class="text-sm text-navy-500 mb-6">Biztosan törölni szeretnéd ezt a családot? Ez a művelet nem vonható vissza.</p>
-    <div class="flex justify-end gap-3">
-      <button onclick="closeDeleteModal()" class="px-5 py-2.5 rounded-full text-sm font-semibold text-navy-600 hover:bg-navy-50 transition-colors">Mégse</button>
-      <button onclick="confirmDelete()" class="px-5 py-2.5 rounded-full text-sm font-semibold bg-danger-500 hover:bg-danger-600 text-white transition-colors">Törlés</button>
+<div id="delete-modal" class="hidden fixed inset-0 z-50 items-center justify-center px-4 bg-slate-900/50">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+    <div class="flex gap-4">
+      <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+      </div>
+      <div>
+        <h3 id="delete-modal-title" class="font-semibold text-slate-900">Család törlése</h3>
+        <p id="delete-modal-text" class="text-slate-500 mt-1">Biztosan törölni szeretnéd ezt a családot? Ez a művelet nem vonható vissza.</p>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-6">
+      <button onclick="closeDeleteModal()" class="btn btn-secondary">Mégse</button>
+      <button onclick="confirmDelete()" class="btn btn-danger">Törlés</button>
     </div>
   </div>
 </div>
 
 <!-- ============ TOAST ============ -->
-<div id="toast" class="hidden fixed bottom-6 right-6 z-50 bg-navy-800 text-white text-sm font-semibold px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-2.5 opacity-0 translate-y-2">
-  <svg class="w-4 h-4 text-sand-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+<div id="toast" class="hidden fixed bottom-5 right-5 z-[70] bg-slate-900 text-white text-[13px] font-medium px-4 py-3 rounded-md shadow-lg flex items-center gap-2.5 opacity-0 translate-y-2">
+  <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
   <span id="toast-text">Mentve.</span>
 </div>
-
-<style>
-  .editor-btn { min-width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; color: #334758; padding: 0 6px; }
-  .editor-btn:hover { background: #f0e4cb; }
-  .filter-btn { color: #708998; }
-  .filter-btn.active { background: #334758; color: #fff; }
-</style>
 
 <script>
 (function () {
@@ -381,6 +526,7 @@
     editingId: null,
     statusFilter: 'all',
     searchQuery: '',
+    sort: { key: 'createdAt', dir: 'desc' },
     deleteTargetId: null,
     families: [],
     settings: { threshold: 6, autoStatus: 'adopted', autoEnabled: true },
@@ -390,8 +536,6 @@
     coverImageIndex: null,
     htmlSourceMode: false
   };
-
-  var STATUS_LABEL = { adoptable: 'Örökbefogadható', adopted: 'Örökbefogadott' };
 
   // ---------------------------------------------------------------
   // Helpers
@@ -485,24 +629,35 @@
     });
   };
 
+  // ---------------------------------------------------------------
+  // Rendering helpers
+  // ---------------------------------------------------------------
   function statusBadge(status) {
     if (status === 'adoptable') {
-      return '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-sand-500 text-navy-900">Örökbefogadható</span>';
+      return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/20 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Örökbefogadható</span>';
     }
-    return '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-navy-700 text-white">Örökbefogadott</span>';
+    return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-600/20 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Örökbefogadott</span>';
   }
 
   function applicantsBlock(applicants) {
     var pct = Math.min(100, Math.round((applicants / state.settings.threshold) * 100));
     return '' +
-      '<div class="flex items-center gap-3 min-w-[140px]">' +
-        '<span class="font-display text-xl font-bold text-navy-800">' + applicants + '</span>' +
-        '<div class="flex-1">' +
-          '<div class="w-full h-2 rounded-full bg-navy-100 overflow-hidden"><div class="h-full bg-sand-500" style="width:' + pct + '%"></div></div>' +
-          '<p class="text-[11px] text-navy-400 mt-1">' + applicants + ' / ' + state.settings.threshold + ' fő küszöb</p>' +
-        '</div>' +
+      '<div class="flex items-center gap-3 min-w-[150px]">' +
+        '<span class="tabular font-medium text-slate-900 w-14 shrink-0">' + applicants + ' / ' + state.settings.threshold + '</span>' +
+        '<div class="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden"><div class="h-full rounded-full ' + (pct >= 100 ? 'bg-emerald-500' : 'bg-brand-500') + '" style="width:' + pct + '%"></div></div>' +
       '</div>';
   }
+
+  function thumb(f) {
+    var cover = f.images.find(function (im) { return im.isCover; }) || f.images[0];
+    if (cover) {
+      return '<img src="' + escapeHtml(cover.url) + '" alt="" class="w-9 h-9 rounded-md object-cover bg-slate-100 shrink-0">';
+    }
+    return '<div class="w-9 h-9 rounded-md bg-slate-100 text-slate-600 font-semibold flex items-center justify-center text-xs shrink-0">' + escapeHtml(initials(f.name)) + '</div>';
+  }
+
+  var ICON_EDIT = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>';
+  var ICON_DELETE = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.090 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>';
 
   // ---------------------------------------------------------------
   // Sidebar (mobile)
@@ -519,17 +674,20 @@
   // ---------------------------------------------------------------
   // View switching
   // ---------------------------------------------------------------
-  var TITLES = { list: 'Családok', form: 'Család szerkesztése', settings: 'Beállítások' };
+  var TITLES = { list: 'Családok', settings: 'Beállítások' };
 
   window.goToView = function (view) {
     state.view = view;
     ['list', 'form', 'settings'].forEach(function (v) {
       document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
     });
-    document.querySelectorAll('.nav-item').forEach(function (el) {
-      el.classList.toggle('active', el.getAttribute('data-view') === view);
+    var navView = view === 'form' && state.editingId !== null ? 'list' : view;
+    document.querySelectorAll('.nav-item[data-view]').forEach(function (el) {
+      el.classList.toggle('active', el.getAttribute('data-view') === navView);
     });
-    document.getElementById('page-title').textContent = TITLES[view] || '';
+    document.getElementById('page-title').textContent = view === 'form'
+      ? document.getElementById('form-title').textContent
+      : TITLES[view];
     closeSidebar();
     document.querySelector('main').scrollTop = 0;
     if (view === 'list') renderList();
@@ -549,14 +707,49 @@
 
   window.onSearchInput = function (v) {
     state.searchQuery = v.trim().toLowerCase();
-    if (state.view === 'list') renderList();
+    if (state.view !== 'list') goToView('list');
+    else renderList();
+  };
+
+  window.setSort = function (key) {
+    if (state.sort.key === key) {
+      state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      state.sort = { key: key, dir: key === 'name' ? 'asc' : 'desc' };
+    }
+    renderList();
   };
 
   function getFilteredFamilies() {
+    var key = state.sort.key;
+    var sign = state.sort.dir === 'asc' ? 1 : -1;
     return state.families.filter(function (f) {
       if (state.statusFilter !== 'all' && f.status !== state.statusFilter) return false;
       if (state.searchQuery && f.name.toLowerCase().indexOf(state.searchQuery) === -1) return false;
       return true;
+    }).sort(function (a, b) {
+      var x = a[key];
+      var y = b[key];
+      var cmp = typeof x === 'string' ? x.localeCompare(y, 'hu') : x - y;
+      return cmp * sign || (b.id - a.id);
+    });
+  }
+
+  function renderSummary() {
+    var adoptable = state.families.filter(function (f) { return f.status === 'adoptable'; });
+    var openAmount = adoptable.reduce(function (sum, f) { return sum + (f.amount || 0); }, 0);
+    var adopted = state.families.length - adoptable.length;
+    document.getElementById('kpi-total').textContent = state.families.length;
+    document.getElementById('kpi-adoptable').textContent = adoptable.length;
+    document.getElementById('kpi-adopted').textContent = adopted;
+    document.getElementById('kpi-amount').textContent = fmtFt(openAmount);
+    document.getElementById('count-all').textContent = state.families.length;
+    document.getElementById('count-adoptable').textContent = adoptable.length;
+    document.getElementById('count-adopted').textContent = adopted;
+    document.querySelectorAll('.sort-btn').forEach(function (b) {
+      var active = b.getAttribute('data-sort') === state.sort.key;
+      b.classList.toggle('sorted', active);
+      b.querySelector('.sort-ind').textContent = active ? (state.sort.dir === 'asc' ? '↑' : '↓') : '↕';
     });
   }
 
@@ -564,59 +757,54 @@
     var list = getFilteredFamilies();
     var tbody = document.getElementById('table-body');
     var cardList = document.getElementById('card-list');
-    var tableEmpty = document.getElementById('table-empty');
-    var cardEmpty = document.getElementById('card-empty');
 
+    renderSummary();
     tbody.innerHTML = '';
     cardList.innerHTML = '';
-
-    tableEmpty.classList.toggle('hidden', list.length !== 0);
-    cardEmpty.classList.toggle('hidden', list.length !== 0);
+    document.getElementById('table-empty').classList.toggle('hidden', list.length !== 0);
+    document.getElementById('card-empty').classList.toggle('hidden', list.length !== 0);
+    document.getElementById('result-count').textContent = list.length + ' találat';
 
     list.forEach(function (f) {
       // desktop row
       var tr = document.createElement('tr');
-      tr.className = 'border-b border-navy-50 last:border-0 hover:bg-sand-50/60 transition-colors';
+      tr.className = 'hover:bg-slate-50 transition-colors';
       tr.innerHTML = '' +
-        '<td class="px-5 py-4">' +
-          '<div class="flex items-center gap-3">' +
-            '<div class="w-11 h-11 rounded-xl bg-sand-200 text-navy-700 font-display font-bold flex items-center justify-center text-sm shrink-0">' + initials(f.name) + '</div>' +
-            '<div class="min-w-0"><p class="font-semibold text-navy-800 truncate">' + escapeHtml(f.name) + '</p><p class="text-xs text-navy-400 truncate">' + escapeHtml(f.subtitle) + '</p></div>' +
+        '<td class="px-4 py-3">' +
+          '<div class="flex items-center gap-3">' + thumb(f) +
+            '<div class="min-w-0"><p class="font-medium text-slate-900 truncate">' + escapeHtml(f.name) + '</p><p class="text-xs text-slate-500 truncate max-w-xs">' + escapeHtml(f.subtitle) + '</p></div>' +
           '</div>' +
         '</td>' +
-        '<td class="px-5 py-4">' + statusBadge(f.status) + '</td>' +
-        '<td class="px-5 py-4">' + applicantsBlock(f.applicants) + '</td>' +
-        '<td class="px-5 py-4 text-navy-500 whitespace-nowrap">' + fmtDate(f.createdAt) + '</td>' +
-        '<td class="px-5 py-4">' +
-          '<div class="flex items-center justify-end gap-2">' +
-            '<button onclick="openEditFamilyForm(' + f.id + ')" class="p-2 rounded-lg hover:bg-navy-50 text-navy-500 hover:text-navy-800 transition-colors" title="Szerkesztés">' +
-              '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>' +
-            '</button>' +
-            '<button onclick="openDeleteModal(' + f.id + ')" class="p-2 rounded-lg hover:bg-danger-50 text-navy-500 hover:text-danger-600 transition-colors" title="Törlés">' +
-              '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>' +
-            '</button>' +
+        '<td class="px-4 py-3">' + statusBadge(f.status) + '</td>' +
+        '<td class="px-4 py-3">' + applicantsBlock(f.applicants) + '</td>' +
+        '<td class="px-4 py-3 text-right tabular text-slate-700 whitespace-nowrap">' + (f.amount ? fmtFt(f.amount) : '<span class="text-slate-400">–</span>') + '</td>' +
+        '<td class="px-4 py-3 tabular text-slate-500 whitespace-nowrap">' + fmtDate(f.createdAt) + '</td>' +
+        '<td class="px-4 py-3">' +
+          '<div class="flex items-center justify-end gap-1">' +
+            '<button onclick="openEditFamilyForm(' + f.id + ')" class="icon-btn" title="Szerkesztés" aria-label="Szerkesztés">' + ICON_EDIT + '</button>' +
+            '<button onclick="openDeleteModal(' + f.id + ')" class="icon-btn danger" title="Törlés" aria-label="Törlés">' + ICON_DELETE + '</button>' +
           '</div>' +
         '</td>';
       tbody.appendChild(tr);
 
-      // mobile card
+      // mobile row
       var card = document.createElement('div');
-      card.className = 'bg-white rounded-2xl border border-navy-100 p-4';
+      card.className = 'p-4';
       card.innerHTML = '' +
-        '<div class="flex items-start gap-3 mb-3">' +
-          '<div class="w-11 h-11 rounded-xl bg-sand-200 text-navy-700 font-display font-bold flex items-center justify-center text-sm shrink-0">' + initials(f.name) + '</div>' +
+        '<div class="flex items-start gap-3">' + thumb(f) +
           '<div class="min-w-0 flex-1">' +
-            '<p class="font-semibold text-navy-800 truncate">' + escapeHtml(f.name) + '</p>' +
-            '<p class="text-xs text-navy-400 truncate">' + escapeHtml(f.subtitle) + '</p>' +
-          '</div>' +
-          statusBadge(f.status) +
-        '</div>' +
-        '<div class="mb-3">' + applicantsBlock(f.applicants) + '</div>' +
-        '<div class="flex items-center justify-between pt-3 border-t border-navy-50">' +
-          '<span class="text-xs text-navy-400">' + fmtDate(f.createdAt) + '</span>' +
-          '<div class="flex items-center gap-1">' +
-            '<button onclick="openEditFamilyForm(' + f.id + ')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-navy-600 hover:bg-navy-50 transition-colors">Szerkesztés</button>' +
-            '<button onclick="openDeleteModal(' + f.id + ')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-danger-600 hover:bg-danger-50 transition-colors">Törlés</button>' +
+            '<div class="flex items-start justify-between gap-2">' +
+              '<p class="font-medium text-slate-900 truncate">' + escapeHtml(f.name) + '</p>' + statusBadge(f.status) +
+            '</div>' +
+            '<p class="text-xs text-slate-500 truncate">' + escapeHtml(f.subtitle) + '</p>' +
+            '<div class="mt-3">' + applicantsBlock(f.applicants) + '</div>' +
+            '<div class="flex items-center justify-between mt-3">' +
+              '<span class="text-xs text-slate-500 tabular">' + fmtDate(f.createdAt) + (f.amount ? ' · <span class="whitespace-nowrap">' + fmtFt(f.amount) + '</span>' : '') + '</span>' +
+              '<div class="flex items-center gap-1">' +
+                '<button onclick="openEditFamilyForm(' + f.id + ')" class="btn btn-secondary !px-2.5 !py-1 !text-xs">Szerkesztés</button>' +
+                '<button onclick="openDeleteModal(' + f.id + ')" class="icon-btn danger" aria-label="Törlés">' + ICON_DELETE + '</button>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
         '</div>';
       cardList.appendChild(card);
@@ -629,7 +817,7 @@
   window.openDeleteModal = function (id) {
     state.deleteTargetId = id;
     var f = state.families.find(function (x) { return x.id === id; });
-    document.getElementById('delete-modal-text').textContent = 'Biztosan törölni szeretnéd a(z) „' + (f ? f.name : '') + '” bejegyzést? Ez a művelet nem vonható vissza.';
+    document.getElementById('delete-modal-text').textContent = 'Biztosan törölni szeretnéd a(z) „' + (f ? f.name : '') + '” bejegyzést és a hozzá feltöltött képeket? Ez a művelet nem vonható vissza.';
     var modal = document.getElementById('delete-modal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -651,11 +839,16 @@
   // ---------------------------------------------------------------
   // Form view
   // ---------------------------------------------------------------
+  function setFormTitle(text) {
+    document.getElementById('form-title').textContent = text;
+  }
+
   window.openNewFamilyForm = function () {
     state.formToken++;
     state.editingId = null;
     state.uploadedImages = [];
     state.coverImageIndex = null;
+    setFormTitle('Új család');
     document.getElementById('field-name').value = '';
     document.getElementById('field-subtitle').value = '';
     document.getElementById('field-amount').value = '';
@@ -678,9 +871,10 @@
     var coverIdx = state.uploadedImages.findIndex(function (im) { return im.isCover; });
     state.coverImageIndex = coverIdx >= 0 ? coverIdx : (state.uploadedImages.length ? 0 : null);
 
+    setFormTitle(f.name);
     document.getElementById('field-name').value = f.name;
     document.getElementById('field-subtitle').value = f.subtitle;
-    document.getElementById('field-amount').value = f.amount;
+    document.getElementById('field-amount').value = f.amount || '';
     document.getElementById('field-applicants').value = f.applicants;
     document.getElementById('applicants-auto-hint').classList.add('hidden');
     setFormStatus(f.status);
@@ -711,7 +905,7 @@
 
   window.saveFamily = function () {
     var name = document.getElementById('field-name').value.trim();
-    if (!name) { showToast('Adj meg egy családnevet a mentéshez.'); document.getElementById('field-name').focus(); return; }
+    if (!name) { showToast('Adj meg egy nevet a mentéshez.'); document.getElementById('field-name').focus(); return; }
     if (state.uploading > 0) { showToast('Várd meg, amíg a képek feltöltődnek.'); return; }
 
     if (state.htmlSourceMode) {
@@ -804,19 +998,13 @@
     grid.innerHTML = '';
     state.uploadedImages.forEach(function (im, i) {
       var cell = document.createElement('div');
-      cell.className = 'relative group rounded-xl overflow-hidden border ' + (im.isCover ? 'border-sand-500 ring-2 ring-sand-400' : 'border-navy-100') + ' aspect-square bg-sand-50';
-      var mediaHtml = im.url
-        ? '<img src="' + escapeHtml(im.url) + '" class="w-full h-full object-cover" alt="' + escapeHtml(im.label) + '">'
-        : '<div class="w-full h-full flex flex-col items-center justify-center text-navy-300 gap-1 px-2 text-center">' +
-            '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 8.25V18a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18V8.25M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25M3 8.25l7.5-3.75 7.5 3.75"/></svg>' +
-            '<span class="text-[10px] leading-tight truncate max-w-full">' + escapeHtml(im.label) + '</span>' +
-          '</div>';
+      cell.className = 'relative group rounded-md overflow-hidden border aspect-square bg-slate-100 ' + (im.isCover ? 'border-brand-600 ring-2 ring-brand-600/30' : 'border-slate-200');
       cell.innerHTML = '' +
-        mediaHtml +
-        (im.isCover ? '<span class="absolute top-1.5 left-1.5 bg-sand-500 text-navy-900 text-[10px] font-bold px-2 py-0.5 rounded-full">Borítókép</span>' : '') +
-        '<div class="absolute inset-0 bg-navy-900/0 group-hover:bg-navy-900/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">' +
-          (!im.isCover ? '<button onclick="setCoverImage(' + i + ')" class="w-7 h-7 rounded-full bg-white/90 text-navy-800 flex items-center justify-center text-xs" title="Borítóképnek jelöl">★</button>' : '') +
-          '<button onclick="removeImage(' + i + ')" class="w-7 h-7 rounded-full bg-white/90 text-danger-600 flex items-center justify-center text-xs font-bold" title="Törlés">✕</button>' +
+        '<img src="' + escapeHtml(im.url) + '" class="w-full h-full object-cover" alt="' + escapeHtml(im.label) + '">' +
+        (im.isCover ? '<span class="absolute top-1.5 left-1.5 bg-brand-700 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">Borítókép</span>' : '') +
+        '<div class="absolute inset-x-0 bottom-0 flex items-center justify-end gap-1 p-1.5 bg-gradient-to-t from-slate-900/70 to-transparent opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">' +
+          (!im.isCover ? '<button onclick="setCoverImage(' + i + ')" class="px-2 py-1 rounded bg-white text-slate-800 text-[11px] font-medium hover:bg-slate-100">Borítókép</button>' : '') +
+          '<button onclick="removeImage(' + i + ')" class="px-2 py-1 rounded bg-white text-red-700 text-[11px] font-medium hover:bg-red-50">Eltávolítás</button>' +
         '</div>';
       grid.appendChild(cell);
     });

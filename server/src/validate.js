@@ -5,7 +5,7 @@ export class ValidationError extends Error {}
 
 // A szerkesztő eszköztára ennyit tud előállítani; minden mást kiszűrünk.
 const STORY_OPTIONS = {
-  allowedTags: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 'ul', 'ol', 'li', 'a', 'h3', 'h4', 'blockquote'],
+  allowedTags: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 'ul', 'ol', 'li', 'a', 'h2', 'h3', 'h4', 'blockquote'],
   allowedAttributes: { a: ['href', 'rel', 'target'] },
   allowedSchemes: ['http', 'https', 'mailto'],
   transformTags: {
