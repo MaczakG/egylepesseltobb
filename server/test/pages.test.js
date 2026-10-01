@@ -97,7 +97,11 @@ describe('oldalak megjelenítése', () => {
     assert.equal(status, 200);
     assert.match(html, /<title>Alapítónk — Egy Lépéssel Több Alapítvány<\/title>/);
     assert.match(html, /<h1[^>]*>Alapítónk<\/h1>/);
-    assert.match(html, /<div class="media"><div class="media-img"><img src="\/uploads\/[0-9a-f]{24}\.webp"/);
+    // Nyitókép a főoldal mintájára, alatta a keretezett fotó + szöveg (mint a főoldal „Alapítónk” szekciója).
+    assert.match(html, /<img src="\/assets\/img\/about\.webp" alt="" class="hero-slide active /);
+    assert.match(html, /<img loading="lazy" class="relative w-full aspect-\[4\/5\][^"]*" src="\/uploads\/[0-9a-f]{24}\.webp"/);
+    assert.match(html, /<div class="lg:col-span-7 media-body page-content reveal"><h2>Hajós István/);
+    assert.doesNotMatch(html, /<p class="eyebrow">Egy lépéssel több alapítvány<\/p>/);
     assert.match(html, /Hajós István az Egy lépéssel több alapítvány alapítója/);
     assert.match(html, /<link rel="canonical" href="http:\/\/127\.0\.0\.1:\d+\/alapitonk">/);
     assert.match(html, /id="site-header"/);
@@ -117,6 +121,22 @@ describe('oldalak megjelenítése', () => {
     for (const slug of ['alairasi-ceremonia', 'vii-alairasi-ceremonia', 'viii-alairasi-ceremonia']) {
       assert.match(html, new RegExp(`href="/blog/${slug}"`));
     }
+  });
+
+  test('a régi szerkezetből a főoldal elemei: adatlap, idővonal, nagykövet-kártyák, sávok', async () => {
+    const contact = (await page('/kapcsolat')).html;
+    assert.match(contact, /<dl class="facts"><div class="fact"><dt>Adószám<\/dt><dd>19353825-1-41<\/dd><\/div>/);
+    assert.match(contact, /<dt>IBAN<\/dt><dd>HU88117030062599399400000000<\/dd>/);
+    assert.match(contact, /<dt>Kuratórium<\/dt><dd>Dr\. Unger Barbara<br \/>Csiszér Sándor<br \/>Hajós István<\/dd>/);
+    const areas = (await page('/tamogatott-teruletek')).html;
+    assert.match(areas, /<h3>Akiket támogatunk<\/h3><p>Gyógyító Energia Alapítvány – Balla Tiba – táborainak támogatása<\/p><ol class="timeline"><li><span class="year">2016<\/span><div>Erdélyi tábor támogatása, tolószék vásárlása<\/div><\/li>/);
+    assert.match(areas, /<span class="year">2022<\/span><div><ul><li>/);
+    assert.equal((areas.match(/class="band band-/g) || []).length, 5);
+    const ambassadors = (await page('/nagykoveteink')).html;
+    assert.match(ambassadors, /hero-lead[^>]*><p>Ők azok akik személyükkel/);
+    assert.match(ambassadors, /<div class="cards cards-people"><div class="card reveal lift-card"><div class="card-media"><a href="https:\/\/hu\.wikipedia\.org/);
+    assert.equal((ambassadors.match(/class="ambassador-accent"/g) || []).length, 6);
+    assert.match((await page('/partnereink')).html, /<h2[^>]*>Kiemelt partnereink<\/h2>/);
   });
 
   test('/partnereink logórács, /1-ado galéria a nagyítóval, /linkesfizetes fizetési gombok', async () => {

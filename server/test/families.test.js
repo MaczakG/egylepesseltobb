@@ -99,7 +99,7 @@ describe('a gyerek aloldala', () => {
     assert.match(html, /<title>B\. Lili és családja — Egy Lépéssel Több Alapítvány<\/title>/);
     assert.match(html, /<h1[^>]*>B\. Lili és családja<\/h1>/);
     assert.match(html, /6 éves · SMA/);
-    assert.match(html, /<div class="blog-content mt-10"><p>Lili <strong>vidám<\/strong> kislány\.<\/p><h2>Kezelések<\/h2>/);
+    assert.match(html, /<div class="blog-content"><p>Lili <strong>vidám<\/strong> kislány\.<\/p><h2>Kezelések<\/h2>/);
     assert.match(html, /<link rel="canonical" href="http:\/\/127\.0\.0\.1:\d+\/csaladok\/b-lili-es-csaladja">/);
     assert.match(html, /<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/assets\/img\/story-noel\.webp">/);
     assert.match(html, /<meta name="description" content="Lili vidám kislány\. Kezelések Hetente jár terápiára\.">/);
@@ -132,7 +132,7 @@ describe('a gyerek aloldala', () => {
     assert.match(html, /Jelentkezem támogatónak/);
     assert.match(html, /<option value="" selected>Válassz családot<\/option>/);
     assert.doesNotMatch(html, />Örökbefogadott Ottó<\/option>/);
-    assert.match(html, /href="\/csaladok\?statusz=orokbefogadott"[^>]*>← Vissza a családokhoz/);
+    assert.match(html, /<a href="\/csaladok\?statusz=orokbefogadott"[^>]*>Örökbefogadott családok<\/a>/);
   });
 
   test('az archivált és a feltöltés alatti család csak az adminnak látszik, előnézetként', async () => {
@@ -169,7 +169,7 @@ describe('családlista', () => {
     assert.ok(all.html.indexOf('/csaladok/b-lili-es-csaladja"') < all.html.indexOf('/csaladok/orokbefogadott-otto"'), 'elöl az örökbefogadhatók');
     assert.doesNotMatch(all.html, /archiv-anna|feltoltes-feri/);
     const counts = store.countFamiliesByStatus(db);
-    assert.match(all.html, new RegExp(`Mind <span class="text-white/60">${counts.adoptable + counts.adopted}</span>`));
+    assert.match(all.html, new RegExp(`Mind <span class="text-navy-900/55">${counts.adoptable + counts.adopted}</span>`));
 
     const adoptable = await page('/csaladok?statusz=orokbefogadhato');
     assert.match(adoptable.html, /<h1[^>]*>Örökbefogadható családok<\/h1>/);
@@ -181,7 +181,7 @@ describe('családlista', () => {
     assert.match(adopted.html, /href="\/csaladok\/orokbefogadott-otto"/);
     assert.match(adopted.html, /Elolvasom a történetüket →/);
     assert.doesNotMatch(adopted.html, /href="\/csaladok\/kamilla"/);
-    assert.match(adopted.html, new RegExp(`Örökbefogadott <span class="text-white/60">${counts.adopted}</span>`));
+    assert.match(adopted.html, new RegExp(`Örökbefogadott <span class="text-navy-900/55">${counts.adopted}</span>`));
   });
 
   test('nincs lapozás: minden család egy oldalon', async () => {

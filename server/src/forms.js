@@ -91,7 +91,7 @@ const AREA = 'w-full rounded-2xl border bg-white px-5 py-3 text-navy-800 outline
 export function renderMessageForm(def, { action, values = {}, errors = {}, error = '', submitted = false, privacyUrl = '' }) {
   if (submitted) {
     return `
-    <section id="jelentkezes" class="scroll-mt-32 bg-white border border-navy-100 rounded-2xl shadow-sm p-8 text-center" role="status">
+    <section id="jelentkezes" class="scroll-mt-32 bg-white border border-navy-100 border-t-4 border-t-sand-500 rounded-2xl shadow-[0_24px_60px_-30px_rgba(26,37,45,0.35)] p-8 text-center" role="status">
       <div class="w-14 h-14 rounded-full bg-sand-100 text-sand-800 mx-auto flex items-center justify-center text-2xl font-bold">✓</div>
       <h2 class="font-display text-2xl font-semibold text-navy-800 mt-5">Köszönjük, megkaptuk!</h2>
       <p class="mt-3 text-navy-600 leading-relaxed">Hamarosan felvesszük veled a kapcsolatot a megadott elérhetőségeken.</p>
@@ -134,7 +134,7 @@ export function renderMessageForm(def, { action, values = {}, errors = {}, error
         ${s.fields.map(field).join('')}`).join('');
   const summary = error || (Object.keys(errors).length ? `Kérjük, javítsd a megjelölt mezőket.${hasFile ? ' A fájlokat újra ki kell választani.' : ''}` : '');
   return `
-    <section id="jelentkezes" class="scroll-mt-32 bg-white border border-navy-100 rounded-2xl shadow-sm p-6 md:p-8">
+    <section id="jelentkezes" class="scroll-mt-32 bg-white border border-navy-100 border-t-4 border-t-sand-500 rounded-2xl shadow-[0_24px_60px_-30px_rgba(26,37,45,0.35)] p-6 md:p-8">
       <h2 class="font-display text-2xl md:text-3xl font-semibold text-navy-800">${escapeHtml(def.title)}</h2>
       <p class="mt-2 text-sm text-navy-500">A <span class="text-red-600">*</span>-gal jelölt mezők kitöltése kötelező.</p>
       ${summary ? `<p class="mt-5 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3" role="alert">${escapeHtml(summary)}</p>` : ''}

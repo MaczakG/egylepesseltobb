@@ -63,7 +63,8 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - Belépés: `https://<domain>/admin.html`, az `ADMIN_EMAIL` / `ADMIN_PASSWORD` adatokkal.
 - Családstátuszok: **Örökbefogadható**, **Örökbefogadott**, **Feltöltés alatt**, **Archivált**. A főoldalon csak az „Örökbefogadható” státuszú családok jelennek meg, a többi csak az adminban látszik.
 - Az automatikus státuszváltás (Beállítások) csak az örökbefogadható és az örökbefogadott családokra vonatkozik.
-- Minden gyereknek (családnak) saját aloldala van: `/csaladok/<webcím>`. Az adatbázisból jön a név, az alcím, a történet és a képek (nagyítóval). Van rajta „Segíteni szeretnék” gomb, ami a lábléc e-mail címére ír a család nevével a tárgyban, megosztás gomb és további örökbefogadható családok. A havi összeg és a jelentkezők száma nem jelenik meg.
+- Minden gyereknek (családnak) saját aloldala van: `/csaladok/<webcím>`. Az adatbázisból jön a név, az alcím, a történet és a képek (nagyítóval). Rajta van a „Jelentkezem támogatónak” űrlap, a megosztás gombok és további örökbefogadható családok. A havi összeg és a jelentkezők száma nem jelenik meg.
+- Új családot és új blogbejegyzést a Családok, illetve a Blog lista „Új család” / „Új bejegyzés” gombjával lehet felvenni.
 - A webcím a névből készül, és átnevezéskor nem változik; az adminban a család adatlapján átírható. Ugyanott az „Aloldal ↗” gomb megnyitja az oldalt.
 - Aloldala az örökbefogadható és az örökbefogadott családoknak van. Az archivált és a feltöltés alatti családot csak bejelentkezett adminisztrátor látja, előnézetként.
 - Családlista lapozás nélkül, minden család egy oldalon: `/csaladok` (az összes nyilvános család, elöl az örökbefogadhatók), `/csaladok?statusz=orokbefogadhato` és `/csaladok?statusz=orokbefogadott`. A menü „Örökbefogadható / Örökbefogadott családok” pontja ide mutat.
@@ -71,6 +72,7 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 ## Oldalak (a régi oldal aloldalai)
 
 - A régi egylepesseltobb.hu aloldalai a mostani dizájnnal, ugyanazzal a szöveggel és képekkel, a régi címükön érhetők el (pl. `/alapitonk`, `/kuratorium`, `/dokumentumok`, `/1-ado`, `/linkesfizetes`, `/adatkezelesi-tajekoztato`).
+- Minden aloldal (oldalak, blog, családok, 404) a főoldal dizájnját követi: nagy nyitókép sötét átmenettel és morzsamenüvel, alatta a főoldal szekcióinak mintájára váltakozó sávok (fehér, homokszín, sötétkék). A régi tartalom elemei ehhez igazodnak: a kép + szöveg blokkok keretezett fotóval (mint az „Alapítónk”), a személyek nagykövet-kártyákon, a kártyák a „Területeink” stílusában, az évszámos felsorolások idővonalként, a „Címke: érték” sorok (adószám, bankszámla…) adatlapként.
 - A tartalom a `server/import/wordpress-pages-2026-10-01.json` fájlból kerül be az első induláskor; a képeket és a PDF-eket (alapító okirat, beszámolók, 1%-os nyomtatvány, prospektus) a szerver tölti le a régi oldalról. A PDF-ek a régi fájlnevükön érhetők el (pl. `/uploads/Prospektus.pdf`).
 - Az oldalak kiegészíthetők: űrlap (pl. a „Jelentkezz támogatónak” oldalon a támogatói jelentkezés), az örökbefogadható családok kártyái, illetve blogbejegyzések kártyái (pl. a Gálaest, Családi napok, Aláírási ceremónia oldalon a galériák). Az adminban nincs külön menüpontjuk; a tartalmuk az importfájlban módosítható.
 - A régi címek átirányítanak: `/fooldal` → főoldal, `/orokbefogadhato-csaladok` és `/orokbefogadott-csaladok` → családlista, `/kozos-elmenyeink` → blog, a régi bejegyzéscímek (`/2025/12/08/<webcím>/`) → a blogbejegyzés vagy a család oldala.
