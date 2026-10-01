@@ -171,6 +171,43 @@ export function postCard(post) {
       </article>`;
 }
 
+// A lábléc „Rendezvényeink” szekciója: a blog legfrissebb „Rendezvények” bejegyzései, galériával.
+// Minden oldalon megjelenik (a lábléc része); ha nincs ilyen bejegyzés, a szekció elmarad.
+// A bejegyzés galériáiban lévő képek száma.
+function photoCount(post) {
+  return (post.content.match(/<div class="gallery">[\s\S]*?<\/div>/g) || []).join('').split('<a ').length - 1;
+}
+
+export function renderEvents(posts) {
+  if (!posts.length) return '';
+  const card = (post) => `
+        <a href="/blog/${post.slug}" class="event-card group block">
+          <div class="relative h-44 rounded-xl overflow-hidden mb-4 bg-navy-700">
+            ${post.coverImage
+    ? `<img src="${escapeHtml(post.coverImage)}" loading="lazy" alt="${escapeHtml(post.title)}" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">`
+    : '<div class="w-full h-full flex items-center justify-center font-display text-sand-400 text-lg">Rendezvény</div>'}
+            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
+          </div>
+          <h4 class="font-display font-semibold text-white mb-1 group-hover:text-sand-400 transition-colors">${escapeHtml(post.title)}</h4>
+          <p class="text-sm text-white/60"><time datetime="${post.publishedAt}">${formatDate(post.publishedAt)}</time>${photoCount(post) ? ` · ${photoCount(post)} fotó` : ''}</p>
+        </a>`;
+  return `
+  <div id="events" class="border-b border-white/10 py-16 px-6 lg:px-10">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+        <div>
+          <p class="text-xs tracking-[0.3em] uppercase text-sand-400 mb-3">Rendezvényeink</p>
+          <h3 class="font-display text-2xl md:text-3xl font-medium">Találkozzunk élőben is</h3>
+        </div>
+        <a href="/blog?kategoria=rendezvenyek" class="inline-flex items-center gap-2 text-sm font-semibold text-sand-400 hover:text-sand-300 self-start sm:self-auto">Összes rendezvény →</a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+${posts.map(card).join('\n')}
+      </div>
+    </div>
+  </div>`;
+}
+
 // A főoldal blogszekciója; ha nincs közzétett bejegyzés, el sem jelenik.
 export function renderHomePosts(posts) {
   if (!posts.length) return '';

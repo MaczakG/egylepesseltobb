@@ -7,7 +7,8 @@ import {
   MIN_PASSWORD_LENGTH, SESSION_TTL_MS, createSessionToken, hashPassword, readSessionToken, verifyPassword,
 } from './auth.js';
 import {
-  renderBlogList, renderBlogPost, renderFamilyList, renderFamilyPage, renderHomePosts, renderNotFound, siteFrame,
+  renderBlogList, renderBlogPost, renderEvents, renderFamilyList, renderFamilyPage, renderHomePosts, renderNotFound,
+  siteFrame,
 } from './pages.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
@@ -65,7 +66,12 @@ export function createApp({ db, config }) {
   });
 
   // --- Oldalak -------------------------------------------------------------
-  const readIndex = () => fs.readFileSync(path.join(config.siteDir, 'index.html'), 'utf8');
+  // A lábléc rendezvényei minden oldalon az adatbázisból jönnek, ezért már a beolvasáskor bekerülnek.
+  const readIndex = () => injectSection(
+    fs.readFileSync(path.join(config.siteDir, 'index.html'), 'utf8'),
+    'events',
+    renderEvents(store.listPublicPosts(db, { category: 'rendezvenyek', limit: 4 }).posts),
+  );
   const baseUrl = (req) => `${req.protocol}://${req.get('host')}`;
   const sendHtml = (res, html, status = 200) => res.status(status).set('Cache-Control', 'no-cache').type('html').send(html);
 

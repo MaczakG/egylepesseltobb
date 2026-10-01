@@ -139,7 +139,7 @@ describe('nyilvános oldalak', () => {
     assert.ok(html.includes('id="site-header"') && html.includes('</footer>'), 'fejléc és lábléc');
     assert.ok(html.includes('href="/#families"') && !html.includes('href="#families"'), 'horgonyok a főoldalra mutatnak');
     assert.ok(html.includes('src="/assets/img/logo-full.png"') && !html.includes('src="assets/'), 'abszolút képutak');
-    assert.ok(html.includes("if (!lightbox) return;"), 'a főoldali szkript a galéria nélkül is fut');
+    assert.ok(!html.includes('loremflickr'), 'nincs külső helykitöltő kép');
   });
 
   test('a lista kategóriánként szűrhető és lapozható', async () => {
@@ -160,6 +160,30 @@ describe('nyilvános oldalak', () => {
     assert.match(home, /Hírek és közös élmények az alapítvány életéből/);
     assert.equal(section.slice(0, section.indexOf('</section>')).match(/Tovább olvasom/g).length, 3);
     assert.ok(!home.includes('Titkos piszkozat'));
+  });
+
+  test('a lábléc rendezvényei a blog „Rendezvények” bejegyzéseiből jönnek, minden oldalon', async () => {
+    assert.ok(!(await page('/')).html.includes('id="events"'), 'rendezvény-bejegyzés nélkül a szekció elmarad');
+    const cover = await upload();
+    for (let i = 1; i <= 5; i += 1) {
+      await createPost({
+        title: `Gálaest ${i}`, category: 'rendezvenyek', coverImage: cover, publishedAt: `2026-0${i}-15`,
+        content: `<p>Köszönjük!</p><div class="gallery"><a href="${cover}"><img src="${cover}" alt="" /></a><a href="${cover}"><img src="${cover}" alt="" /></a></div>`,
+      });
+    }
+    await createPost({ title: 'Jövőbeli gála', category: 'rendezvenyek', publishedAt: tomorrow });
+    for (const url of ['/', '/blog', '/csaladok']) {
+      const { html } = await page(url);
+      const events = html.slice(html.indexOf('id="events"'), html.indexOf('id="contact"'));
+      assert.equal((events.match(/class="event-card/g) || []).length, 4, url);
+      assert.match(events, /<a href="\/blog\/galaest-5" class="event-card group block">/);
+      assert.ok(events.includes(`src="${cover}"`));
+      assert.match(events, /2026\. május 15\.<\/time> · 2 fotó/);
+      assert.ok(!events.includes('Gálaest 1<'), 'csak a 4 legfrissebb');
+      assert.ok(!events.includes('Jövőbeli gála'), 'az időzített még nem');
+      assert.match(events, /href="\/blog\?kategoria=rendezvenyek"/);
+      assert.ok(!html.includes('loremflickr'));
+    }
   });
 
   test('ismeretlen oldal: 404 a főoldal keretével', async () => {

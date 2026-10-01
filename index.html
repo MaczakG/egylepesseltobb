@@ -112,8 +112,6 @@
   .nav-underline:hover::after { transform: scaleX(1); }
 
   /* Lightbox */
-  #lightbox { transition: opacity 0.3s var(--ease-soft); }
-  .lightbox-img { transition: opacity 0.25s var(--ease-soft); }
 
   /* Mobile menu */
   #mobile-menu { transition: max-height 0.4s var(--ease-soft), opacity 0.3s var(--ease-soft); }
@@ -555,52 +553,16 @@
   </div>
 
   <!-- Events -->
+  <!-- events:start -->
+  <!-- A szerver ezt a részt a blog legfrissebb „Rendezvények” bejegyzéseire cseréli; ez csak tartalék. -->
   <div id="events" class="border-b border-white/10 py-16 px-6 lg:px-10">
     <div class="max-w-7xl mx-auto">
       <p class="text-xs tracking-[0.3em] uppercase text-sand-400 mb-3">Rendezvényeink</p>
-      <h3 class="font-display text-2xl md:text-3xl font-medium mb-10">Találkozzunk élőben is</h3>
-
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-        <button class="event-card text-left group" data-event="0">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/charity,gala/all" loading="lazy" alt="Jótékonysági Gála" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Jótékonysági Gála</h4>
-          <p class="text-sm text-white/60">2026. szeptember 20. · Budapest, Bálna</p>
-        </button>
-
-        <button class="event-card text-left group" data-event="1">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/picnic,family,park/all" loading="lazy" alt="Családi Piknik Nap" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Családi Piknik Nap</h4>
-          <p class="text-sm text-white/60">2026. október 4. · Margitsziget</p>
-        </button>
-
-        <button class="event-card text-left group" data-event="2">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/christmas,donation/all" loading="lazy" alt="Karácsonyi Adományosztás" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Karácsonyi Adományosztás</h4>
-          <p class="text-sm text-white/60">2026. december 14. · Debrecen</p>
-        </button>
-
-        <button class="event-card text-left group" data-event="3">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/kids,sports,day/all" loading="lazy" alt="Sportnap a Gyerekekért" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Sportnap a Gyerekekért</h4>
-          <p class="text-sm text-white/60">2027. február 1. · Szeged, Sportcsarnok</p>
-        </button>
-
-      </div>
+      <h3 class="font-display text-2xl md:text-3xl font-medium mb-6">Találkozzunk élőben is</h3>
+      <a href="/blog?kategoria=rendezvenyek" class="inline-flex items-center gap-2 text-sm font-semibold text-sand-400 hover:text-sand-300">Rendezvényeink a blogon →</a>
     </div>
   </div>
+  <!-- events:end -->
 
   <!-- Footer menu / contact -->
   <div id="contact" class="py-16 px-6 lg:px-10">
@@ -692,30 +654,6 @@
   </div>
 </footer>
 <!-- site:footer:end -->
-
-<!-- ============ LIGHTBOX ============ -->
-<div id="lightbox" class="fixed inset-0 z-[100] hidden opacity-0 bg-navy-900/95 backdrop-blur-sm items-center justify-center px-4">
-  <button id="lightbox-close" aria-label="Bezárás" class="absolute top-6 right-6 text-white/80 hover:text-sand-400 transition-colors">
-    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-  </button>
-
-  <button id="lightbox-prev" aria-label="Előző kép" class="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-sand-400 transition-colors">
-    <svg class="w-9 h-9 md:w-12 md:h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-  </button>
-  <button id="lightbox-next" aria-label="Következő kép" class="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-sand-400 transition-colors">
-    <svg class="w-9 h-9 md:w-12 md:h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-  </button>
-
-  <div class="max-w-4xl w-full">
-    <div class="relative rounded-xl overflow-hidden bg-navy-800 aspect-[4/3]">
-      <img id="lightbox-img" src="" alt="" class="lightbox-img w-full h-full object-cover">
-    </div>
-    <div class="text-center mt-5">
-      <h4 id="lightbox-title" class="font-display text-white text-lg font-semibold"></h4>
-      <p id="lightbox-counter" class="text-white/50 text-sm mt-1"></p>
-    </div>
-  </div>
-</div>
 
 <!-- site:script:start -->
 <script>
@@ -813,113 +751,6 @@
     });
   }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
   revealEls.forEach(function (el) { observer.observe(el); });
-
-  // ---- Events lightbox ----
-  var eventGalleries = [
-    {
-      title: 'Jótékonysági Gála',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/gala,event/all', alt: 'Jótékonysági Gála – vendégek érkezése' },
-        { src: 'https://loremflickr.com/1200/800/gala,dinner/all', alt: 'Jótékonysági Gála – vacsora' },
-        { src: 'https://loremflickr.com/1200/800/charity,auction/all', alt: 'Jótékonysági Gála – árverés' }
-      ]
-    },
-    {
-      title: 'Családi Piknik Nap',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/picnic,park,family/all', alt: 'Családi Piknik Nap – piknikező családok' },
-        { src: 'https://loremflickr.com/1200/800/children,games,park/all', alt: 'Családi Piknik Nap – gyerekjátékok' },
-        { src: 'https://loremflickr.com/1200/800/summer,picnic/all', alt: 'Családi Piknik Nap – nyári hangulat' }
-      ]
-    },
-    {
-      title: 'Karácsonyi Adományosztás',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/christmas,gifts/all', alt: 'Karácsonyi Adományosztás – ajándékcsomagok' },
-        { src: 'https://loremflickr.com/1200/800/christmas,children/all', alt: 'Karácsonyi Adományosztás – gyerekek az ajándékokkal' },
-        { src: 'https://loremflickr.com/1200/800/winter,charity/all', alt: 'Karácsonyi Adományosztás – önkéntesek' }
-      ]
-    },
-    {
-      title: 'Sportnap a Gyerekekért',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/kids,sports,field/all', alt: 'Sportnap a Gyerekekért – pályán' },
-        { src: 'https://loremflickr.com/1200/800/children,running,race/all', alt: 'Sportnap a Gyerekekért – futóverseny' },
-        { src: 'https://loremflickr.com/1200/800/sports,team,kids/all', alt: 'Sportnap a Gyerekekért – csapatjáték' }
-      ]
-    }
-  ];
-
-  var lightbox = document.getElementById('lightbox');
-  var lightboxImg = document.getElementById('lightbox-img');
-  var lightboxTitle = document.getElementById('lightbox-title');
-  var lightboxCounter = document.getElementById('lightbox-counter');
-  var lbClose = document.getElementById('lightbox-close');
-  var lbPrev = document.getElementById('lightbox-prev');
-  var lbNext = document.getElementById('lightbox-next');
-  if (!lightbox) return; // a blogoldalakon nincs rendezvénygaléria
-
-  var activeGallery = null;
-  var activeIndex = 0;
-
-  function renderLightbox() {
-    var gallery = eventGalleries[activeGallery];
-    var img = gallery.images[activeIndex];
-    lightboxImg.style.opacity = '0';
-    setTimeout(function () {
-      lightboxImg.src = img.src;
-      lightboxImg.alt = img.alt;
-      lightboxImg.style.opacity = '1';
-    }, 120);
-    lightboxTitle.textContent = gallery.title;
-    lightboxCounter.textContent = (activeIndex + 1) + ' / ' + gallery.images.length;
-  }
-
-  function openLightbox(idx) {
-    activeGallery = idx;
-    activeIndex = 0;
-    lightbox.classList.remove('hidden');
-    requestAnimationFrame(function () {
-      lightbox.classList.add('flex');
-      lightbox.style.opacity = '1';
-    });
-    document.body.style.overflow = 'hidden';
-    renderLightbox();
-  }
-
-  function closeLightbox() {
-    lightbox.style.opacity = '0';
-    document.body.style.overflow = '';
-    setTimeout(function () {
-      lightbox.classList.add('hidden');
-      lightbox.classList.remove('flex');
-    }, 300);
-  }
-
-  document.querySelectorAll('.event-card').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      openLightbox(parseInt(btn.getAttribute('data-event'), 10));
-    });
-  });
-
-  lbClose.addEventListener('click', closeLightbox);
-  lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLightbox(); });
-  lbPrev.addEventListener('click', function () {
-    var gallery = eventGalleries[activeGallery];
-    activeIndex = (activeIndex - 1 + gallery.images.length) % gallery.images.length;
-    renderLightbox();
-  });
-  lbNext.addEventListener('click', function () {
-    var gallery = eventGalleries[activeGallery];
-    activeIndex = (activeIndex + 1) % gallery.images.length;
-    renderLightbox();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (lightbox.classList.contains('hidden')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') lbPrev.click();
-    if (e.key === 'ArrowRight') lbNext.click();
-  });
 })();
 </script>
 <!-- site:script:end -->
