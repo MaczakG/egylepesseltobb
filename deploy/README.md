@@ -59,8 +59,8 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 ## Admin felület és adatok
 
 - Belépés: `https://<domain>/admin.html`, az `ADMIN_EMAIL` / `ADMIN_PASSWORD` adatokkal.
-- Az első indításkor a főoldal eddigi három családja kerül az adatbázisba; ezek az adminban szerkeszthetők.
-- A főoldalon az „Örökbefogadható” státuszú családok jelennek meg; az „Örökbefogadott” státuszúak lekerülnek róla.
+- Családstátuszok: **Örökbefogadható**, **Örökbefogadott**, **Feltöltés alatt**, **Archivált**. A főoldalon csak az „Örökbefogadható” státuszú családok jelennek meg, a többi csak az adminban látszik.
+- Az automatikus státuszváltás (Beállítások) csak az örökbefogadható és az örökbefogadott családokra vonatkozik.
 - Az adatok a szerver lemezén vannak: a `destroy` velük együtt törli a szervert. Naponta mentés készül Google Drive-ra (lásd lent).
 
 ## Blog
@@ -71,6 +71,15 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - A webcím (`/blog/...`) a címből készül; közzététel után már ne változtasd, mert a megosztott linkek elromlanak.
 
 Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad tovább. A 2026. október 1. előtt telepített szerveren ez még nincs így beállítva, ott a `/blog` oldalakhoz egyszer frissíteni kell az nginx konfigot (vagy újratelepíteni a szervert).
+
+## Import a régi oldalról (egylepesseltobb.hu)
+
+- A régi WordPress-oldal tartalma (`server/import/wordpress-2026-10-01.json`) a szerver első indulásakor automatikusan bekerül:
+  - a családok a WordPress-kategóriájuk szerint kapnak státuszt (örökbefogadható, örökbefogadott, feltöltés alatt; a „kategória nélküliek” archiváltak), és a három minta-család helyére kerülnek;
+  - a rendezvénygalériák (aláírási ceremóniák, családi napok, gálaest, Thai koncert) galériás blogbejegyzések lesznek.
+- A képeket a szerver tölti le az egylepesseltobb.hu-ról, és webre méretezi (nagy kép 1600 px, bélyegkép 480 px, WebP); ez a kb. 700 képpel néhány percig tart.
+- Az állapota az adminban a **Beállítások → Import a régi oldalról** kártyán látszik. Ha valamelyik kép nem jött le, az **Import újrafuttatása** csak a hiányzókat próbálja újra; a már importált tartalmat nem duplikálja, és az adminban azóta módosított családokhoz és bejegyzésekhez nem nyúl.
+- Ha nincs rá szükség: `WP_IMPORT=0` a `/etc/egylepesseltobb/app.env`-ben.
 
 ## Napi mentés Google Drive-ra
 

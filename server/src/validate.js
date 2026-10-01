@@ -16,12 +16,17 @@ const STORY_OPTIONS = {
 const IMAGE_URL = /^\/(uploads|assets\/img)\/[A-Za-z0-9._-]+$/;
 
 // A blogbejegyzésekben képek is lehetnek, de csak a saját feltöltéseink (nincs külső forrás).
+// A galéria (bélyegképek, kattintásra nagy kép) a `<div class="gallery">` blokk; más osztály nem maradhat.
 const POST_OPTIONS = {
   ...STORY_OPTIONS,
-  allowedTags: [...STORY_OPTIONS.allowedTags, 'img'],
-  allowedAttributes: { ...STORY_OPTIONS.allowedAttributes, img: ['src', 'alt'] },
+  allowedTags: [...STORY_OPTIONS.allowedTags, 'img', 'div'],
+  allowedAttributes: { ...STORY_OPTIONS.allowedAttributes, img: ['src', 'alt'], div: ['class'] },
+  allowedClasses: { div: ['gallery'] },
   exclusiveFilter: (frame) => frame.tag === 'img' && !IMAGE_URL.test(frame.attribs.src || ''),
 };
+
+export const sanitizeStory = (html) => sanitizeHtml(html || '', STORY_OPTIONS);
+export const sanitizePost = (html) => sanitizeHtml(html || '', POST_OPTIONS);
 
 function text(value, field, max, { required = false } = {}) {
   const s = typeof value === 'string' ? value.trim() : '';
@@ -55,7 +60,7 @@ function images(value) {
 export function validateFamily(body) {
   if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
   if (!STATUSES.includes(body.status)) throw new ValidationError('Érvénytelen státusz.');
-  const story = sanitizeHtml(typeof body.story === 'string' ? body.story : '', STORY_OPTIONS);
+  const story = sanitizeStory(typeof body.story === 'string' ? body.story : '');
   if (story.length > 100_000) throw new ValidationError('A történet túl hosszú.');
   return {
     name: text(body.name, 'családnév', 120, { required: true }),
@@ -106,7 +111,7 @@ export function validatePost(body) {
   const title = text(body.title, 'cím', 200, { required: true });
   const slug = slugify(typeof body.slug === 'string' && body.slug.trim() ? body.slug : title);
   if (!slug) throw new ValidationError('A címből nem készíthető webcím; adj meg egyet kézzel.');
-  const content = sanitizeHtml(typeof body.content === 'string' ? body.content : '', POST_OPTIONS);
+  const content = sanitizePost(typeof body.content === 'string' ? body.content : '');
   if (content.length > 300_000) throw new ValidationError('A bejegyzés túl hosszú.');
   const coverImage = typeof body.coverImage === 'string' ? body.coverImage : '';
   if (coverImage && !IMAGE_URL.test(coverImage)) throw new ValidationError('Érvénytelen borítókép.');

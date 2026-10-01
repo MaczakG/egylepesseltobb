@@ -241,6 +241,8 @@
               <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="all" onclick="setStatusFilter('all')">Mind <span id="count-all" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
               <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="adoptable" onclick="setStatusFilter('adoptable')">Örökbefogadható <span id="count-adoptable" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
               <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="adopted" onclick="setStatusFilter('adopted')">Örökbefogadott <span id="count-adopted" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="uploading" onclick="setStatusFilter('uploading')">Feltöltés alatt <span id="count-uploading" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-filter="archived" onclick="setStatusFilter('archived')">Archivált <span id="count-archived" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
             </div></div>
             <p id="result-count" class="text-xs text-slate-500"></p>
           </div>
@@ -379,8 +381,10 @@
                   <div class="seg">
                     <button type="button" id="status-btn-adoptable" class="status-seg-btn" onclick="setFormStatus('adoptable')">Örökbefogadható</button>
                     <button type="button" id="status-btn-adopted" class="status-seg-btn" onclick="setFormStatus('adopted')">Örökbefogadott</button>
+                    <button type="button" id="status-btn-uploading" class="status-seg-btn" onclick="setFormStatus('uploading')">Feltöltés alatt</button>
+                    <button type="button" id="status-btn-archived" class="status-seg-btn" onclick="setFormStatus('archived')">Archivált</button>
                   </div>
-                  <p class="help">Örökbefogadható státusszal jelenik meg a főoldalon.</p>
+                  <p class="help">Csak az „Örökbefogadható” státuszú család jelenik meg a főoldalon.</p>
                 </div>
                 <div>
                   <label class="label" for="field-amount">Havi támogatási összeg</label>
@@ -614,6 +618,24 @@
             </div>
           </div>
 
+          <div id="import-section" class="hidden grid md:grid-cols-3 gap-6 p-5 sm:p-6">
+            <div>
+              <h2 class="font-semibold text-slate-900">Import a régi oldalról</h2>
+              <p class="text-slate-500 text-[13px] mt-1">Az egylepesseltobb.hu WordPress-tartalma: családok és rendezvénygalériák. A képeket a szerver tölti le és méretezi.</p>
+            </div>
+            <div class="md:col-span-2 space-y-4">
+              <div class="flex items-center gap-3">
+                <span id="import-badge"></span>
+                <p id="import-summary" class="text-slate-700"></p>
+              </div>
+              <div id="import-progress-wrap" class="hidden h-1.5 rounded-full bg-slate-200 overflow-hidden"><div id="import-progress" class="h-full bg-brand-500 transition-all" style="width:0%"></div></div>
+              <p id="import-failed" class="hidden text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2"></p>
+              <div class="flex justify-end">
+                <button id="import-retry" onclick="rerunImport()" class="btn btn-secondary">Import újrafuttatása</button>
+              </div>
+            </div>
+          </div>
+
           <div class="grid md:grid-cols-3 gap-6 p-5 sm:p-6">
             <div>
               <h2 class="font-semibold text-slate-900">Jelszó módosítása</h2>
@@ -827,11 +849,16 @@
   // ---------------------------------------------------------------
   // Rendering helpers
   // ---------------------------------------------------------------
+  // Teljes osztálynevek kellenek (nem összefűzve), hogy a Tailwind felismerje őket.
+  var STATUS_STYLE = {
+    adoptable: { label: 'Örökbefogadható', pill: 'bg-amber-50 text-amber-800 ring-amber-600/20', dot: 'bg-amber-500' },
+    adopted: { label: 'Örökbefogadott', pill: 'bg-emerald-50 text-emerald-800 ring-emerald-600/20', dot: 'bg-emerald-500' },
+    uploading: { label: 'Feltöltés alatt', pill: 'bg-sky-50 text-sky-800 ring-sky-600/20', dot: 'bg-sky-500' },
+    archived: { label: 'Archivált', pill: 'bg-slate-100 text-slate-700 ring-slate-500/20', dot: 'bg-slate-400' }
+  };
   function statusBadge(status) {
-    if (status === 'adoptable') {
-      return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/20 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Örökbefogadható</span>';
-    }
-    return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-600/20 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Örökbefogadott</span>';
+    var st = STATUS_STYLE[status] || STATUS_STYLE.archived;
+    return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset whitespace-nowrap ' + st.pill + '"><span class="w-1.5 h-1.5 rounded-full ' + st.dot + '"></span>' + st.label + '</span>';
   }
 
   function applicantsBlock(applicants) {
@@ -890,7 +917,10 @@
     document.querySelector('main').scrollTop = 0;
     if (view === 'list') renderList();
     if (view === 'posts') renderPosts();
-    if (view === 'settings') renderSettings();
+    if (view === 'settings') {
+      renderSettings();
+      loadImportStatus();
+    }
   };
 
   // ---------------------------------------------------------------
@@ -936,16 +966,18 @@
   }
 
   function renderSummary() {
-    var adoptable = state.families.filter(function (f) { return f.status === 'adoptable'; });
-    var openAmount = adoptable.reduce(function (sum, f) { return sum + (f.amount || 0); }, 0);
-    var adopted = state.families.length - adoptable.length;
+    var counts = { adoptable: 0, adopted: 0, uploading: 0, archived: 0 };
+    var openAmount = 0;
+    state.families.forEach(function (f) {
+      counts[f.status] = (counts[f.status] || 0) + 1;
+      if (f.status === 'adoptable') openAmount += f.amount || 0;
+    });
     document.getElementById('kpi-total').textContent = state.families.length;
-    document.getElementById('kpi-adoptable').textContent = adoptable.length;
-    document.getElementById('kpi-adopted').textContent = adopted;
+    document.getElementById('kpi-adoptable').textContent = counts.adoptable;
+    document.getElementById('kpi-adopted').textContent = counts.adopted;
     document.getElementById('kpi-amount').textContent = fmtFt(openAmount);
     document.getElementById('count-all').textContent = state.families.length;
-    document.getElementById('count-adoptable').textContent = adoptable.length;
-    document.getElementById('count-adopted').textContent = adopted;
+    Object.keys(counts).forEach(function (k) { document.getElementById('count-' + k).textContent = counts[k]; });
     document.querySelectorAll('.sort-btn').forEach(function (b) {
       var active = b.getAttribute('data-sort') === state.sort.key;
       b.classList.toggle('sorted', active);
@@ -1090,8 +1122,9 @@
   var formStatus = 'adoptable';
   window.setFormStatus = function (val) {
     formStatus = val;
-    document.getElementById('status-btn-adoptable').classList.toggle('active', val === 'adoptable');
-    document.getElementById('status-btn-adopted').classList.toggle('active', val === 'adopted');
+    Object.keys(STATUS_STYLE).forEach(function (k) {
+      document.getElementById('status-btn-' + k).classList.toggle('active', val === k);
+    });
   };
 
   window.onApplicantsChange = function (val) {
@@ -1547,6 +1580,50 @@
       return loadFamilies();
     }).then(function () {
       showToast('A beállítások mentve lettek.');
+    }).catch(function (e) { showToast(e.message); });
+  };
+
+  // ---------------------------------------------------------------
+  // WordPress-import állapota (Beállítások)
+  // ---------------------------------------------------------------
+  var importTimer = null;
+  var IMPORT_BADGE = {
+    none: ['bg-slate-100 text-slate-700 ring-slate-500/20', 'Még nem futott'],
+    running: ['bg-sky-50 text-sky-800 ring-sky-600/20', 'Folyamatban'],
+    done: ['bg-emerald-50 text-emerald-800 ring-emerald-600/20', 'Kész'],
+    failed: ['bg-red-50 text-red-800 ring-red-600/20', 'Megszakadt']
+  };
+  function renderImport(info) {
+    var section = document.getElementById('import-section');
+    section.classList.toggle('hidden', !info.available);
+    if (!info.available) return;
+    var s = info.status;
+    var running = info.running || (s && s.state === 'running');
+    var badge = !s ? IMPORT_BADGE.none : running ? IMPORT_BADGE.running : s.state === 'done' ? IMPORT_BADGE.done : IMPORT_BADGE.failed;
+    document.getElementById('import-badge').innerHTML = '<span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset whitespace-nowrap ' + badge[0] + '">' + badge[1] + '</span>';
+    document.getElementById('import-summary').textContent = s
+      ? s.done + ' / ' + s.total + ' bejegyzés · ' + s.images + ' kép letöltve' + (s.skipped ? ' · ' + s.skipped + ' kihagyva (az adminban módosítva)' : '') + (s.finishedAt && !running ? ' · ' + new Date(s.finishedAt).toLocaleString('hu-HU') : '')
+      : 'A szerver indulásakor automatikusan elindul.';
+    document.getElementById('import-progress-wrap').classList.toggle('hidden', !running);
+    document.getElementById('import-progress').style.width = s ? Math.round(s.done / s.total * 100) + '%' : '0%';
+    var failed = document.getElementById('import-failed');
+    var failedCount = s ? s.failedImages.length : 0;
+    failed.classList.toggle('hidden', !(failedCount || (s && s.error)));
+    failed.textContent = s && s.error ? 'Hiba: ' + s.error : failedCount + ' képet nem sikerült letölteni. Az újrafuttatás csak a hiányzókat próbálja újra, az adminban azóta módosított családokhoz és bejegyzésekhez nem nyúl.';
+    document.getElementById('import-retry').disabled = running;
+    clearTimeout(importTimer);
+    if (running && state.view === 'settings') importTimer = setTimeout(loadImportStatus, 4000);
+  }
+  function loadImportStatus() {
+    return api('GET', '/api/admin/import').then(function (info) {
+      renderImport(info);
+      if (info.status && info.status.state === 'done' && !info.running) return Promise.all([loadFamilies(), loadPosts()]);
+    }).catch(function () {});
+  }
+  window.rerunImport = function () {
+    api('POST', '/api/admin/import').then(function () {
+      showToast('Az import elindult a háttérben.');
+      loadImportStatus();
     }).catch(function (e) { showToast(e.message); });
   };
 

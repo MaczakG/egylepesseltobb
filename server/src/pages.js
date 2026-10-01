@@ -48,9 +48,65 @@ const CONTENT_CSS = `
   .blog-content li + li { margin-top: 0.4em; }
   .blog-content blockquote { border-left: 3px solid #dac7a0; padding-left: 1.25em; font-style: italic; color: #4c6b7d; }
   .blog-content img { display: block; max-width: 100%; height: auto; border-radius: 1rem; margin: 2em auto; }
+  .blog-content .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.5rem; margin-top: 2em; }
+  .blog-content .gallery a { display: block; overflow: hidden; border-radius: 0.75rem; }
+  .blog-content .gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; margin: 0; border-radius: 0; transition: transform 0.4s ease; }
+  .blog-content .gallery a:hover img { transform: scale(1.04); }
 `;
 
-function layout(frame, { title, description, canonical, image, type = 'website', main }) {
+// Galéria-nagyító a bejegyzés oldalán: a bélyegképekre kattintva a nagy kép jelenik meg (lapozható).
+// JavaScript nélkül a link új lapon nyitja meg a képet.
+const GALLERY_LIGHTBOX = `
+<div id="gallery-lightbox" class="fixed inset-0 z-[100] hidden items-center justify-center bg-navy-900/95 px-4" role="dialog" aria-modal="true" aria-label="Képnézegető">
+  <button data-lb="close" class="absolute top-5 right-5 text-white/80 hover:text-white text-3xl leading-none" aria-label="Bezárás">×</button>
+  <button data-lb="prev" class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-5xl px-3" aria-label="Előző kép">‹</button>
+  <img data-lb="img" src="" alt="" class="max-h-[85vh] max-w-full rounded-xl shadow-2xl">
+  <button data-lb="next" class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-5xl px-3" aria-label="Következő kép">›</button>
+  <p data-lb="count" class="absolute bottom-5 inset-x-0 text-center text-white/60 text-sm"></p>
+</div>
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.blog-content .gallery a'));
+  var box = document.getElementById('gallery-lightbox');
+  if (!links.length || !box) return;
+  var img = box.querySelector('[data-lb="img"]');
+  var count = box.querySelector('[data-lb="count"]');
+  var index = 0;
+  function show(i) {
+    index = (i + links.length) % links.length;
+    img.src = links[index].getAttribute('href');
+    count.textContent = (index + 1) + ' / ' + links.length;
+  }
+  function open(i) {
+    show(i);
+    box.classList.remove('hidden');
+    box.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+  function close() {
+    box.classList.add('hidden');
+    box.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+  links.forEach(function (a, i) {
+    a.addEventListener('click', function (e) { e.preventDefault(); open(i); });
+  });
+  box.addEventListener('click', function (e) {
+    var action = e.target.getAttribute('data-lb');
+    if (action === 'close' || e.target === box) close();
+    if (action === 'prev') show(index - 1);
+    if (action === 'next') show(index + 1);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (box.classList.contains('hidden')) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowLeft') show(index - 1);
+    if (e.key === 'ArrowRight') show(index + 1);
+  });
+})();
+</script>`;
+
+function layout(frame, { title, description, canonical, image, type = 'website', main, extra = '' }) {
   const head = frame.head
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(title)}</title>`)
     .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${escapeHtml(description)}">`);
@@ -72,6 +128,7 @@ ${frame.header}
 ${main}
 ${frame.footer}
 ${frame.script}
+${extra}
 </body>
 </html>
 `;
@@ -216,6 +273,7 @@ ${related.map(postCard).join('\n')}
     image: post.coverImage ? baseUrl + post.coverImage : '',
     type: 'article',
     main,
+    extra: post.content.includes('class="gallery"') ? GALLERY_LIGHTBOX : '',
   });
 }
 

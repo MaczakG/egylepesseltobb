@@ -11,6 +11,9 @@ import {
 } from './pages.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
+  IMPORT_FILE, importStatus, isImportRunning, loadImportData, startImport,
+} from './wpimport.js';
+import {
   ValidationError, detectImageType, validateFamily, validatePost, validateSettings,
 } from './validate.js';
 
@@ -246,6 +249,17 @@ export function createApp({ db, config }) {
   });
 
   admin.get('/settings', (req, res) => res.json(store.getSettings(db)));
+
+  admin.get('/import', (req, res) => {
+    res.json({ available: fs.existsSync(IMPORT_FILE), running: isImportRunning(), status: importStatus(db) });
+  });
+
+  // Az import újrafuttatása (pl. ha képek maradtak ki): a háttérben fut, az állapot a GET-tel követhető.
+  admin.post('/import', (req, res) => {
+    if (!fs.existsSync(IMPORT_FILE)) return res.status(404).json({ error: 'Nincs importálható adat.' });
+    if (!isImportRunning()) startImport({ db, config, data: loadImportData() });
+    res.status(202).json({ running: true });
+  });
 
   admin.put('/settings', (req, res) => {
     res.json(store.saveSettings(db, validateSettings(req.body)));

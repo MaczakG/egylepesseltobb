@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 
-export const STATUSES = ['adoptable', 'adopted'];
+// A főoldalon csak az örökbefogadhatók jelennek meg; az archivált és a feltöltés alatt álló családok csak az adminban.
+export const STATUSES = ['adoptable', 'adopted', 'uploading', 'archived'];
 export const POST_STATUSES = ['draft', 'published'];
 // A menü „Közös élményeink” és „Média megjelenések” pontjai is ezekre a kategóriákra mutatnak.
 export const POST_CATEGORIES = [
@@ -58,7 +59,7 @@ export function openDb(file) {
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
       subtitle TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL CHECK (status IN ('adoptable', 'adopted')),
+      status TEXT NOT NULL,
       amount INTEGER NOT NULL DEFAULT 0,
       applicants INTEGER NOT NULL DEFAULT 0,
       story TEXT NOT NULL DEFAULT '',
@@ -85,7 +86,48 @@ export function openDb(file) {
     );
     CREATE INDEX IF NOT EXISTS posts_public ON posts (status, published_at);
   `);
+  migrate(db);
   return db;
+}
+
+function columns(db, table) {
+  return db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+}
+
+function migrate(db) {
+  // Az első változat CHECK-kel két státuszra korlátozta a családokat; a tábla újraépítésével vesszük le
+  // (a státuszt az alkalmazás ellenőrzi).
+  const { sql } = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'families'").get();
+  if (sql.includes('CHECK (status IN')) {
+    db.exec(`
+      BEGIN;
+      CREATE TABLE families_new (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        subtitle TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL,
+        amount INTEGER NOT NULL DEFAULT 0,
+        applicants INTEGER NOT NULL DEFAULT 0,
+        story TEXT NOT NULL DEFAULT '',
+        images TEXT NOT NULL DEFAULT '[]',
+        created_at TEXT NOT NULL DEFAULT (date('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO families_new (id, name, subtitle, status, amount, applicants, story, images, created_at, updated_at)
+        SELECT id, name, subtitle, status, amount, applicants, story, images, created_at, updated_at FROM families;
+      DROP TABLE families;
+      ALTER TABLE families_new RENAME TO families;
+      COMMIT;
+    `);
+  }
+  // A WordPress-importhoz: az eredeti bejegyzés azonosítója, hogy az import többször is futtatható legyen,
+  // és az utolsó import ideje, hogy az adminban azóta módosított sorokat az újrafuttatás ne írja felül.
+  for (const table of ['families', 'posts']) {
+    const cols = columns(db, table);
+    if (!cols.includes('wp_id')) db.exec(`ALTER TABLE ${table} ADD COLUMN wp_id INTEGER`);
+    if (!cols.includes('wp_synced_at')) db.exec(`ALTER TABLE ${table} ADD COLUMN wp_synced_at TEXT`);
+    db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${table}_wp_id ON ${table} (wp_id)`);
+  }
 }
 
 export function seed(db) {
@@ -165,7 +207,9 @@ export function saveSettings(db, settings) {
   db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('automation', ?)")
     .run(JSON.stringify(settings));
   if (settings.autoEnabled) {
-    db.prepare("UPDATE families SET status = ?, updated_at = datetime('now') WHERE applicants >= ? AND status != ?")
+    // Az archivált és a feltöltés alatt álló családokhoz a szabály nem nyúl.
+    db.prepare(`UPDATE families SET status = ?, updated_at = datetime('now')
+      WHERE applicants >= ? AND status != ? AND status IN ('adoptable', 'adopted')`)
       .run(settings.autoStatus, settings.threshold, settings.autoStatus);
   }
   return getSettings(db);
@@ -280,4 +324,53 @@ export function updatePost(db, id, p) {
 
 export function deletePost(db, id) {
   return db.prepare('DELETE FROM posts WHERE id = ?').run(id).changes > 0;
+}
+
+// --- WordPress-import --------------------------------------------------------
+
+export function getSetting(db, key, fallback = null) {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key);
+  return row ? JSON.parse(row.value) : fallback;
+}
+
+export function setSetting(db, key, value) {
+  db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(key, JSON.stringify(value));
+}
+
+// Igaz, ha az importált sort az import óta az adminban módosították (akkor az újrafuttatás nem nyúl hozzá).
+export function importedRowEdited(db, table, wpId) {
+  const row = db.prepare(`SELECT updated_at, wp_synced_at FROM ${table === 'posts' ? 'posts' : 'families'} WHERE wp_id = ?`)
+    .get(wpId);
+  return Boolean(row && row.wp_synced_at && row.updated_at !== row.wp_synced_at);
+}
+
+export function upsertImportedFamily(db, wpId, f) {
+  const existing = db.prepare('SELECT id FROM families WHERE wp_id = ?').get(wpId);
+  if (existing) {
+    db.prepare(`UPDATE families SET name = ?, status = ?, story = ?, images = ?, created_at = ?, updated_at = datetime('now'),
+      wp_synced_at = datetime('now') WHERE id = ?`).run(f.name, f.status, f.story, JSON.stringify(f.images), f.createdAt, existing.id);
+    return existing.id;
+  }
+  return Number(db.prepare(`INSERT INTO families (name, subtitle, status, story, images, created_at, wp_id, updated_at, wp_synced_at)
+    VALUES (?, '', ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`).run(f.name, f.status, f.story, JSON.stringify(f.images), f.createdAt, wpId).lastInsertRowid);
+}
+
+export function upsertImportedPost(db, wpId, p) {
+  const existing = db.prepare('SELECT id FROM posts WHERE wp_id = ?').get(wpId);
+  if (existing) {
+    db.prepare(`UPDATE posts SET title = ?, excerpt = ?, content = ?, cover_image = ?, category = ?, status = ?,
+      published_at = ?, updated_at = datetime('now'), wp_synced_at = datetime('now') WHERE id = ?`)
+      .run(p.title, p.excerpt, p.content, p.coverImage, p.category, p.status, p.publishedAt, existing.id);
+    return existing.id;
+  }
+  return Number(db.prepare(`INSERT INTO posts (title, slug, excerpt, content, cover_image, category, status, published_at, wp_id,
+    updated_at, wp_synced_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`).run(p.title, uniqueSlug(db, p.slug), p.excerpt, p.content, p.coverImage,
+    p.category, p.status, p.publishedAt, wpId).lastInsertRowid);
+}
+
+// A mintaként betöltött három családot az import a valódi adatokra cseréli (ha még nem szerkesztették át őket).
+export function removeSeedFamilies(db) {
+  const names = SEED_FAMILIES.map((f) => f.name);
+  return db.prepare(`DELETE FROM families WHERE wp_id IS NULL AND name IN (${names.map(() => '?').join(', ')})
+    AND images LIKE '%/assets/img/story-%'`).run(...names).changes;
 }
