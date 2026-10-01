@@ -162,33 +162,36 @@ describe('a gyerek aloldala', () => {
 });
 
 describe('családlista', () => {
-  test('alapból az örökbefogadhatók, szűrővel az örökbefogadottak, darabszámmal', async () => {
-    const adoptable = await page('/csaladok');
-    assert.equal(adoptable.status, 200);
+  test('alapból minden nyilvános család (elöl az örökbefogadhatók), szűrővel csak az egyik fajta', async () => {
+    const all = await page('/csaladok');
+    assert.equal(all.status, 200);
+    assert.match(all.html, /<h1[^>]*>Családjaink<\/h1>/);
+    assert.ok(all.html.indexOf('/csaladok/b-lili-es-csaladja"') < all.html.indexOf('/csaladok/orokbefogadott-otto"'), 'elöl az örökbefogadhatók');
+    assert.doesNotMatch(all.html, /archiv-anna|feltoltes-feri/);
+    const counts = store.countFamiliesByStatus(db);
+    assert.match(all.html, new RegExp(`Mind <span class="text-white/60">${counts.adoptable + counts.adopted}</span>`));
+
+    const adoptable = await page('/csaladok?statusz=orokbefogadhato');
     assert.match(adoptable.html, /<h1[^>]*>Örökbefogadható családok<\/h1>/);
     assert.match(adoptable.html, /href="\/csaladok\/b-lili-es-csaladja"/);
-    assert.doesNotMatch(adoptable.html, /orokbefogadott-otto|archiv-anna|feltoltes-feri/);
+    assert.doesNotMatch(adoptable.html, /orokbefogadott-otto/);
 
     const adopted = await page('/csaladok?statusz=orokbefogadott');
     assert.match(adopted.html, /<h1[^>]*>Örökbefogadott családjaink<\/h1>/);
     assert.match(adopted.html, /href="\/csaladok\/orokbefogadott-otto"/);
     assert.match(adopted.html, /Elolvasom a történetüket →/);
     assert.doesNotMatch(adopted.html, /href="\/csaladok\/kamilla"/);
-    const counts = store.countFamiliesByStatus(db);
     assert.match(adopted.html, new RegExp(`Örökbefogadott <span class="text-white/60">${counts.adopted}</span>`));
   });
 
-  test('lapozás 12-esével', async () => {
-    for (let i = 1; i <= 12; i += 1) store.createFamily(db, family({ name: `Lapozós ${i}` }));
-    const total = store.countFamiliesByStatus(db).adoptable;
-    const first = await page('/csaladok');
-    assert.equal((first.html.match(/<article /g) || []).length, 12);
-    assert.match(first.html, new RegExp(`1 / ${Math.ceil(total / 12)}`));
-    assert.match(first.html, /href="\/csaladok\?oldal=2"/);
-    const second = await page('/csaladok?oldal=2');
-    assert.equal((second.html.match(/<article /g) || []).length, total - 12);
-    assert.match(second.html, /href="\/csaladok"[^>]*>← Előző oldal/);
-    assert.equal((await page('/csaladok?oldal=99')).status, 200);
+  test('nincs lapozás: minden család egy oldalon', async () => {
+    for (let i = 1; i <= 30; i += 1) store.createFamily(db, family({ name: `Sok család ${i}`, status: i % 2 ? 'adoptable' : 'adopted' }));
+    const counts = store.countFamiliesByStatus(db);
+    const cards = async (url) => ((await page(url)).html.match(/<article /g) || []).length;
+    assert.equal(await cards('/csaladok'), counts.adoptable + counts.adopted);
+    assert.equal(await cards('/csaladok?statusz=orokbefogadhato'), counts.adoptable);
+    assert.equal(await cards('/csaladok?statusz=orokbefogadott'), counts.adopted);
+    assert.doesNotMatch((await page('/csaladok')).html, /aria-label="Lapozás"/);
   });
 });
 

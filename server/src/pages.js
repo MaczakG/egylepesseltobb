@@ -330,36 +330,30 @@ ${related.map(postCard).join('\n')}
 
 // --- Családok ---------------------------------------------------------------
 
-function familyListUrl(status, page) {
-  const params = new URLSearchParams();
-  if (status === 'adopted') params.set('statusz', 'orokbefogadott');
-  if (page > 1) params.set('oldal', String(page));
-  const qs = params.toString();
-  return qs ? `/csaladok?${qs}` : '/csaladok';
+const LIST_PARAM = { adoptable: 'orokbefogadhato', adopted: 'orokbefogadott' };
+
+function familyListUrl(status) {
+  return LIST_PARAM[status] ? `/csaladok?statusz=${LIST_PARAM[status]}` : '/csaladok';
 }
 
-export function renderFamilyList(frame, { families, status, page, pageCount, counts, baseUrl }) {
-  const adopted = status === 'adopted';
-  const chip = (key, label) => {
+const LIST_TEXT = {
+  all: ['Családjaink', 'Nem statisztika. Nem szám. Valódi családok, akiknek az élete változhat veled. Elöl azok, akik még támogatóra várnak.'],
+  adoptable: ['Örökbefogadható családok', 'Nem statisztika. Nem szám. Egy valódi család, akinek az élete változhat veled. Válaszd ki, kinek a történetének szeretnél a része lenni.'],
+  adopted: ['Örökbefogadott családjaink', 'Ők már megtalálták a támogatóikat. Köszönjük mindenkinek, aki egy lépéssel többet tett értük!'],
+};
+
+// Minden család egy oldalon, lapozás nélkül.
+export function renderFamilyList(frame, { families, status, counts, baseUrl }) {
+  const chip = (key, label, count) => {
     const active = key === status;
-    return `<a href="${familyListUrl(key, 1)}" class="px-4 py-2 rounded-full text-sm font-semibold transition-colors ${active
+    return `<a href="${familyListUrl(key)}" class="px-4 py-2 rounded-full text-sm font-semibold transition-colors ${active
       ? 'bg-navy-800 text-white'
-      : 'border border-navy-200 text-navy-700 hover:border-navy-800'}"${active ? ' aria-current="page"' : ''}>${label} <span class="${active ? 'text-white/60' : 'text-navy-400'}">${counts[key] || 0}</span></a>`;
+      : 'border border-navy-200 text-navy-700 hover:border-navy-800'}"${active ? ' aria-current="page"' : ''}>${label} <span class="${active ? 'text-white/60' : 'text-navy-400'}">${count}</span></a>`;
   };
-  const heading = adopted ? 'Örökbefogadott családjaink' : 'Örökbefogadható családok';
-  const intro = adopted
-    ? 'Ők már megtalálták a támogatóikat. Köszönjük mindenkinek, aki egy lépéssel többet tett értük!'
-    : 'Nem statisztika. Nem szám. Egy valódi család, akinek az élete változhat veled. Válaszd ki, kinek a történetének szeretnél a része lenni.';
+  const [heading, intro] = LIST_TEXT[status] || LIST_TEXT.all;
   const grid = families.length
     ? `<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 mt-12">\n${families.map(familyCard).join('\n')}\n      </div>`
     : `<div class="grid mt-12">${renderFamilyCards([])}</div>`;
-  const pager = pageCount > 1
-    ? `<nav class="flex items-center justify-between mt-16 pt-8 border-t border-navy-100" aria-label="Lapozás">
-        ${page > 1 ? `<a href="${familyListUrl(status, page - 1)}" class="font-semibold text-navy-800 hover:text-sand-700">← Előző oldal</a>` : '<span></span>'}
-        <span class="text-sm text-navy-500">${page} / ${pageCount}</span>
-        ${page < pageCount ? `<a href="${familyListUrl(status, page + 1)}" class="font-semibold text-navy-800 hover:text-sand-700">Következő oldal →</a>` : '<span></span>'}
-      </nav>`
-    : '';
   const main = `
 <main class="pt-32 md:pt-40 pb-24 md:pb-32 px-6 lg:px-10">
   <div class="max-w-7xl mx-auto">
@@ -367,17 +361,17 @@ export function renderFamilyList(frame, { families, status, page, pageCount, cou
     <h1 class="font-display text-3xl md:text-5xl font-medium text-navy-800 max-w-3xl leading-tight">${heading}</h1>
     <p class="mt-6 text-lg text-navy-600 leading-relaxed max-w-3xl">${intro}</p>
     <nav class="flex flex-wrap gap-2 mt-10" aria-label="Családok">
-      ${chip('adoptable', 'Örökbefogadható')}
-      ${chip('adopted', 'Örökbefogadott')}
+      ${chip('all', 'Mind', (counts.adoptable || 0) + (counts.adopted || 0))}
+      ${chip('adoptable', 'Örökbefogadható', counts.adoptable || 0)}
+      ${chip('adopted', 'Örökbefogadott', counts.adopted || 0)}
     </nav>
     ${grid}
-    ${pager}
   </div>
 </main>`;
   return layout(frame, {
     title: `${heading} — Egy Lépéssel Több Alapítvány`,
     description: intro,
-    canonical: baseUrl + familyListUrl(status, page),
+    canonical: baseUrl + familyListUrl(status),
     main,
   });
 }
@@ -509,7 +503,7 @@ export function renderFamilyPage(frame, { family, more, baseUrl, preview, form }
   const pageUrl = baseUrl + familyUrl(family);
   const badge = FAMILY_BADGE[family.status] || FAMILY_BADGE.adoptable;
   const description = excerpt(family.story, 200) || family.subtitle || family.name;
-  const back = family.status === 'adopted' ? familyListUrl('adopted', 1) : '/csaladok';
+  const back = familyListUrl(family.status);
   const banner = preview
     ? '<div class="bg-amber-100 text-amber-900 text-sm font-semibold text-center px-6 py-3 rounded-xl mb-8">Előnézet: ez a család nem nyilvános, csak bejelentkezett adminisztrátor látja.</div>'
     : '';
@@ -526,7 +520,7 @@ export function renderFamilyPage(frame, { family, more, baseUrl, preview, form }
     <div class="max-w-7xl mx-auto">
       <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
         <h2 class="font-display text-2xl md:text-4xl font-medium text-navy-800">Ők is segítségre várnak</h2>
-        <a href="/csaladok" class="inline-flex items-center gap-2 border border-navy-800 text-navy-800 hover:bg-navy-800 hover:text-white font-semibold px-6 py-3 rounded-full transition-colors self-start md:self-auto">Összes örökbefogadható család →</a>
+        <a href="/csaladok?statusz=orokbefogadhato" class="inline-flex items-center gap-2 border border-navy-800 text-navy-800 hover:bg-navy-800 hover:text-white font-semibold px-6 py-3 rounded-full transition-colors self-start md:self-auto">Összes örökbefogadható család →</a>
       </div>
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
 ${more.map(familyCard).join('\n')}

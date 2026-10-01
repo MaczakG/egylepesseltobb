@@ -21,7 +21,6 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_FAILURES = 10;
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const POSTS_PER_PAGE = 12;
-const FAMILIES_PER_PAGE = 12;
 const APPLICATION_WINDOW_MS = 60 * 60 * 1000;
 const APPLICATION_MAX_PER_IP = 5;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -102,17 +101,13 @@ export function createApp({ db, config }) {
     sendHtml(res, html);
   });
 
+  // Minden család egy oldalon (lapozás nélkül); a szűrő csak az örökbefogadhatókat vagy az örökbefogadottakat mutatja.
+  const LIST_FILTERS = { orokbefogadhato: 'adoptable', orokbefogadott: 'adopted' };
   app.get('/csaladok', (req, res) => {
-    const status = req.query.statusz === 'orokbefogadott' ? 'adopted' : 'adoptable';
-    const requested = Math.max(1, Number.parseInt(req.query.oldal, 10) || 1);
-    const { total } = store.listPublicFamilies(db, { status, limit: 1 });
-    const pageCount = Math.max(1, Math.ceil(total / FAMILIES_PER_PAGE));
-    const page = Math.min(requested, pageCount);
-    const { families } = store.listPublicFamilies(db, {
-      status, limit: FAMILIES_PER_PAGE, offset: (page - 1) * FAMILIES_PER_PAGE,
-    });
+    const status = LIST_FILTERS[req.query.statusz] || 'all';
+    const { families } = store.listPublicFamilies(db, { status });
     sendHtml(res, renderFamilyList(siteFrame(readIndex()), {
-      families, status, page, pageCount, counts: store.countFamiliesByStatus(db), baseUrl: baseUrl(req),
+      families, status, counts: store.countFamiliesByStatus(db), baseUrl: baseUrl(req),
     }));
   });
 

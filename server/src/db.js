@@ -216,12 +216,15 @@ export function getFamilyBySlug(db, slug) {
   return row ? toFamily(row) : null;
 }
 
-// A nyilvános családlista (örökbefogadhatók vagy örökbefogadottak), lapozva.
-export function listPublicFamilies(db, { status = 'adoptable', limit = 12, offset = 0, excludeId = 0 } = {}) {
-  if (!PUBLIC_STATUSES.includes(status)) return { families: [], total: 0 };
-  const total = db.prepare('SELECT count(*) AS n FROM families WHERE status = ? AND id != ?').get(status, excludeId).n;
-  const rows = db.prepare(`SELECT * FROM families WHERE status = ? AND id != ?
-    ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`).all(status, excludeId, limit, offset);
+// A nyilvános családlista: örökbefogadhatók, örökbefogadottak, vagy mind ('all': elöl az örökbefogadhatók).
+// A limit -1 = nincs korlát.
+export function listPublicFamilies(db, { status = 'adoptable', limit = -1, offset = 0, excludeId = 0 } = {}) {
+  const statuses = status === 'all' ? PUBLIC_STATUSES : [status];
+  if (!statuses.every((s) => PUBLIC_STATUSES.includes(s))) return { families: [], total: 0 };
+  const where = `status IN (${statuses.map(() => '?').join(', ')}) AND id != ?`;
+  const total = db.prepare(`SELECT count(*) AS n FROM families WHERE ${where}`).get(...statuses, excludeId).n;
+  const rows = db.prepare(`SELECT * FROM families WHERE ${where}
+    ORDER BY status = 'adoptable' DESC, created_at DESC, id DESC LIMIT ? OFFSET ?`).all(...statuses, excludeId, limit, offset);
   return { families: rows.map(toFamily), total };
 }
 

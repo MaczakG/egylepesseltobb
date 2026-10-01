@@ -66,7 +66,7 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - Minden gyereknek (családnak) saját aloldala van: `/csaladok/<webcím>`. Az adatbázisból jön a név, az alcím, a történet és a képek (nagyítóval). Van rajta „Segíteni szeretnék” gomb, ami a lábléc e-mail címére ír a család nevével a tárgyban, megosztás gomb és további örökbefogadható családok. A havi összeg és a jelentkezők száma nem jelenik meg.
 - A webcím a névből készül, és átnevezéskor nem változik; az adminban a család adatlapján átírható. Ugyanott az „Aloldal ↗” gomb megnyitja az oldalt.
 - Aloldala az örökbefogadható és az örökbefogadott családoknak van. Az archivált és a feltöltés alatti családot csak bejelentkezett adminisztrátor látja, előnézetként.
-- Családlista: `/csaladok` (örökbefogadhatók) és `/csaladok?statusz=orokbefogadott`. A menü „Örökbefogadható / Örökbefogadott családok” pontja ide mutat.
+- Családlista lapozás nélkül, minden család egy oldalon: `/csaladok` (az összes nyilvános család, elöl az örökbefogadhatók), `/csaladok?statusz=orokbefogadhato` és `/csaladok?statusz=orokbefogadott`. A menü „Örökbefogadható / Örökbefogadott családok” pontja ide mutat.
 
 ## Támogatói jelentkezések
 
