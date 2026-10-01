@@ -83,7 +83,7 @@ systemctl daemon-reload
 systemctl enable egylepesseltobb-app.service
 
 # --- nginx ---------------------------------------------------------------
-# A főoldalt és az API-t a Node szolgálja ki (a családokat az adatbázisból rendereli), a többit az nginx.
+# A statikus fájlokat az nginx szolgálja ki; a főoldalt, az API-t, a blogot és minden mást a Node.
 server_name="${DOMAIN//,/ }"
 cat > /etc/nginx/sites-available/egylepesseltobb <<EOF
 server {
@@ -130,8 +130,13 @@ server {
         add_header X-Robots-Tag "noindex, nofollow" always;
     }
 
+    # Minden más útvonal (pl. /blog) a backendhez megy, ha nincs ilyen statikus fájl.
     location / {
-        try_files \$uri \$uri/ =404;
+        try_files \$uri \$uri/ @app;
+    }
+
+    location @app {
+        proxy_pass http://127.0.0.1:3000;
     }
 }
 EOF

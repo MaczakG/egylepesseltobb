@@ -2,6 +2,14 @@ import fs from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 
 export const STATUSES = ['adoptable', 'adopted'];
+export const POST_STATUSES = ['draft', 'published'];
+// A menü „Közös élményeink” és „Média megjelenések” pontjai is ezekre a kategóriákra mutatnak.
+export const POST_CATEGORIES = [
+  { key: 'hirek', label: 'Hírek' },
+  { key: 'kozos-elmenyeink', label: 'Közös élményeink' },
+  { key: 'rendezvenyek', label: 'Rendezvények' },
+  { key: 'media', label: 'Média megjelenések' },
+];
 export const DEFAULT_SETTINGS = { threshold: 6, autoStatus: 'adopted', autoEnabled: true };
 
 // A főoldalon eddig statikusan szereplő családok, hogy az első indítás után se legyen üres az oldal.
@@ -62,6 +70,20 @@ export function openDb(file) {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS posts (
+      id INTEGER PRIMARY KEY,
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      excerpt TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      cover_image TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('draft', 'published')),
+      published_at TEXT NOT NULL DEFAULT (date('now')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS posts_public ON posts (status, published_at);
   `);
   return db;
 }
@@ -127,7 +149,10 @@ export function deleteFamily(db, id) {
 }
 
 export function isImageReferenced(db, url) {
-  return Boolean(db.prepare('SELECT 1 FROM families WHERE instr(images, ?) > 0').get(JSON.stringify(url)));
+  return Boolean(
+    db.prepare('SELECT 1 FROM families WHERE instr(images, ?) > 0').get(JSON.stringify(url))
+    || db.prepare('SELECT 1 FROM posts WHERE cover_image = ? OR instr(content, ?) > 0').get(url, url),
+  );
 }
 
 export function getSettings(db) {
@@ -170,4 +195,89 @@ export function setPassword(db, userId, passwordHash) {
   db.prepare('UPDATE users SET password_hash = ?, session_version = session_version + 1 WHERE id = ?')
     .run(passwordHash, userId);
   return getUserById(db, userId);
+}
+
+// --- Blog -------------------------------------------------------------------
+
+function toPost(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    excerpt: row.excerpt,
+    content: row.content,
+    coverImage: row.cover_image,
+    category: row.category,
+    status: row.status,
+    publishedAt: row.published_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+// Nyilvános: közzétett és a megjelenési dátumot már elért bejegyzések (így időzíteni is lehet).
+const PUBLIC = "status = 'published' AND published_at <= date('now')";
+
+export function listPublicPosts(db, { category, limit = 12, offset = 0, excludeId = 0 } = {}) {
+  const where = [PUBLIC, 'id != ?'];
+  const params = [excludeId];
+  if (category) {
+    where.push('category = ?');
+    params.push(category);
+  }
+  const sql = `SELECT * FROM posts WHERE ${where.join(' AND ')} ORDER BY published_at DESC, id DESC`;
+  const total = db.prepare(`SELECT count(*) AS n FROM posts WHERE ${where.join(' AND ')}`).get(...params).n;
+  const rows = db.prepare(`${sql} LIMIT ? OFFSET ?`).all(...params, limit, offset);
+  return { posts: rows.map(toPost), total };
+}
+
+export function getPublicPostBySlug(db, slug) {
+  const row = db.prepare(`SELECT * FROM posts WHERE slug = ? AND ${PUBLIC}`).get(slug);
+  return row ? toPost(row) : null;
+}
+
+export function getPostBySlug(db, slug) {
+  const row = db.prepare('SELECT * FROM posts WHERE slug = ?').get(slug);
+  return row ? toPost(row) : null;
+}
+
+export function listPosts(db) {
+  return db.prepare('SELECT * FROM posts ORDER BY published_at DESC, id DESC').all().map(toPost);
+}
+
+export function getPost(db, id) {
+  const row = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
+  return row ? toPost(row) : null;
+}
+
+// Ha a cím alapján készült URL már foglalt, -2, -3, … végződést kap.
+export function uniqueSlug(db, base, exceptId = 0) {
+  let slug = base;
+  for (let n = 2; db.prepare('SELECT 1 FROM posts WHERE slug = ? AND id != ?').get(slug, exceptId); n += 1) {
+    slug = `${base}-${n}`;
+  }
+  return slug;
+}
+
+export function createPost(db, p) {
+  const { lastInsertRowid } = db.prepare(`
+    INSERT INTO posts (title, slug, excerpt, content, cover_image, category, status, published_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(p.title, uniqueSlug(db, p.slug), p.excerpt, p.content, p.coverImage, p.category, p.status, p.publishedAt);
+  return getPost(db, lastInsertRowid);
+}
+
+export function updatePost(db, id, p) {
+  const { changes } = db.prepare(`
+    UPDATE posts
+    SET title = ?, slug = ?, excerpt = ?, content = ?, cover_image = ?, category = ?, status = ?,
+        published_at = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `).run(p.title, uniqueSlug(db, p.slug, id), p.excerpt, p.content, p.coverImage, p.category, p.status,
+    p.publishedAt, id);
+  return changes ? getPost(db, id) : null;
+}
+
+export function deletePost(db, id) {
+  return db.prepare('DELETE FROM posts WHERE id = ?').run(id).changes > 0;
 }

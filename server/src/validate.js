@@ -1,5 +1,5 @@
 import sanitizeHtml from 'sanitize-html';
-import { STATUSES } from './db.js';
+import { POST_CATEGORIES, POST_STATUSES, STATUSES } from './db.js';
 
 export class ValidationError extends Error {}
 
@@ -14,6 +14,14 @@ const STORY_OPTIONS = {
 };
 
 const IMAGE_URL = /^\/(uploads|assets\/img)\/[A-Za-z0-9._-]+$/;
+
+// A blogbejegyzésekben képek is lehetnek, de csak a saját feltöltéseink (nincs külső forrás).
+const POST_OPTIONS = {
+  ...STORY_OPTIONS,
+  allowedTags: [...STORY_OPTIONS.allowedTags, 'img'],
+  allowedAttributes: { ...STORY_OPTIONS.allowedAttributes, img: ['src', 'alt'] },
+  exclusiveFilter: (frame) => frame.tag === 'img' && !IMAGE_URL.test(frame.attribs.src || ''),
+};
 
 function text(value, field, max, { required = false } = {}) {
   const s = typeof value === 'string' ? value.trim() : '';
@@ -75,4 +83,45 @@ export function detectImageType(buf) {
   if (buf.length >= 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'webp';
   if (buf.length >= 6 && /^GIF8[79]a$/.test(buf.toString('ascii', 0, 6))) return 'gif';
   return null;
+}
+
+// Ékezetek nélküli, kötőjeles URL-részlet: „Őszi családi nap 2026!” → „oszi-csaladi-nap-2026”.
+export function slugify(value) {
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+    .replace(/-+$/, '');
+}
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+export function validatePost(body) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  if (!POST_STATUSES.includes(body.status)) throw new ValidationError('Érvénytelen állapot.');
+  if (!POST_CATEGORIES.some((c) => c.key === body.category)) throw new ValidationError('Érvénytelen kategória.');
+  const title = text(body.title, 'cím', 200, { required: true });
+  const slug = slugify(typeof body.slug === 'string' && body.slug.trim() ? body.slug : title);
+  if (!slug) throw new ValidationError('A címből nem készíthető webcím; adj meg egyet kézzel.');
+  const content = sanitizeHtml(typeof body.content === 'string' ? body.content : '', POST_OPTIONS);
+  if (content.length > 300_000) throw new ValidationError('A bejegyzés túl hosszú.');
+  const coverImage = typeof body.coverImage === 'string' ? body.coverImage : '';
+  if (coverImage && !IMAGE_URL.test(coverImage)) throw new ValidationError('Érvénytelen borítókép.');
+  const publishedAt = body.publishedAt || new Date().toISOString().slice(0, 10);
+  if (!DATE.test(publishedAt) || Number.isNaN(Date.parse(publishedAt))) {
+    throw new ValidationError('Érvénytelen megjelenési dátum.');
+  }
+  return {
+    title,
+    slug,
+    excerpt: text(body.excerpt, 'bevezető', 500),
+    content,
+    coverImage,
+    category: body.category,
+    status: body.status,
+    publishedAt,
+  };
 }

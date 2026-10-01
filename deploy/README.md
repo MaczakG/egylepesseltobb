@@ -63,6 +63,15 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - A főoldalon az „Örökbefogadható” státuszú családok jelennek meg; az „Örökbefogadott” státuszúak lekerülnek róla.
 - Az adatok a szerver lemezén vannak: a `destroy` velük együtt törli a szervert. Naponta mentés készül Google Drive-ra (lásd lent).
 
+## Blog
+
+- Az adminban a **Blog** menüpont alatt lehet bejegyzést írni: cím, bevezető, szöveg (képekkel), borítókép, kategória (Hírek, Közös élményeink, Rendezvények, Média megjelenések).
+- A közzétett bejegyzések a `/blog` oldalon és a főoldalon (a 3 legfrissebb) jelennek meg; a menü „Közös élményeink” és „Média megjelenések” pontja a megfelelő kategóriára mutat.
+- A piszkozatot csak bejelentkezett adminisztrátor látja (előnézet); jövőbeli megjelenési dátummal a bejegyzés időzíthető.
+- A webcím (`/blog/...`) a címből készül; közzététel után már ne változtasd, mert a megosztott linkek elromlanak.
+
+Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad tovább. A 2026. október 1. előtt telepített szerveren ez még nincs így beállítva, ott a `/blog` oldalakhoz egyszer frissíteni kell az nginx konfigot (vagy újratelepíteni a szervert).
+
 ## Napi mentés Google Drive-ra
 
 A szerver minden éjjel (03:15, magyar idő szerint) egy `egylepesseltobb-ÉÉÉÉ-HH-NN_ÓÓPP.tar.gz` fájlt tölt fel a megadott Google Drive mappába. A fájlban az adatbázis és a feltöltött képek vannak. A 30 napnál régebbi mentéseket a szerver törli a mappából (`BACKUP_KEEP_DAYS`).

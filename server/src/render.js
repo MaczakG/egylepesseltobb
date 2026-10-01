@@ -1,6 +1,4 @@
 // A főoldal családkártyái. A jelölés megegyezik az index.html statikus kártyáival.
-const START = '<!-- families:start -->';
-const END = '<!-- families:end -->';
 const EXCERPT_LENGTH = 340;
 
 export function escapeHtml(value) {
@@ -54,9 +52,14 @@ export function renderFamilyCards(families) {
   return families.map(card).join('\n');
 }
 
-export function injectFamilies(indexHtml, cardsHtml) {
-  const start = indexHtml.indexOf(START);
-  const end = indexHtml.indexOf(END);
+// A `<!-- név:start -->` és `<!-- név:end -->` jelölők közé teszi a tartalmat; jelölők nélkül nem nyúl a HTML-hez.
+export function injectSection(indexHtml, name, content) {
+  const start = indexHtml.indexOf(`<!-- ${name}:start -->`);
+  const end = indexHtml.indexOf(`<!-- ${name}:end -->`);
   if (start === -1 || end === -1 || end < start) return indexHtml;
-  return `${indexHtml.slice(0, start + START.length)}\n${cardsHtml}\n      ${indexHtml.slice(end)}`;
+  return `${indexHtml.slice(0, start + `<!-- ${name}:start -->`.length)}\n${content}\n      ${indexHtml.slice(end)}`;
+}
+
+export function injectFamilies(indexHtml, cardsHtml) {
+  return injectSection(indexHtml, 'families', cardsHtml);
 }
