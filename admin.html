@@ -88,6 +88,13 @@
   #story-editable blockquote { border-left: 3px solid #cbd5e1; padding-left: 1em; color: #475569; margin: 0.6em 0; }
   #story-editable a { color: #334758; text-decoration: underline; }
 
+  /* Az oldalszerkesztőben az elrendezési blokkok körvonalat kapnak, a képek kicsik. */
+  .page-editable img, #post-editable img { max-width: 220px; max-height: 160px; border-radius: 6px; display: inline-block; margin: 4px; vertical-align: top; }
+  .page-editable section { padding: 8px 0; border-bottom: 1px dashed #e2e8f0; }
+  .page-editable .card, .page-editable .media, .page-editable .split > div { border: 1px dashed #cbd5e1; border-radius: 6px; padding: 8px; margin: 6px 0; }
+  .page-editable .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #a68c5c; }
+  .page-editable h2 { font-size: 1.15rem; font-weight: 600; } .page-editable h3 { font-weight: 600; }
+  .page-editable ul { list-style: disc; padding-left: 1.25rem; }
   .toggle-track { width: 36px; height: 20px; border-radius: 999px; background: #cbd5e1; position: relative; transition: background 0.15s ease; cursor: pointer; flex-shrink: 0; display: inline-block; }
   .toggle-track.on { background: #334758; }
   .toggle-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff; transition: transform 0.15s ease; box-shadow: 0 1px 2px rgba(15,23,42,0.3); }
@@ -145,6 +152,10 @@
           <button class="nav-item" data-view="post-form" onclick="openNewPostForm()">
             <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
             Új bejegyzés
+          </button>
+          <button class="nav-item" data-view="pages" onclick="goToView('pages')">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            Oldalak
           </button>
         </div>
       </div>
@@ -591,6 +602,170 @@
         </div>
       </section>
 
+      <!-- ============ PAGES VIEW ============ -->
+      <section id="view-pages" class="hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-xl font-semibold text-slate-900">Oldalak</h1>
+            <p class="text-slate-500 mt-1">A weboldal aloldalai (pl. Alapítónk, Kuratórium, Dokumentumok). A címük: <span class="font-mono text-[13px]">/webcím</span>.</p>
+          </div>
+          <button onclick="openNewPageForm()" class="btn btn-primary self-start sm:self-auto">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Új oldal
+          </button>
+        </div>
+
+        <div class="card overflow-hidden">
+          <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200">
+            <p class="text-[13px] font-medium text-slate-700">Összes oldal</p>
+            <p id="page-result-count" class="text-xs text-slate-500"></p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr class="text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <th class="px-4 py-2.5">Oldal</th>
+                  <th class="px-4 py-2.5 hidden md:table-cell">Kiegészítők</th>
+                  <th class="px-4 py-2.5">Állapot</th>
+                  <th class="px-4 py-2.5 hidden md:table-cell">Módosítva</th>
+                  <th class="px-4 py-2.5 text-right"><span class="sr-only">Műveletek</span></th>
+                </tr>
+              </thead>
+              <tbody id="pages-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+          <div id="pages-empty" class="hidden text-center py-16">
+            <p class="font-medium text-slate-900">Nincs oldal</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE FORM VIEW ============ -->
+      <section id="view-page-form" class="hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+          <div>
+            <button onclick="goToView('pages')" class="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-slate-900 mb-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+              Oldalak
+            </button>
+            <h1 id="page-form-title" class="text-xl font-semibold text-slate-900">Új oldal</h1>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span id="page-view-wrap" class="hidden"><a id="page-view-link" href="#" target="_blank" rel="noopener" class="btn btn-secondary">Megtekintés ↗</a></span>
+            <button onclick="goToView('pages')" class="btn btn-secondary">Mégse</button>
+            <button id="save-page-btn" onclick="savePage()" class="btn btn-primary">Mentés</button>
+          </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6 items-start">
+          <div class="lg:col-span-2 space-y-6">
+            <div class="card">
+              <div class="p-5">
+                <label class="label" for="page-title-input">Cím <span class="text-red-600">*</span></label>
+                <input id="page-title-input" type="text" placeholder="pl. Kuratórium" oninput="onPageTitleInput(this.value)" class="field !text-base">
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 class="font-semibold text-slate-900">Tartalom</h2>
+                  <p class="text-slate-500 text-[13px] mt-0.5">Az elrendezés (kártyák, kép+szöveg, logók) a HTML forrásban látszik; a szövegek itt is szerkeszthetők.</p>
+                </div>
+                <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer select-none">
+                  HTML forrás
+                  <span id="page-html-toggle" class="toggle-track" onclick="edToggleSource('page')"><span class="toggle-knob"></span></span>
+                </label>
+              </div>
+              <div class="p-5">
+                <div class="rounded-md border border-slate-300 overflow-hidden">
+                  <div id="page-toolbar" class="flex flex-wrap items-center gap-0.5 bg-slate-50 border-b border-slate-200 p-1">
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','bold')" class="editor-btn" title="Félkövér"><b>B</b></button>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','italic')" class="editor-btn" title="Dőlt"><i>I</i></button>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','underline')" class="editor-btn underline" title="Aláhúzott">U</button>
+                    <span class="w-px h-4 bg-slate-300 mx-1"></span>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','formatBlock','H2')" class="editor-btn text-xs" title="Alcím (H2)">H2</button>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','formatBlock','H3')" class="editor-btn text-xs" title="Alcím (H3)">H3</button>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','formatBlock','P')" class="editor-btn text-xs" title="Bekezdés">¶</button>
+                    <span class="w-px h-4 bg-slate-300 mx-1"></span>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','insertUnorderedList')" class="editor-btn" title="Felsorolás">•≡</button>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','insertOrderedList')" class="editor-btn" title="Számozott lista">1.≡</button>
+                    <button onmousedown="event.preventDefault()" onclick="edLink('page')" class="editor-btn" title="Link beszúrása">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/></svg>
+                    </button>
+                    <button onmousedown="event.preventDefault()" onclick="edPickImage('page')" class="editor-btn" title="Kép beszúrása">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z"/></svg>
+                    </button>
+                    <span class="w-px h-4 bg-slate-300 mx-1"></span>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','undo')" class="editor-btn" title="Visszavonás">↺</button>
+                    <button onmousedown="event.preventDefault()" onclick="edCmd('page','redo')" class="editor-btn" title="Újra">↻</button>
+                  </div>
+                  <div id="page-editable" contenteditable="true" class="p-4 text-sm text-slate-700 leading-relaxed bg-white page-editable"></div>
+                  <textarea id="page-source" class="hidden w-full p-4 text-xs font-mono leading-relaxed bg-slate-900 text-slate-100" style="min-height:420px;" spellcheck="false"></textarea>
+                </div>
+                <input id="page-image-input" type="file" accept="image/*" multiple class="hidden" onchange="edInsertImages('page', this.files)">
+                <p id="page-upload-hint" class="help">A „Kép” gombbal a kurzor helyére tehetsz képet (JPG, PNG, WEBP, max. 10 MB).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6 lg:sticky lg:top-0">
+            <div class="card">
+              <div class="px-5 py-4 border-b border-slate-200">
+                <h2 class="font-semibold text-slate-900">Közzététel</h2>
+              </div>
+              <div class="p-5 space-y-5">
+                <div>
+                  <span class="label">Állapot</span>
+                  <div class="seg">
+                    <button type="button" id="page-status-draft" class="status-seg-btn" onclick="setPageStatus('draft')">Piszkozat</button>
+                    <button type="button" id="page-status-published" class="status-seg-btn" onclick="setPageStatus('published')">Közzétéve</button>
+                  </div>
+                  <p class="help">A piszkozatot csak bejelentkezve, előnézetben látod.</p>
+                </div>
+                <div>
+                  <label class="label" for="page-slug">Webcím</label>
+                  <div class="flex items-stretch">
+                    <span class="inline-flex items-center px-2.5 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-[13px]">/</span>
+                    <input id="page-slug" type="text" oninput="onPageSlugInput()" class="field !rounded-l-none" placeholder="a-cimbol-keszul">
+                  </div>
+                  <p class="help">A menü és a régi linkek erre a címre mutatnak, ezért ne változtasd.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="px-5 py-4 border-b border-slate-200">
+                <h2 class="font-semibold text-slate-900">Kiegészítők</h2>
+              </div>
+              <div class="p-5 space-y-5">
+                <div>
+                  <label class="label" for="page-form">Űrlap az oldalon</label>
+                  <select id="page-form" class="field">
+                    <option value="">Nincs</option>
+                    <option value="application">Támogatói jelentkezés</option>
+                    <option value="contact">Kapcsolati űrlap</option>
+                    <option value="program">Jelentkezés a programba</option>
+                    <option value="nomination">Váradi Eszter-díj jelölés</option>
+                  </select>
+                </div>
+                <label class="flex items-start gap-2.5 text-sm text-slate-700 cursor-pointer">
+                  <input id="page-families" type="checkbox" class="mt-0.5 rounded border-slate-300">
+                  <span>Az oldal alján az örökbefogadható családok kártyái</span>
+                </label>
+                <div>
+                  <label class="label" for="page-posts">Blogbejegyzések az oldal alján</label>
+                  <textarea id="page-posts" rows="3" class="field font-mono !text-xs" placeholder="bejegyzes-webcime&#10;masik-bejegyzes"></textarea>
+                  <p class="help">A bejegyzések webcíme, soronként egy (pl. a Gálaest oldalon a galériák).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ APPLICATIONS VIEW ============ -->
       <section id="view-applications" class="hidden">
 
@@ -805,7 +980,7 @@
     uploading: 0,
     formToken: 0,
     coverImageIndex: null,
-    sourceMode: { story: false, post: false },
+    sourceMode: { story: false, post: false, page: false },
     posts: [],
     postFilter: 'all',
     editingPostId: null,
@@ -813,7 +988,10 @@
     slugTouched: false,
     familySlugTouched: false,
     applications: [],
-    appFilter: 'all'
+    appFilter: 'all',
+    pages: [],
+    editingPageId: null,
+    pageSlugTouched: false
   };
 
   // ---------------------------------------------------------------
@@ -888,7 +1066,7 @@
     document.getElementById('user-initial').textContent = email.slice(0, 1).toUpperCase();
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('login-error').classList.add('hidden');
-    return loadSettings().then(loadFamilies).then(loadPosts).then(loadApplications).catch(function (e) { showToast(e.message); });
+    return loadSettings().then(loadFamilies).then(loadPosts).then(loadApplications).then(loadPages).catch(function (e) { showToast(e.message); });
   }
 
   window.submitLogin = function (event) {
@@ -966,27 +1144,30 @@
   // ---------------------------------------------------------------
   // View switching
   // ---------------------------------------------------------------
-  var TITLES = { list: 'Családok', settings: 'Beállítások', posts: 'Blog', applications: 'Jelentkezések' };
+  var TITLES = { list: 'Családok', settings: 'Beállítások', posts: 'Blog', applications: 'Jelentkezések', pages: 'Oldalak' };
 
   window.goToView = function (view) {
     state.view = view;
-    ['list', 'form', 'settings', 'posts', 'post-form', 'applications'].forEach(function (v) {
+    ['list', 'form', 'settings', 'posts', 'post-form', 'applications', 'pages', 'page-form'].forEach(function (v) {
       document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
     });
     // Meglévő elem szerkesztésekor a lista menüpontja legyen kiemelve, ne az „Új …”.
     var navView = view;
     if (view === 'form' && state.editingId !== null) navView = 'list';
     if (view === 'post-form' && state.editingPostId !== null) navView = 'posts';
+    if (view === 'page-form') navView = 'pages';
     document.querySelectorAll('.nav-item[data-view]').forEach(function (el) {
       el.classList.toggle('active', el.getAttribute('data-view') === navView);
     });
     document.getElementById('page-title').textContent = view === 'form'
       ? document.getElementById('form-title').textContent
-      : view === 'post-form' ? document.getElementById('post-form-title').textContent : TITLES[view];
+      : view === 'post-form' ? document.getElementById('post-form-title').textContent
+        : view === 'page-form' ? document.getElementById('page-form-title').textContent : TITLES[view];
     closeSidebar();
     document.querySelector('main').scrollTop = 0;
     if (view === 'list') renderList();
     if (view === 'posts') renderPosts();
+    if (view === 'pages') renderPages();
     if (view === 'applications') {
       renderApplications();
       loadApplications().catch(function (e) { showToast(e.message); });
@@ -1012,6 +1193,7 @@
     state.searchQuery = v.trim().toLowerCase();
     if (state.view === 'posts') renderPosts();
     else if (state.view === 'applications') renderApplications();
+    else if (state.view === 'pages') renderPages();
     else if (state.view === 'list') renderList();
     else goToView(state.view === 'post-form' ? 'posts' : 'list');
   };
@@ -1126,7 +1308,11 @@
     state.deleteTarget = { id: id, type: type };
     var title = document.getElementById('delete-modal-title');
     var text = document.getElementById('delete-modal-text');
-    if (type === 'application') {
+    if (type === 'page') {
+      var pg = state.pages.find(function (x) { return x.id === id; });
+      title.textContent = 'Oldal törlése';
+      text.textContent = 'Biztosan törölni szeretnéd a(z) „' + (pg ? pg.title : '') + '” oldalt és a hozzá feltöltött képeket? A menü linkje ezután nem működik. Ez a művelet nem vonható vissza.';
+    } else if (type === 'application') {
       var a = state.applications.find(function (x) { return x.id === id; });
       title.textContent = 'Jelentkezés törlése';
       text.textContent = 'Biztosan törölni szeretnéd ' + (a ? a.lastName + ' ' + a.firstName : '') + ' jelentkezését? A család jelentkezőinek száma eggyel csökken. Ez a művelet nem vonható vissza.';
@@ -1154,7 +1340,8 @@
     var cfg = {
       post: ['/api/admin/posts/', loadPosts, 'A bejegyzés törölve lett.'],
       family: ['/api/admin/families/', function () { return loadFamilies().then(loadApplications); }, 'A család törölve lett.'],
-      application: ['/api/admin/applications/', function () { return loadFamilies().then(loadApplications); }, 'A jelentkezés törölve lett.']
+      application: ['/api/admin/applications/', function () { return loadFamilies().then(loadApplications); }, 'A jelentkezés törölve lett.'],
+      page: ['/api/admin/pages/', loadPages, 'Az oldal törölve lett.']
     }[target.type];
     api('DELETE', cfg[0] + target.id)
       .then(cfg[1])
@@ -1347,7 +1534,8 @@
   // ---------------------------------------------------------------
   var EDITORS = {
     story: { editable: 'story-editable', source: 'story-source', toolbar: 'editor-toolbar', toggle: 'html-toggle' },
-    post: { editable: 'post-editable', source: 'post-source', toolbar: 'post-toolbar', toggle: 'post-html-toggle' }
+    post: { editable: 'post-editable', source: 'post-source', toolbar: 'post-toolbar', toggle: 'post-html-toggle' },
+    page: { editable: 'page-editable', source: 'page-source', toolbar: 'page-toolbar', toggle: 'page-html-toggle' }
   };
   function edEl(ed, key) { return document.getElementById(EDITORS[ed][key]); }
 
@@ -1563,22 +1751,24 @@
 
   // A képet a kurzor helyére teszi; a kijelölést a feltöltés idejére eltároljuk.
   var savedRange = null;
-  window.postPickImage = function () {
-    if (state.sourceMode.post) return;
-    var editable = edEl('post', 'editable');
+  window.edPickImage = function (ed) {
+    if (state.sourceMode[ed]) return;
+    var editable = edEl(ed, 'editable');
     var sel = window.getSelection();
     savedRange = sel.rangeCount && editable.contains(sel.getRangeAt(0).commonAncestorContainer) ? sel.getRangeAt(0).cloneRange() : null;
-    document.getElementById('post-image-input').click();
+    document.getElementById(ed + '-image-input').click();
   };
-  window.postInsertImages = function (files) {
+  window.postPickImage = function () { edPickImage('post'); };
+  window.postInsertImages = function (files) { edInsertImages('post', files); };
+  window.edInsertImages = function (ed, files) {
     var form = state.formToken;
-    var hint = document.getElementById('post-upload-hint');
+    var hint = document.getElementById(ed + '-upload-hint');
     Array.from(files).forEach(function (file) {
       if (file.type.indexOf('image/') !== 0) return;
       hint.textContent = 'Kép feltöltése…';
       uploadImage(file).then(function (img) {
         if (form !== state.formToken) return;
-        var editable = edEl('post', 'editable');
+        var editable = edEl(ed, 'editable');
         var sel = window.getSelection();
         editable.focus();
         if (!savedRange) {
@@ -1596,7 +1786,7 @@
         hint.textContent = 'A „Kép” gombbal a kurzor helyére tehetsz képet (JPG, PNG, WEBP, max. 10 MB).';
       });
     });
-    document.getElementById('post-image-input').value = '';
+    document.getElementById(ed + '-image-input').value = '';
   };
 
   function fillPostForm(p) {
@@ -1648,6 +1838,114 @@
           goToView('posts');
           var s = postState(saved);
           showToast(s === 'draft' ? 'A piszkozat mentve lett.' : s === 'scheduled' ? 'A bejegyzés időzítve lett.' : 'A bejegyzés közzé lett téve.');
+        });
+      })
+      .catch(function (e) { showToast(e.message); })
+      .then(function () { btn.disabled = false; });
+  };
+
+  // ---------------------------------------------------------------
+  // Oldalak
+  // ---------------------------------------------------------------
+  var PAGE_FORM_LABEL = { application: 'Támogatói jelentkezés', contact: 'Kapcsolati űrlap', program: 'Programjelentkezés', nomination: 'Díjjelölés' };
+
+  function loadPages() {
+    return api('GET', '/api/admin/pages').then(function (list) {
+      state.pages = list;
+      if (state.view === 'pages') renderPages();
+    });
+  }
+
+  function renderPages() {
+    var q = state.searchQuery;
+    var list = state.pages.filter(function (pg) {
+      return !q || (pg.title + ' ' + pg.slug).toLowerCase().indexOf(q) !== -1;
+    });
+    var tbody = document.getElementById('pages-body');
+    tbody.innerHTML = '';
+    document.getElementById('pages-empty').classList.toggle('hidden', list.length !== 0);
+    document.getElementById('page-result-count').textContent = list.length + ' találat';
+    list.forEach(function (pg) {
+      var extras = [];
+      if (pg.extras.form) extras.push(PAGE_FORM_LABEL[pg.extras.form]);
+      if (pg.extras.families) extras.push('Családok');
+      if (pg.extras.posts.length) extras.push(pg.extras.posts.length + ' bejegyzés');
+      var url = '/' + encodeURIComponent(pg.slug);
+      var tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50 transition-colors';
+      tr.innerHTML = '' +
+        '<td class="px-4 py-3"><p class="font-medium text-slate-900">' + escapeHtml(pg.title) + '</p><p class="text-xs text-slate-500">/' + escapeHtml(pg.slug) + '</p></td>' +
+        '<td class="px-4 py-3 hidden md:table-cell text-[13px] text-slate-600">' + escapeHtml(extras.join(' · ') || '–') + '</td>' +
+        '<td class="px-4 py-3">' + (pg.status === 'published'
+          ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-600/20 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Közzétéve</span>'
+          : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-500/20 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Piszkozat</span>') + '</td>' +
+        '<td class="px-4 py-3 hidden md:table-cell tabular text-slate-500 whitespace-nowrap">' + fmtDateTime(pg.updatedAt) + '</td>' +
+        '<td class="px-4 py-3"><div class="flex items-center justify-end gap-1">' +
+          '<a href="' + url + '" target="_blank" rel="noopener" class="icon-btn" title="Megtekintés" aria-label="Megtekintés">' + ICON_VIEW + '</a>' +
+          '<button onclick="openEditPageForm(' + pg.id + ')" class="icon-btn" title="Szerkesztés" aria-label="Szerkesztés">' + ICON_EDIT + '</button>' +
+          '<button onclick="openDeleteModal(' + pg.id + ', \'page\')" class="icon-btn danger" title="Törlés" aria-label="Törlés">' + ICON_DELETE + '</button>' +
+        '</div></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  var pageStatus = 'published';
+  window.setPageStatus = function (val) {
+    pageStatus = val;
+    document.getElementById('page-status-draft').classList.toggle('active', val === 'draft');
+    document.getElementById('page-status-published').classList.toggle('active', val === 'published');
+  };
+  window.onPageTitleInput = function (v) {
+    if (!state.pageSlugTouched) document.getElementById('page-slug').value = slugify(v);
+  };
+  window.onPageSlugInput = function () { state.pageSlugTouched = true; };
+
+  function fillPageForm(pg) {
+    state.formToken++;
+    state.editingPageId = pg ? pg.id : null;
+    state.pageSlugTouched = Boolean(pg);
+    document.getElementById('page-form-title').textContent = pg ? pg.title : 'Új oldal';
+    document.getElementById('page-title-input').value = pg ? pg.title : '';
+    document.getElementById('page-slug').value = pg ? pg.slug : '';
+    document.getElementById('page-form').value = pg ? pg.extras.form : '';
+    document.getElementById('page-families').checked = pg ? pg.extras.families : false;
+    document.getElementById('page-posts').value = pg ? pg.extras.posts.join('\n') : '';
+    setPageStatus(pg ? pg.status : 'draft');
+    edSetHtml('page', pg ? pg.content : '<section><p></p></section>');
+    document.getElementById('page-view-wrap').classList.toggle('hidden', !pg);
+    if (pg) document.getElementById('page-view-link').href = '/' + encodeURIComponent(pg.slug);
+    goToView('page-form');
+  }
+
+  window.openNewPageForm = function () { fillPageForm(null); };
+  window.openEditPageForm = function (id) {
+    var pg = state.pages.find(function (x) { return x.id === id; });
+    if (pg) fillPageForm(pg);
+  };
+
+  window.savePage = function () {
+    var title = document.getElementById('page-title-input').value.trim();
+    if (!title) { showToast('Adj meg egy címet a mentéshez.'); document.getElementById('page-title-input').focus(); return; }
+    if (state.uploading > 0) { showToast('Várd meg, amíg a képek feltöltődnek.'); return; }
+    var payload = {
+      title: title,
+      slug: document.getElementById('page-slug').value.trim(),
+      content: edGetHtml('page'),
+      status: pageStatus,
+      extras: {
+        form: document.getElementById('page-form').value,
+        families: document.getElementById('page-families').checked,
+        posts: document.getElementById('page-posts').value
+      }
+    };
+    var isNew = state.editingPageId === null;
+    var btn = document.getElementById('save-page-btn');
+    btn.disabled = true;
+    api(isNew ? 'POST' : 'PUT', isNew ? '/api/admin/pages' : '/api/admin/pages/' + state.editingPageId, payload)
+      .then(function (saved) {
+        return loadPages().then(function () {
+          goToView('pages');
+          showToast(saved.status === 'draft' ? 'Az oldal piszkozatként mentve.' : 'Az oldal mentve és közzétéve.');
         });
       })
       .catch(function (e) { showToast(e.message); })

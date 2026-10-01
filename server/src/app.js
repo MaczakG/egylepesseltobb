@@ -7,13 +7,14 @@ import {
   MIN_PASSWORD_LENGTH, SESSION_TTL_MS, createSessionToken, hashPassword, readSessionToken, verifyPassword,
 } from './auth.js';
 import {
-  renderBlogList, renderBlogPost, renderEvents, renderFamilyList, renderFamilyPage, renderHomePosts, renderNotFound,
-  siteFrame,
+  applicationForm, renderBlogList, renderBlogPost, renderEvents, renderFamilyList, renderFamilyPage, renderHomePosts,
+  renderNotFound, renderPage, siteFrame,
 } from './pages.js';
+import { IMPORT_FILE, legacyPostSlugs, loadImportData } from './wpimport.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
   ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
-  validatePost, validateSettings,
+  validatePage, validatePost, validateSettings,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -40,6 +41,21 @@ function publicFamily({ amount, applicants, ...family }) {
 
 function postSummary({ content, ...post }) {
   return post;
+}
+
+// A régi oldal címei, amelyeket a mi oldalunk másként old meg (lista, főoldal).
+const LEGACY_REDIRECTS = {
+  fooldal: '/',
+  'orokbefogadhato-csaladok': '/csaladok?statusz=orokbefogadhato',
+  'orokbefogadott-csaladok': '/csaladok?statusz=orokbefogadott',
+  'kozos-elmenyeink': '/blog?kategoria=kozos-elmenyeink',
+  'feltoltes-alatt': '/csaladok',
+  en: '/',
+};
+
+// Az oldal tartalmában hivatkozott feltöltött fájlok (képek és PDF-ek).
+function pageFiles(page) {
+  return [...page.content.matchAll(/(?:src|href)="(\/uploads\/[^"]+)"/g)].map((m) => m[1]);
 }
 
 // A bejegyzés tartalmában hivatkozott feltöltött képek (a törléskor felszabadítandók).
@@ -140,12 +156,9 @@ export function createApp({ db, config }) {
   });
 
   // Támogatói jelentkezés. Sima űrlapküldés (JavaScript nélkül is megy); siker után átirányít (PRG),
-  // hibánál a hibaüzenetekkel és a beírt adatokkal adja vissza az oldalt.
+  // hibánál a hibaüzenetekkel és a beírt adatokkal adja vissza az oldalt (családoldal vagy tartalmi oldal).
   const applicationsByIp = new Map();
-  app.post('/csaladok/:slug/jelentkezes', express.urlencoded({ extended: false, limit: '20kb' }), (req, res, next) => {
-    const found = pageFamily(req);
-    if (!found) return next();
-    const thanks = `/csaladok/${found.family.slug}?jelentkezes=koszonjuk#jelentkezes`;
+  const handleApplication = (req, res, { thanks, sendPage }) => {
     const body = req.body || {};
     // Rejtett mező: ember nem tölti ki, a spamrobotok igen. Nekik is „sikert” mutatunk, de nem mentjük.
     if (body.website) return res.redirect(303, thanks);
@@ -153,7 +166,7 @@ export function createApp({ db, config }) {
     const now = Date.now();
     const recent = (applicationsByIp.get(req.ip) || []).filter((t) => t > now - APPLICATION_WINDOW_MS);
     if (recent.length >= APPLICATION_MAX_PER_IP) {
-      return sendFamilyPage(req, res, found, {
+      return sendPage({
         error: 'Erről a címről már túl sok jelentkezés érkezett. Kérjük, próbáld újra később, vagy írj nekünk e-mailt.',
       }, 429);
     }
@@ -163,7 +176,7 @@ export function createApp({ db, config }) {
     if (values.familyId && (!target || target.status !== 'adoptable')) {
       errors.familyId = 'Ez a család már nem várja a jelentkezéseket. Kérjük, válassz egy másikat.';
     }
-    if (Object.keys(errors).length) return sendFamilyPage(req, res, found, { values, errors }, 400);
+    if (Object.keys(errors).length) return sendPage({ values, errors }, 400);
 
     store.createApplication(db, values);
     recent.push(now);
@@ -174,6 +187,16 @@ export function createApp({ db, config }) {
       }
     }
     res.redirect(303, thanks);
+  };
+  const formBody = express.urlencoded({ extended: false, limit: '20kb' });
+
+  app.post('/csaladok/:slug/jelentkezes', formBody, (req, res, next) => {
+    const found = pageFamily(req);
+    if (!found) return next();
+    handleApplication(req, res, {
+      thanks: `/csaladok/${found.family.slug}?jelentkezes=koszonjuk#jelentkezes`,
+      sendPage: (form, status) => sendFamilyPage(req, res, found, form, status),
+    });
   });
 
   // Élesben az nginx szolgálja ki a statikus fájlokat; ez fejlesztéshez és tartaléknak kell.
@@ -305,6 +328,30 @@ export function createApp({ db, config }) {
     res.json({ ok: true });
   });
 
+  admin.get('/pages', (req, res) => res.json(store.listPages(db)));
+
+  admin.post('/pages', (req, res) => {
+    res.status(201).json(store.createPage(db, validatePage(req.body)));
+  });
+
+  admin.put('/pages/:id', (req, res) => {
+    const id = idParam(req);
+    const before = id && store.getPage(db, id);
+    if (!before) return res.status(404).json({ error: 'Az oldal nem található.' });
+    const updated = store.updatePage(db, id, validatePage(req.body));
+    removeUnusedUploads(pageFiles(before));
+    res.json(updated);
+  });
+
+  admin.delete('/pages/:id', (req, res) => {
+    const id = idParam(req);
+    const before = id && store.getPage(db, id);
+    if (!before) return res.status(404).json({ error: 'Az oldal nem található.' });
+    store.deletePage(db, id);
+    removeUnusedUploads(pageFiles(before));
+    res.json({ ok: true });
+  });
+
   admin.get('/posts', (req, res) => res.json(store.listPosts(db)));
 
   admin.post('/posts', (req, res) => {
@@ -368,6 +415,57 @@ export function createApp({ db, config }) {
   api.use('/admin', admin);
   api.use((req, res) => res.status(404).json({ error: 'Nem található.' }));
   app.use('/api', api);
+
+  // --- Oldalak (pl. /alapitonk) és a régi WordPress-címek ---------------------
+  const contentPage = (req) => {
+    if (!SLUG.test(req.params.slug)) return null;
+    const page = store.getPageBySlug(db, req.params.slug);
+    const isPublic = Boolean(page) && page.status === 'published';
+    return page && (isPublic || req.user) ? { page, isPublic } : null;
+  };
+
+  const sendContentPage = (req, res, { page, isPublic }, form = {}, status = 200) => {
+    const frame = siteFrame(readIndex());
+    const families = page.extras.families ? store.listPublicFamilies(db, { status: 'adoptable' }).families : [];
+    const posts = page.extras.posts.map((slug) => store.getPublicPostBySlug(db, slug)).filter(Boolean);
+    let formHtml = '';
+    if (page.extras.form === 'application') {
+      formHtml = applicationForm(frame, { action: `/${page.slug}/jelentkezes` },
+        { options: adoptableOptions(), ...store.getFormSettings(db), ...form });
+    }
+    if (!isPublic) res.set('X-Robots-Tag', 'noindex');
+    sendHtml(res, renderPage(frame, {
+      page, baseUrl: baseUrl(req), preview: !isPublic, families, posts, formHtml, form,
+    }), status);
+  };
+
+  app.get('/:slug', (req, res, next) => {
+    const found = contentPage(req);
+    if (found) return sendContentPage(req, res, found, { submitted: req.query.jelentkezes === 'koszonjuk' });
+    if (LEGACY_REDIRECTS[req.params.slug]) return res.redirect(301, LEGACY_REDIRECTS[req.params.slug]);
+    next();
+  });
+
+  app.post('/:slug/jelentkezes', formBody, (req, res, next) => {
+    const found = contentPage(req);
+    if (!found || found.page.extras.form !== 'application') return next();
+    handleApplication(req, res, {
+      thanks: `/${found.page.slug}?jelentkezes=koszonjuk#jelentkezes`,
+      sendPage: (form, status) => sendContentPage(req, res, found, form, status),
+    });
+  });
+
+  // A régi oldal bejegyzéseinek címe (/2025/12/08/<webcím>/) a blogbejegyzésre vagy a család oldalára visz.
+  let legacySlugs = null;
+  app.get('/:y/:m/:d/:slug', (req, res, next) => {
+    const { y, m, d, slug } = req.params;
+    if (!/^\d{4}$/.test(y) || !/^\d{2}$/.test(m) || !/^\d{2}$/.test(d) || !SLUG.test(slug)) return next();
+    if (store.getPublicPostBySlug(db, slug)) return res.redirect(301, `/blog/${slug}`);
+    if (!legacySlugs) legacySlugs = fs.existsSync(IMPORT_FILE) ? legacyPostSlugs(loadImportData()) : new Map();
+    const family = legacySlugs.has(slug) ? store.getFamilyByWpId(db, legacySlugs.get(slug)) : null;
+    if (family && store.PUBLIC_STATUSES.includes(family.status)) return res.redirect(301, `/csaladok/${family.slug}`);
+    next();
+  });
 
   app.use((req, res) => sendHtml(res, renderNotFound(siteFrame(readIndex())), 404));
 

@@ -88,6 +88,18 @@ export function openDb(file) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS posts_public ON posts (status, published_at);
+    CREATE TABLE IF NOT EXISTS pages (
+      id INTEGER PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL DEFAULT '',
+      extras TEXT NOT NULL DEFAULT '{}',
+      status TEXT NOT NULL DEFAULT 'published',
+      wp_id INTEGER UNIQUE,
+      wp_synced_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
     CREATE TABLE IF NOT EXISTS applications (
       id INTEGER PRIMARY KEY,
       family_id INTEGER,
@@ -268,7 +280,8 @@ export function deleteFamily(db, id) {
 export function isImageReferenced(db, url) {
   return Boolean(
     db.prepare('SELECT 1 FROM families WHERE instr(images, ?) > 0').get(JSON.stringify(url))
-    || db.prepare('SELECT 1 FROM posts WHERE cover_image = ? OR instr(content, ?) > 0').get(url, url),
+    || db.prepare('SELECT 1 FROM posts WHERE cover_image = ? OR instr(content, ?) > 0').get(url, url)
+    || db.prepare('SELECT 1 FROM pages WHERE instr(content, ?) > 0').get(url),
   );
 }
 
@@ -409,8 +422,8 @@ export function setSetting(db, key, value) {
 
 // Igaz, ha az importált sort az import óta az adminban módosították (akkor az újrafuttatás nem nyúl hozzá).
 export function importedRowEdited(db, table, wpId) {
-  const row = db.prepare(`SELECT updated_at, wp_synced_at FROM ${table === 'posts' ? 'posts' : 'families'} WHERE wp_id = ?`)
-    .get(wpId);
+  const name = ['posts', 'pages'].includes(table) ? table : 'families';
+  const row = db.prepare(`SELECT updated_at, wp_synced_at FROM ${name} WHERE wp_id = ?`).get(wpId);
   return Boolean(row && row.wp_synced_at && row.updated_at !== row.wp_synced_at);
 }
 
@@ -446,13 +459,87 @@ export function removeSeedFamilies(db) {
     AND images LIKE '%/assets/img/story-%'`).run(...names).changes;
 }
 
+// --- Oldalak (a régi WordPress-oldal aloldalai, pl. /alapitonk) ---------------
+
+export const PAGE_STATUSES = ['published', 'draft'];
+// Az oldal választható űrlapja: támogatói jelentkezés, kapcsolat, programjelentkezés, díjjelölés.
+export const PAGE_FORMS = ['', 'application', 'contact', 'program', 'nomination'];
+// Ezek a címek az alkalmazás saját útvonalai, oldal nem kaphatja meg őket.
+export const RESERVED_SLUGS = ['blog', 'csaladok', 'admin', 'api', 'assets', 'uploads', 'jelentkezes', 'index'];
+
+function toPage(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    content: row.content,
+    extras: { form: '', families: false, posts: [], ...JSON.parse(row.extras) },
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function listPages(db) {
+  return db.prepare('SELECT * FROM pages ORDER BY title COLLATE NOCASE').all().map(toPage);
+}
+
+export function getPage(db, id) {
+  const row = db.prepare('SELECT * FROM pages WHERE id = ?').get(id);
+  return row ? toPage(row) : null;
+}
+
+export function getPageBySlug(db, slug) {
+  const row = db.prepare('SELECT * FROM pages WHERE slug = ?').get(slug);
+  return row ? toPage(row) : null;
+}
+
+export function uniquePageSlug(db, base, exceptId = 0) {
+  return uniqueSlugIn(db, 'pages', RESERVED_SLUGS.includes(base) ? `${base}-oldal` : base, exceptId);
+}
+
+export function createPage(db, pg) {
+  const { lastInsertRowid } = db.prepare(`INSERT INTO pages (slug, title, content, extras, status)
+    VALUES (?, ?, ?, ?, ?)`).run(uniquePageSlug(db, pg.slug), pg.title, pg.content, JSON.stringify(pg.extras), pg.status);
+  return getPage(db, lastInsertRowid);
+}
+
+export function updatePage(db, id, pg) {
+  const { changes } = db.prepare(`UPDATE pages SET slug = ?, title = ?, content = ?, extras = ?, status = ?,
+    updated_at = datetime('now') WHERE id = ?`)
+    .run(uniquePageSlug(db, pg.slug, id), pg.title, pg.content, JSON.stringify(pg.extras), pg.status, id);
+  return changes ? getPage(db, id) : null;
+}
+
+export function deletePage(db, id) {
+  return db.prepare('DELETE FROM pages WHERE id = ?').run(id).changes > 0;
+}
+
+export function upsertImportedPage(db, wpId, pg) {
+  const existing = db.prepare('SELECT id FROM pages WHERE wp_id = ?').get(wpId);
+  if (existing) {
+    db.prepare(`UPDATE pages SET title = ?, content = ?, extras = ?, updated_at = datetime('now'),
+      wp_synced_at = datetime('now') WHERE id = ?`).run(pg.title, pg.content, JSON.stringify(pg.extras), existing.id);
+    return existing.id;
+  }
+  return Number(db.prepare(`INSERT INTO pages (slug, title, content, extras, status, wp_id, updated_at, wp_synced_at)
+    VALUES (?, ?, ?, ?, 'published', ?, datetime('now'), datetime('now'))`)
+    .run(uniquePageSlug(db, pg.slug), pg.title, pg.content, JSON.stringify(pg.extras), wpId).lastInsertRowid);
+}
+
+export function getFamilyByWpId(db, wpId) {
+  const row = db.prepare('SELECT * FROM families WHERE wp_id = ?').get(wpId);
+  return row ? toFamily(row) : null;
+}
+
 // --- Támogatói jelentkezések --------------------------------------------------
 
 export const APPLICATION_STATUSES = ['new', 'contacted', 'closed'];
-// A jelentkezési űrlap választható értékei; az adminban a Beállítások oldalon módosíthatók.
+// A jelentkezési űrlap választható értékei (a régi oldal űrlapja szerint); az adminban a Beállítások oldalon módosíthatók.
 export const DEFAULT_FORM_SETTINGS = {
-  amounts: [5000, 10000, 15000, 20000, 30000, 50000],
-  sources: ['Facebook', 'Instagram', 'Ismerősöm ajánlotta', 'Sajtó, média', 'Rendezvényen hallottam', 'Internetes keresés', 'Egyéb'],
+  amounts: [5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000],
+  sources: ['Televízióból', 'Facebookról', 'Plakáton láttam', 'Instagramról', 'Rádióból', 'Barátoktól vagy ismerősöktől',
+    'Rendezvényen vagy eseményen', 'Hírlevélből vagy e-mailből', 'Egyéb felületről'],
 };
 
 export function getFormSettings(db) {

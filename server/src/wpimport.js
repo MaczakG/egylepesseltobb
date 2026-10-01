@@ -7,7 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import * as store from './db.js';
-import { detectImageType, sanitizePost, sanitizeStory } from './validate.js';
+import {
+  detectImageType, sanitizePage, sanitizePost, sanitizeStory,
+} from './validate.js';
 
 export const IMPORT_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../import/wordpress-2026-10-01.json');
 
@@ -164,4 +166,96 @@ export function startImport(options) {
     running = runImport(options).finally(() => { running = null; });
   }
   return running;
+}
+
+// --- Oldalak (pl. /alapitonk) ---------------------------------------------------
+
+export const PAGES_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../import/wordpress-pages-2026-10-01.json');
+const PAGES_STATUS_KEY = 'wp_pages_import';
+const FILES_KEY = 'wp_import_files';
+const UPLOAD_URL = /https:\/\/egylepesseltobb\.hu\/wp-content\/uploads\/[^"'\s<>)]+/g;
+
+export function pagesImportStatus(db) {
+  return store.getSetting(db, PAGES_STATUS_KEY, null);
+}
+
+// A PDF a régi fájlnevén kerül a feltöltések közé, hogy a címe beszédes és állandó legyen (pl. /uploads/Prospektus.pdf).
+function pdfName(uploadsDir, url) {
+  let base = decodeURIComponent(path.basename(new URL(url).pathname)).normalize('NFD').replace(/[̀-ͯ]/g, '');
+  base = base.replace(/\.pdf$/i, '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'dokumentum';
+  let name = `${base}.pdf`;
+  for (let n = 2; fs.existsSync(path.join(uploadsDir, name)); n += 1) name = `${base}-${n}.pdf`;
+  return name;
+}
+
+export async function runPagesImport({ db, config, data, fetchImage = fetchFromWeb, log = console.log }) {
+  const status = {
+    state: 'running', startedAt: new Date().toISOString(), finishedAt: null,
+    total: data.pages.length, done: 0, skipped: 0, files: 0, failedFiles: [], error: null,
+  };
+  const save = () => store.setSetting(db, PAGES_STATUS_KEY, status);
+  save();
+  const fileMap = store.getSetting(db, FILES_KEY, {});
+  const failed = new Set();
+  const exists = (url) => Boolean(url) && fs.existsSync(path.join(config.uploadsDir, path.basename(url)));
+
+  // Kép: webre méretezve (WebP); PDF: változatlanul. Más fájltípust nem veszünk át.
+  async function file(url) {
+    if (exists(fileMap[url])) return fileMap[url];
+    if (failed.has(url)) return null;
+    try {
+      const buffer = await fetchImage(url);
+      let name;
+      if (detectImageType(buffer)) {
+        name = `${crypto.randomBytes(12).toString('hex')}.webp`;
+        await sharp(buffer, { failOn: 'none' }).rotate().resize({ width: 1600, withoutEnlargement: true })
+          .webp({ quality: 82 }).toFile(path.join(config.uploadsDir, name));
+      } else if (buffer.subarray(0, 5).toString('latin1') === '%PDF-') {
+        name = pdfName(config.uploadsDir, url);
+        fs.writeFileSync(path.join(config.uploadsDir, name), buffer);
+      } else {
+        throw new Error('nem kép és nem PDF');
+      }
+      fileMap[url] = `/uploads/${name}`;
+      store.setSetting(db, FILES_KEY, fileMap);
+      status.files += 1;
+      return fileMap[url];
+    } catch (err) {
+      log(`Fájl kihagyva (${err.message}): ${url}`);
+      failed.add(url);
+      status.failedFiles.push(url);
+      return null;
+    }
+  }
+
+  try {
+    fs.mkdirSync(config.uploadsDir, { recursive: true });
+    for (const url of data.files || []) await file(url);
+    for (const pg of data.pages) {
+      if (store.importedRowEdited(db, 'pages', pg.wpId)) {
+        status.skipped += 1;
+      } else {
+        const urls = [...new Set(pg.content.match(UPLOAD_URL) || [])];
+        const local = await inChunks(urls, PARALLEL_DOWNLOADS, file);
+        let content = pg.content;
+        urls.forEach((url, i) => { if (local[i]) content = content.split(url).join(local[i]); });
+        store.upsertImportedPage(db, pg.wpId, { slug: pg.slug, title: pg.title, content: sanitizePage(content), extras: pg.extras });
+      }
+      status.done += 1;
+      save();
+    }
+    status.state = 'done';
+  } catch (err) {
+    status.state = 'failed';
+    status.error = err.message;
+    log(`Az oldalak importja megszakadt: ${err.stack || err.message}`);
+  }
+  status.finishedAt = new Date().toISOString();
+  save();
+  return status;
+}
+
+// A régi oldal bejegyzéseinek webcíme → WordPress-azonosító (a régi linkek átirányításához).
+export function legacyPostSlugs(data) {
+  return new Map(data.posts.map((p) => [p.slug, p.wpId]));
 }

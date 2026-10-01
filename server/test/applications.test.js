@@ -53,7 +53,7 @@ const family = (slug) => store.getFamilyBySlug(db, slug);
 
 const valid = (overrides = {}) => ({
   last_name: 'Kovács', first_name: 'Anna', email: 'anna@pelda.hu', phone: '+36 30 123 4567',
-  amount: '10000', family_id: String(family('kamilla').id), source: 'Facebook', note: '', consent: 'on', ...overrides,
+  amount: '10000', family_id: String(family('kamilla').id), source: 'Facebookról', note: '', consent: 'on', ...overrides,
 });
 
 describe('jelentkezési űrlap a család oldalán', () => {
@@ -66,8 +66,8 @@ describe('jelentkezési űrlap a család oldalán', () => {
     }
     assert.match(html, new RegExp(`<option value="${family('kamilla').id}" selected>Kamilla</option>`));
     assert.match(html, /<option value="10000">10\s000 Ft<\/option>/);
-    assert.match(html, /<option value="Ismerősöm ajánlotta">Ismerősöm ajánlotta<\/option>/);
-    assert.match(html, /Elolvastam és megértettem az adatkezelési tájékoztatót/);
+    assert.match(html, /<option value="Barátoktól vagy ismerősöktől">Barátoktól vagy ismerősöktől<\/option>/);
+    assert.match(html, /Elolvastam és megértettem az <a href="\/adatkezelesi-tajekoztato" target="_blank" rel="noopener"[^>]*>adatkezelési tájékoztatót<\/a>/);
   });
 
   test('sikeres jelentkezés: mentés, +1 jelentkező, átirányítás a köszönő üzenetre', async () => {

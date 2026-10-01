@@ -66,6 +66,45 @@ const CONTENT_CSS = `
   .gallery a { display: block; overflow: hidden; border-radius: 0.75rem; }
   .gallery img, .blog-content .gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; margin: 0; border-radius: 0; transition: transform 0.4s ease; }
   .gallery a:hover img { transform: scale(1.04); }
+
+  /* Oldalak (pl. /alapitonk): a régi oldal elrendezési elemei a mostani dizájnnal. */
+  .page-content > section + section { margin-top: 4.5rem; }
+  .page-content section > * + * { margin-top: 1.1em; }
+  .page-content section > :is(p, ul, ol, h2, h3, h4, blockquote) { max-width: 52rem; }
+  .page-content h2 { font-size: 2rem; font-weight: 500; margin-top: 0.4em; }
+  @media (min-width: 768px) { .page-content h2 { font-size: 2.4rem; } }
+  .page-content .eyebrow { color: #a68c5c; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+  .page-content .eyebrow + * { margin-top: 0.5rem; }
+  .page-content .lead { font-size: 1.25rem; color: #3d5568; }
+  .page-content img { margin: 0; border-radius: 1rem; }
+  .page-content section > img { width: 100%; max-height: 32rem; object-fit: cover; }
+  .page-content .media { display: grid; gap: 2.5rem; align-items: start; }
+  @media (min-width: 768px) { .page-content .media { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 3.5rem; } }
+  .page-content .media-img img { width: 100%; max-width: 26rem; aspect-ratio: 4 / 5; object-fit: cover; }
+  .page-content .media-body > * + * { margin-top: 1rem; }
+  .page-content .media-body h2 { margin-top: 0; }
+  .page-content .split { display: grid; gap: 2.5rem; align-items: start; }
+  @media (min-width: 1024px) { .page-content .split { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); } }
+  .page-content .split > div > * + * { margin-top: 1rem; }
+  .page-content .cards { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); max-width: none; }
+  .page-content .card { background: #eef2f4; border: 1px solid #dde4e8; border-radius: 1rem; padding: 1.5rem; font-size: 1rem; line-height: 1.7; }
+  .page-content .card > * + * { margin-top: 0.6rem; }
+  .page-content .card h3 { margin-top: 0; font-size: 1.25rem; }
+  .page-content .card img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 0.75rem; margin-bottom: 0.5rem; }
+  .page-content .card a:has(img) { display: block; }
+  .page-content .num { font-family: 'Baloo 2', sans-serif; font-size: 2.5rem; font-weight: 700; line-height: 1; color: #c3ac7e; }
+  .page-content .price { font-family: 'Baloo 2', sans-serif; font-size: 2rem; font-weight: 600; line-height: 1.2; color: #263640; }
+  .page-content a.button { display: inline-flex; align-items: center; gap: 0.5rem; background: #dac7a0; color: #1a252d; font-weight: 600; padding: 0.8rem 1.8rem; border-radius: 9999px; text-decoration: none; transition: background-color 0.2s; }
+  .page-content a.button:hover { background: #c3ac7e; color: #1a252d; }
+  .page-content .logos { display: grid; gap: 2rem 1.5rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-items: center; }
+  .page-content .logos img { width: 100%; height: 90px; object-fit: contain; border-radius: 0; filter: grayscale(1); opacity: 0.8; transition: filter 0.3s, opacity 0.3s; }
+  .page-content .logos img:hover { filter: none; opacity: 1; }
+  .page-content .gallery { margin-top: 1.5rem; }
+  .page-content .doc-list { list-style: none; padding-left: 0; }
+  .page-content .doc-list li + li { margin-top: 0.5rem; }
+  .page-content .doc-list a { display: inline-flex; align-items: center; gap: 0.6rem; color: #263640; text-decoration: none; font-weight: 600; }
+  .page-content .doc-list a::before { content: 'PDF'; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; color: #fff; background: #a68c5c; border-radius: 0.35rem; padding: 0.2rem 0.4rem; }
+  .page-content .doc-list a:hover { color: #a68c5c; }
 `;
 
 // Galéria-nagyító a bejegyzés és a család oldalán: a bélyegképekre kattintva a nagy kép jelenik meg (lapozható).
@@ -80,7 +119,8 @@ const GALLERY_LIGHTBOX = `
 </div>
 <script>
 (function () {
-  var links = Array.prototype.slice.call(document.querySelectorAll('.blog-content .gallery a, a[data-lightbox]'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('.blog-content .gallery a, a[data-lightbox]'))
+    .filter(function (a) { return /\.(webp|jpe?g|png|gif)$/i.test(a.getAttribute('href') || ''); });
   var box = document.getElementById('gallery-lightbox');
   if (!links.length || !box) return;
   var img = box.querySelector('[data-lb="img"]');
@@ -417,7 +457,7 @@ const INPUT = 'w-full rounded-full border bg-white px-5 py-3 text-navy-800 outli
 
 // „Jelentkezem támogatónak” űrlap a család oldalán. JavaScript nélkül is működik (sima POST, a szerver
 // hiba esetén a hibaüzenetekkel és a beírt értékekkel adja vissza az oldalt).
-function applicationForm(frame, family, form) {
+export function applicationForm(frame, { action, selectedId = 0 }, form) {
   if (form.submitted) {
     return `
     <section id="jelentkezes" class="scroll-mt-32 bg-white border border-navy-100 rounded-2xl shadow-sm p-8 text-center" role="status">
@@ -428,7 +468,7 @@ function applicationForm(frame, family, form) {
   }
   const v = form.values || {};
   const e = form.errors || {};
-  const selected = v.familyId || (form.options.some((o) => o.id === family.id) ? family.id : 0);
+  const selected = v.familyId || (form.options.some((o) => o.id === selectedId) ? selectedId : 0);
   const cls = (name) => `${INPUT} ${e[name] ? 'border-red-400' : 'border-navy-200'}`;
   const err = (name) => (e[name] ? `<p class="mt-1.5 ml-4 text-sm text-red-700">${escapeHtml(e[name])}</p>` : '');
   const label = (id, text, required = true) => `<label for="${id}" class="block text-sm text-navy-600 mb-1.5 ml-1">${required ? '<span class="text-red-600">*</span> ' : ''}${text}</label>`;
@@ -448,7 +488,7 @@ function applicationForm(frame, family, form) {
       <p class="mt-2 text-sm text-navy-500">Fogadj örökbe egy családot, és válj havonta a történetük részévé. A <span class="text-red-600">*</span>-gal jelölt mezők kitöltése kötelező.</p>
       ${form.error ? `<p class="mt-5 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3" role="alert">${escapeHtml(form.error)}</p>` : ''}
       ${Object.keys(e).length && !form.error ? '<p class="mt-5 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3" role="alert">Kérjük, javítsd a megjelölt mezőket.</p>' : ''}
-      <form method="post" action="${familyUrl(family)}/jelentkezes" class="mt-6 space-y-5">
+      <form method="post" action="${action}" class="mt-6 space-y-5">
         ${input('lastName', 'app-last-name', 'Vezetéknév:', 'text', 'family-name')}
         ${input('firstName', 'app-first-name', 'Keresztnév:', 'text', 'given-name')}
         ${input('email', 'app-email', 'E-mail:', 'email', 'email')}
@@ -544,7 +584,7 @@ ${more.map(familyCard).join('\n')}
           ${galleryHtml}
           <div class="blog-content mt-10">${family.story}</div>
         </div>
-        <div class="lg:col-span-5">${statusBox(family)}${applicationForm(frame, family, form)}${shareBox(frame, pageUrl, { donate: family.status === 'adoptable' })}
+        <div class="lg:col-span-5">${statusBox(family)}${applicationForm(frame, { action: `${familyUrl(family)}/jelentkezes`, selectedId: family.id }, form)}${shareBox(frame, pageUrl, { donate: family.status === 'adoptable' })}
         </div>
       </div>
     </div>
@@ -561,6 +601,75 @@ ${more.map(familyCard).join('\n')}
     // Hibás beküldés után az űrlaphoz görgetünk, hogy a hibaüzenetek rögtön látsszanak.
     extra: (cover ? GALLERY_LIGHTBOX : '')
       + (form.errors && Object.keys(form.errors).length || form.error
+        ? "<script>document.getElementById('jelentkezes').scrollIntoView();</script>" : ''),
+  });
+}
+
+// --- Oldalak ------------------------------------------------------------------
+
+// A form mellett (keskeny hasábban) vagy a tartalom alatt jelenik meg; a kapcsolati űrlap a hosszú oldal végére kerül.
+const SIDE_FORMS = ['application', 'program', 'nomination'];
+
+export function renderPage(frame, { page, baseUrl, preview, families = [], posts = [], formHtml = '', form = {} }) {
+  const description = excerpt(page.content, 200) || page.title;
+  const banner = preview
+    ? '<div class="bg-amber-100 text-amber-900 text-sm font-semibold text-center px-6 py-3 rounded-xl mb-8">Előnézet: ez az oldal még nem nyilvános, csak bejelentkezett adminisztrátor látja.</div>'
+    : '';
+  const content = page.content ? `<div class="blog-content page-content">${page.content}</div>` : '';
+  const side = formHtml && SIDE_FORMS.includes(page.extras.form);
+  const body = side
+    ? `<div class="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+        <div class="lg:col-span-7">${content}</div>
+        <div class="lg:col-span-5">${formHtml}</div>
+      </div>`
+    : `${content}${formHtml ? `<div class="max-w-2xl ${content ? 'mt-16' : ''}">${formHtml}</div>` : ''}`;
+  const familySection = families.length
+    ? `
+  <section class="bg-white py-20 md:py-28 px-6 lg:px-10">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+        <h2 class="font-display text-2xl md:text-4xl font-medium text-navy-800">Örökbefogadható családok</h2>
+        <a href="/csaladok?statusz=orokbefogadhato" class="inline-flex items-center gap-2 border border-navy-800 text-navy-800 hover:bg-navy-800 hover:text-white font-semibold px-6 py-3 rounded-full transition-colors self-start md:self-auto">Összes örökbefogadható család →</a>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+${families.map(familyCard).join('\n')}
+      </div>
+    </div>
+  </section>`
+    : '';
+  const postSection = posts.length
+    ? `
+  <section class="px-6 lg:px-10 ${content ? 'mt-16' : ''}">
+    <div class="max-w-7xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+${posts.map(postCard).join('\n')}
+    </div>
+  </section>`
+    : '';
+  const main = `
+<main class="pt-32 md:pt-40">
+  <header class="px-6 lg:px-10">
+    <div class="max-w-7xl mx-auto">
+      ${banner}
+      <span class="block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Egy Lépéssel Több Alapítvány</span>
+      <h1 class="font-display text-3xl md:text-5xl font-medium text-navy-800 max-w-4xl leading-tight">${escapeHtml(page.title)}</h1>
+    </div>
+  </header>
+  <div class="px-6 lg:px-10 mt-12 md:mt-16">
+    <div class="max-w-7xl mx-auto">${body}</div>
+  </div>
+  ${postSection}
+  ${familySection || '<div class="pb-24 md:pb-32"></div>'}
+</main>`;
+  const hasGallery = /class="gallery"/.test(page.content);
+  const firstImage = (page.content.match(/<img src="(\/uploads\/[^"]+)"/) || [])[1];
+  return layout(frame, {
+    title: `${page.title} — Egy Lépéssel Több Alapítvány`,
+    description,
+    canonical: `${baseUrl}/${page.slug}`,
+    image: firstImage ? baseUrl + firstImage : '',
+    main,
+    extra: (hasGallery ? GALLERY_LIGHTBOX : '')
+      + ((form.errors && Object.keys(form.errors).length) || form.error
         ? "<script>document.getElementById('jelentkezes').scrollIntoView();</script>" : ''),
   });
 }

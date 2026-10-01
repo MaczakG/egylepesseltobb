@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 import {
-  APPLICATION_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
+  APPLICATION_STATUSES, PAGE_FORMS, PAGE_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
 } from './db.js';
 import { slugify } from './slug.js';
 
@@ -28,7 +28,32 @@ const POST_OPTIONS = {
   exclusiveFilter: (frame) => frame.tag === 'img' && !IMAGE_URL.test(frame.attribs.src || ''),
 };
 
+// Az oldalak (pl. /alapitonk) tartalma: a blognál több elrendezési elem, de csak a dizájnban meglévő osztályokkal.
+// Belső linkek ugyanabban a lapon nyílnak, a külsők újban.
+const PAGE_OPTIONS = {
+  allowedTags: [...POST_OPTIONS.allowedTags, 'section'],
+  allowedAttributes: {
+    a: ['href', 'rel', 'target', 'class'], img: ['src', 'alt'], div: ['class'], p: ['class'], ul: ['class'],
+  },
+  allowedClasses: {
+    div: ['gallery', 'media', 'media-img', 'media-body', 'cards', 'card', 'logos', 'split'],
+    p: ['eyebrow', 'lead', 'num', 'price'],
+    a: ['button'],
+    ul: ['doc-list'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  transformTags: {
+    a: (tagName, attribs) => {
+      const { rel, target, ...rest } = attribs;
+      const external = /^https?:/i.test(rest.href || '');
+      return { tagName, attribs: external ? { ...rest, rel: 'noopener noreferrer', target: '_blank' } : rest };
+    },
+  },
+  exclusiveFilter: POST_OPTIONS.exclusiveFilter,
+};
+
 export const sanitizeStory = (html) => sanitizeHtml(html || '', STORY_OPTIONS);
+export const sanitizePage = (html) => sanitizeHtml(html || '', PAGE_OPTIONS);
 export const sanitizePost = (html) => sanitizeHtml(html || '', POST_OPTIONS);
 
 function text(value, field, max, { required = false } = {}) {
@@ -76,6 +101,21 @@ export function validateFamily(body) {
     story,
     images: images(body.images),
   };
+}
+
+export function validatePage(body) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const title = text(body.title, 'cím', 200, { required: true });
+  const slug = slugify(typeof body.slug === 'string' && body.slug.trim() ? body.slug : title);
+  if (!slug) throw new ValidationError('A címből nem készíthető webcím; adj meg egyet kézzel.');
+  const content = sanitizePage(typeof body.content === 'string' ? body.content : '');
+  if (content.length > 400_000) throw new ValidationError('Az oldal túl hosszú.');
+  if (!PAGE_STATUSES.includes(body.status)) throw new ValidationError('Érvénytelen állapot.');
+  const extras = body.extras && typeof body.extras === 'object' ? body.extras : {};
+  if (!PAGE_FORMS.includes(extras.form || '')) throw new ValidationError('Érvénytelen űrlap.');
+  const posts = (Array.isArray(extras.posts) ? extras.posts : String(extras.posts || '').split(/[\n,]+/))
+    .map((s) => slugify(String(s))).filter(Boolean).slice(0, 24);
+  return { title, slug, content, status: body.status, extras: { form: extras.form || '', families: extras.families === true, posts } };
 }
 
 export function validateSettings(body) {

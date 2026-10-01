@@ -68,6 +68,17 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - Aloldala az örökbefogadható és az örökbefogadott családoknak van. Az archivált és a feltöltés alatti családot csak bejelentkezett adminisztrátor látja, előnézetként.
 - Családlista lapozás nélkül, minden család egy oldalon: `/csaladok` (az összes nyilvános család, elöl az örökbefogadhatók), `/csaladok?statusz=orokbefogadhato` és `/csaladok?statusz=orokbefogadott`. A menü „Örökbefogadható / Örökbefogadott családok” pontja ide mutat.
 
+## Oldalak (a régi oldal aloldalai)
+
+- A régi egylepesseltobb.hu aloldalai a mostani dizájnnal, ugyanazzal a szöveggel és képekkel, a régi címükön érhetők el (pl. `/alapitonk`, `/kuratorium`, `/dokumentumok`, `/1-ado`, `/linkesfizetes`, `/adatkezelesi-tajekoztato`).
+- A tartalom a `server/import/wordpress-pages-2026-10-01.json` fájlból kerül be az első induláskor; a képeket és a PDF-eket (alapító okirat, beszámolók, 1%-os nyomtatvány, prospektus) a szerver tölti le a régi oldalról. A PDF-ek a régi fájlnevükön érhetők el (pl. `/uploads/Prospektus.pdf`).
+- Az adminban az **Oldalak** menüpontban szerkeszthetők: cím, webcím, tartalom (szövegszerkesztő vagy HTML forrás), állapot (közzétéve / piszkozat), és kiegészítők:
+  - űrlap az oldalon (pl. a „Jelentkezz támogatónak” oldalon a támogatói jelentkezés);
+  - az örökbefogadható családok kártyái;
+  - blogbejegyzések kártyái (pl. a Gálaest, Családi napok, Aláírási ceremónia oldalon a galériák).
+- Az elrendezési elemek (a HTML forrásban): `section` (szakasz), `p.eyebrow` (kis címke), `div.media` + `div.media-img` + `div.media-body` (kép és szöveg), `div.cards` + `div.card` (kártyák), `div.logos` (logók), `div.gallery` (galéria nagyítóval), `div.split` (két hasáb), `a.button` (gomb), `ul.doc-list` (dokumentumlista), `p.num`, `p.price`.
+- A régi címek átirányítanak: `/fooldal` → főoldal, `/orokbefogadhato-csaladok` és `/orokbefogadott-csaladok` → családlista, `/kozos-elmenyeink` → blog, a régi bejegyzéscímek (`/2025/12/08/<webcím>/`) → a blogbejegyzés vagy a család oldala.
+
 ## Támogatói jelentkezések
 
 - Minden család aloldalán van egy „Jelentkezem támogatónak” űrlap:
