@@ -42,6 +42,8 @@ jobs:
           DOMAIN: ${{ inputs.domain }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
         run: deploy/aws/deploy.sh
 
       - name: Destroy

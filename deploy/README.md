@@ -16,6 +16,7 @@ A `deploy/aws/deploy.sh` feltesz egy Linux szervert az AWS-re, ami kiszolgálja 
    - `AWS_SECRET_ACCESS_KEY`
    - `ADMIN_EMAIL`: ezzel az e-mail címmel lehet belépni az admin felületre (`/admin.html`)
    - `ADMIN_PASSWORD`: legalább 10 karakter. A szerverre csak a hash-e kerül; belépés után a **Beállítások** oldalon meg is változtatható.
+   - `GDRIVE_TOKEN`, `GDRIVE_FOLDER_ID`: a napi Google Drive mentéshez (lásd lent)
 
    A régió alapból `eu-central-1` (Frankfurt); ha mást szeretnél, a **Variables** fülön add meg `AWS_REGION` néven.
 2. Merge-öld a `deploy/aws/` változásait az alapértelmezett ágra: a **Deploy AWS** workflow magától lefut, és létrehozza a szervert. Kézzel is indítható: **Actions → Deploy AWS → Run workflow**.
@@ -60,7 +61,23 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - Belépés: `https://<domain>/admin.html`, az `ADMIN_EMAIL` / `ADMIN_PASSWORD` adatokkal.
 - Az első indításkor a főoldal eddigi három családja kerül az adatbázisba; ezek az adminban szerkeszthetők.
 - A főoldalon az „Örökbefogadható” státuszú családok jelennek meg; az „Örökbefogadott” státuszúak lekerülnek róla.
-- Az adatok a szerver lemezén vannak: a `destroy` velük együtt törli a szervert. Éles használat előtt érdemes rendszeres mentést (pl. EBS snapshot) beállítani.
+- Az adatok a szerver lemezén vannak: a `destroy` velük együtt törli a szervert. Naponta mentés készül Google Drive-ra (lásd lent).
+
+## Napi mentés Google Drive-ra
+
+A szerver minden éjjel (03:15, magyar idő szerint) egy `egylepesseltobb-ÉÉÉÉ-HH-NN_ÓÓPP.tar.gz` fájlt tölt fel a megadott Google Drive mappába. A fájlban az adatbázis és a feltöltött képek vannak. A 30 napnál régebbi mentéseket a szerver törli a mappából (`BACKUP_KEEP_DAYS`).
+
+Beállítás (egyszer kell):
+
+1. A saját gépeden telepítsd az [rclone](https://rclone.org/install/)-t, és futtasd: `rclone authorize "drive"`. Megnyílik a böngésző: lépj be azzal a Google fiókkal, amelyiké a mappa, és engedélyezd a hozzáférést. A parancs végén kiír egy `{"access_token":...}` kezdetű sort.
+2. Vedd fel GitHubon a repó secretjei közé:
+   - `GDRIVE_TOKEN`: a kiírt `{...}` sor teljes egészében;
+   - `GDRIVE_FOLDER_ID`: a mappa linkjének vége, pl. a `https://drive.google.com/drive/folders/1AbC...` linkből az `1AbC...` rész.
+3. A beállítás a szerver létrehozásakor kerül fel. Ha a szerver már fut, előbb `destroy`, aztán újra `deploy` kell.
+
+A mentés jelszó-hasheket és a családok adatait tartalmazza: a Drive mappát ne oszd meg linkkel.
+
+Visszaállítás a szerveren: állítsd le a szolgáltatást (`systemctl stop egylepesseltobb-app`), csomagold ki a mentést, másold az `egylepesseltobb.db`-t és az `uploads/` mappát a `/var/lib/egylepesseltobb/` alá (tulajdonos: `egylepesseltobb`), majd indítsd újra a szolgáltatást.
 
 ## Helyi fejlesztés
 

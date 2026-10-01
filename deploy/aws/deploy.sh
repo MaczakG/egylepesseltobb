@@ -13,6 +13,9 @@ KEY_NAME="${KEY_NAME:-}"   # meglévő EC2 key pair, ha SSH-hozzáférés kell
 SSH_CIDR="${SSH_CIDR:-}"   # innen engedjük az SSH-t, pl. 1.2.3.4/32
 ADMIN_EMAIL="${ADMIN_EMAIL:-}"        # az admin felület első felhasználója
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"  # legalább 10 karakter; csak a hash-e kerül a szerverre
+GDRIVE_TOKEN="${GDRIVE_TOKEN:-}"          # napi mentéshez: az `rclone authorize drive` kimenete (JSON)
+GDRIVE_FOLDER_ID="${GDRIVE_FOLDER_ID:-}"  # a Drive mappa azonosítója
+BACKUP_KEEP_DAYS="${BACKUP_KEEP_DAYS:-30}"
 
 here="$(cd "$(dirname "$0")" && pwd)"
 
@@ -46,6 +49,10 @@ salt = os.urandom(16)
 key = hashlib.scrypt(os.environ["ADMIN_PASSWORD"].encode(), salt=salt, n=16384, r=8, p=1, dklen=64)
 print("scrypt$16384$8$1$%s$%s" % (base64.b64encode(salt).decode(), base64.b64encode(key).decode()))
 ')
+
+if [ -z "$GDRIVE_TOKEN" ] || [ -z "$GDRIVE_FOLDER_ID" ]; then
+  echo "Figyelem: GDRIVE_TOKEN / GDRIVE_FOLDER_ID nélkül nem lesz napi Google Drive mentés." >&2
+fi
 
 vpc=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
 if [ "$vpc" = "None" ]; then
@@ -102,6 +109,7 @@ host="${DOMAIN%%,*}"
   echo '#!/bin/bash'
   printf 'REPO_URL=%q\nBRANCH=%q\nDOMAIN=%q\nEMAIL=%q\nADMIN_EMAIL=%q\nADMIN_PASSWORD_HASH=%q\n' \
     "$REPO_URL" "$BRANCH" "$DOMAIN" "$EMAIL" "$ADMIN_EMAIL" "$admin_hash"
+  printf 'GDRIVE_TOKEN=%q\nGDRIVE_FOLDER_ID=%q\nBACKUP_KEEP_DAYS=%q\n' "$GDRIVE_TOKEN" "$GDRIVE_FOLDER_ID" "$BACKUP_KEEP_DAYS"
   tail -n +2 "$here/user-data.sh"
 } > "$userdata"
 

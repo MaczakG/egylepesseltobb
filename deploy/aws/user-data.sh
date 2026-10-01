@@ -9,11 +9,14 @@ DOMAIN="${DOMAIN:-}"                         # pl. "egylepesseltobb.hu,www.egyle
 EMAIL="${EMAIL:-}"                           # Let's Encrypt értesítésekhez
 ADMIN_EMAIL="${ADMIN_EMAIL:-}"               # az első admin felhasználó
 ADMIN_PASSWORD_HASH="${ADMIN_PASSWORD_HASH:-}"  # scrypt hash, a jelszó maga nem kerül a szerverre
+GDRIVE_TOKEN="${GDRIVE_TOKEN:-}"             # rclone OAuth token (JSON) a napi Google Drive mentéshez
+GDRIVE_FOLDER_ID="${GDRIVE_FOLDER_ID:-}"     # a Drive mappa azonosítója (a mappa linkjének vége)
+BACKUP_KEEP_DAYS="${BACKUP_KEEP_DAYS:-30}"
 NODE_MAJOR=24
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y nginx git rsync curl xz-utils
+apt-get install -y nginx git rsync curl xz-utils sqlite3 rclone
 if [ -n "$DOMAIN" ]; then
   apt-get install -y certbot python3-certbot-nginx
 fi
@@ -185,6 +188,71 @@ fi
 EOF
 chmod 755 /usr/local/bin/egylepesseltobb-update
 /usr/local/bin/egylepesseltobb-update
+
+# --- napi mentés Google Drive-ra ------------------------------------------
+if [ -n "$GDRIVE_TOKEN" ] && [ -n "$GDRIVE_FOLDER_ID" ]; then
+  # A token hozzáfér a Drive-hoz, ezért csak root olvashatja.
+  install -m 600 /dev/null /etc/egylepesseltobb/rclone.conf
+  cat > /etc/egylepesseltobb/rclone.conf <<EOF
+[gdrive]
+type = drive
+scope = drive
+root_folder_id = $GDRIVE_FOLDER_ID
+token = $GDRIVE_TOKEN
+EOF
+  cat > /etc/egylepesseltobb/backup.env <<EOF
+BACKUP_KEEP_DAYS=$(printf %q "$BACKUP_KEEP_DAYS")
+EOF
+
+  cat > /usr/local/bin/egylepesseltobb-backup <<'EOF'
+#!/bin/bash
+# Adatbázis + feltöltött képek → egylepesseltobb-ÉÉÉÉ-HH-NN_ÓÓPP.tar.gz a Google Drive mappába.
+set -euo pipefail
+. /etc/egylepesseltobb/backup.env
+DATA=${DATA_DIR:-/var/lib/egylepesseltobb}
+RCLONE=(rclone --config "${RCLONE_CONFIG:-/etc/egylepesseltobb/rclone.conf}")
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+mkdir "$work/egylepesseltobb"
+# A .backup futás közben is konzisztens másolatot ad (a WAL tartalmát is beleérti).
+sqlite3 "$DATA/egylepesseltobb.db" ".backup '$work/egylepesseltobb/egylepesseltobb.db'"
+cp -a "$DATA/uploads" "$work/egylepesseltobb/uploads"
+archive="$work/egylepesseltobb-$(date +%Y-%m-%d_%H%M).tar.gz"
+tar -czf "$archive" -C "$work" egylepesseltobb
+
+"${RCLONE[@]}" copy "$archive" gdrive:
+"${RCLONE[@]}" delete gdrive: --min-age "${BACKUP_KEEP_DAYS}d" --include 'egylepesseltobb-*.tar.gz'
+echo "Mentés feltöltve: $(basename "$archive")"
+EOF
+  chmod 755 /usr/local/bin/egylepesseltobb-backup
+
+  cat > /etc/systemd/system/egylepesseltobb-backup.service <<'EOF'
+[Unit]
+Description=egylepesseltobb mentése Google Drive-ra
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/egylepesseltobb-backup
+EOF
+
+  cat > /etc/systemd/system/egylepesseltobb-backup.timer <<'EOF'
+[Unit]
+Description=egylepesseltobb napi mentése
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 Europe/Budapest
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+  systemctl daemon-reload
+  systemctl enable --now egylepesseltobb-backup.timer
+fi
 
 # --- első admin ------------------------------------------------------------
 if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD_HASH" ]; then
