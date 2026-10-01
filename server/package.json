@@ -1,0 +1,19 @@
+{
+  "name": "egylepesseltobb-server",
+  "private": true,
+  "type": "module",
+  "description": "Az Egy Lépéssel Több oldal backendje: admin API, családok, képfeltöltés.",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/server.js",
+    "create-admin": "node --disable-warning=ExperimentalWarning scripts/create-admin.js",
+    "test": "node --disable-warning=ExperimentalWarning --test"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "sanitize-html": "^2.17.0"
+  }
+}

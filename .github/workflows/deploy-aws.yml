@@ -40,6 +40,8 @@ jobs:
         if: inputs.action != 'destroy'
         env:
           DOMAIN: ${{ inputs.domain }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: deploy/aws/deploy.sh
 
       - name: Destroy

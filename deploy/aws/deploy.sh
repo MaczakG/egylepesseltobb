@@ -11,6 +11,8 @@ DOMAIN="${DOMAIN:-}"       # üresen: ideiglenes <ip>.sslip.io domain
 EMAIL="${EMAIL:-}"         # Let's Encrypt értesítésekhez
 KEY_NAME="${KEY_NAME:-}"   # meglévő EC2 key pair, ha SSH-hozzáférés kell
 SSH_CIDR="${SSH_CIDR:-}"   # innen engedjük az SSH-t, pl. 1.2.3.4/32
+ADMIN_EMAIL="${ADMIN_EMAIL:-}"        # az admin felület első felhasználója
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"  # legalább 10 karakter; csak a hash-e kerül a szerverre
 
 here="$(cd "$(dirname "$0")" && pwd)"
 
@@ -31,6 +33,19 @@ if [ "$existing" != "None" ]; then
   summary "Már létezik '$NAME' szerver ($existing): https://${domain%% *} (IP: $ip)"
   exit 0
 fi
+
+if [ -z "$ADMIN_EMAIL" ] || [ "${#ADMIN_PASSWORD}" -lt 10 ]; then
+  echo "Az admin felülethez add meg: ADMIN_EMAIL és ADMIN_PASSWORD (legalább 10 karakter)." >&2
+  exit 1
+fi
+# Ugyanaz a scrypt formátum, amit a szerver (server/src/auth.js) ellenőriz.
+# shellcheck disable=SC2016  # a $ jelek a Python-kód részei, nem shell-változók
+admin_hash=$(ADMIN_PASSWORD="$ADMIN_PASSWORD" python3 -c '
+import base64, hashlib, os
+salt = os.urandom(16)
+key = hashlib.scrypt(os.environ["ADMIN_PASSWORD"].encode(), salt=salt, n=16384, r=8, p=1, dklen=64)
+print("scrypt$16384$8$1$%s$%s" % (base64.b64encode(salt).decode(), base64.b64encode(key).decode()))
+')
 
 vpc=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
 if [ "$vpc" = "None" ]; then
@@ -85,7 +100,8 @@ host="${DOMAIN%%,*}"
 
 {
   echo '#!/bin/bash'
-  printf 'REPO_URL=%q\nBRANCH=%q\nDOMAIN=%q\nEMAIL=%q\n' "$REPO_URL" "$BRANCH" "$DOMAIN" "$EMAIL"
+  printf 'REPO_URL=%q\nBRANCH=%q\nDOMAIN=%q\nEMAIL=%q\nADMIN_EMAIL=%q\nADMIN_PASSWORD_HASH=%q\n' \
+    "$REPO_URL" "$BRANCH" "$DOMAIN" "$EMAIL" "$ADMIN_EMAIL" "$admin_hash"
   tail -n +2 "$here/user-data.sh"
 } > "$userdata"
 

@@ -1,21 +1,41 @@
 #!/bin/bash
-# EC2 user-data (Ubuntu 24.04): nginx + automatikus frissítés a GitHub repóból.
-# A deploy.sh a shebang után beírja a REPO_URL / BRANCH / DOMAIN / EMAIL értékeket.
+# EC2 user-data (Ubuntu 24.04): nginx + Node.js backend + automatikus frissítés a GitHub repóból.
+# A deploy.sh a shebang után beírja a REPO_URL / BRANCH / DOMAIN / EMAIL / ADMIN_* értékeket.
 set -euxo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/MaczakG/egylepesseltobb.git}"
-BRANCH="${BRANCH:-}"   # üresen: a repó alapértelmezett ága
-DOMAIN="${DOMAIN:-}"   # pl. "egylepesseltobb.hu,www.egylepesseltobb.hu" – ha meg van adva, HTTPS is lesz
-EMAIL="${EMAIL:-}"     # Let's Encrypt értesítésekhez
+BRANCH="${BRANCH:-}"                         # üresen: a repó alapértelmezett ága
+DOMAIN="${DOMAIN:-}"                         # pl. "egylepesseltobb.hu,www.egylepesseltobb.hu" – ha meg van adva, HTTPS is lesz
+EMAIL="${EMAIL:-}"                           # Let's Encrypt értesítésekhez
+ADMIN_EMAIL="${ADMIN_EMAIL:-}"               # az első admin felhasználó
+ADMIN_PASSWORD_HASH="${ADMIN_PASSWORD_HASH:-}"  # scrypt hash, a jelszó maga nem kerül a szerverre
+NODE_MAJOR=24
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y nginx git rsync
+apt-get install -y nginx git rsync curl xz-utils
 if [ -n "$DOMAIN" ]; then
   apt-get install -y certbot python3-certbot-nginx
 fi
 
-mkdir -p /etc/egylepesseltobb /var/www/egylepesseltobb
+# --- Node.js (hivatalos bináris, ellenőrzőösszeggel) -----------------------
+node_base="https://nodejs.org/dist/latest-v${NODE_MAJOR}.x"
+shasums=$(curl -fsSL "$node_base/SHASUMS256.txt")
+tarball=$(awk '/linux-x64\.tar\.xz$/ { print $2 }' <<< "$shasums")
+curl -fsSL -o "/tmp/$tarball" "$node_base/$tarball"
+(cd /tmp && grep " $tarball\$" <<< "$shasums" | sha256sum -c -)
+mkdir -p /opt/node
+tar -xJf "/tmp/$tarball" -C /opt/node --strip-components=1 --no-same-owner
+rm "/tmp/$tarball"
+ln -sf /opt/node/bin/node /opt/node/bin/npm /opt/node/bin/npx /usr/local/bin/
+
+# --- alkalmazás felhasználó és beállítások --------------------------------
+id egylepesseltobb >/dev/null 2>&1 || useradd --system --home-dir /var/lib/egylepesseltobb --shell /usr/sbin/nologin egylepesseltobb
+mkdir -p /etc/egylepesseltobb /var/www/egylepesseltobb /var/lib/egylepesseltobb/uploads
+chown -R egylepesseltobb:egylepesseltobb /var/lib/egylepesseltobb
+chmod 711 /var/lib/egylepesseltobb          # az nginx átléphet rajta a képekhez, listázni nem tud
+chmod 755 /var/lib/egylepesseltobb/uploads
+
 cat > /etc/egylepesseltobb/env <<EOF
 REPO_URL=$(printf %q "$REPO_URL")
 BRANCH=$(printf %q "$BRANCH")
@@ -23,7 +43,44 @@ DOMAIN=$(printf %q "$DOMAIN")
 EMAIL=$(printf %q "$EMAIL")
 EOF
 
+if [ ! -f /etc/egylepesseltobb/app.env ]; then
+  cat > /etc/egylepesseltobb/app.env <<EOF
+NODE_ENV=production
+HOST=127.0.0.1
+PORT=3000
+SITE_DIR=/var/www/egylepesseltobb
+DATA_DIR=/var/lib/egylepesseltobb
+SESSION_SECRET=$(openssl rand -hex 32)
+EOF
+  chown root:egylepesseltobb /etc/egylepesseltobb/app.env
+  chmod 640 /etc/egylepesseltobb/app.env
+fi
+
+cat > /etc/systemd/system/egylepesseltobb-app.service <<'EOF'
+[Unit]
+Description=Egy Lépéssel Több webalkalmazás
+After=network.target
+
+[Service]
+User=egylepesseltobb
+EnvironmentFile=/etc/egylepesseltobb/app.env
+WorkingDirectory=/opt/egylepesseltobb/server
+ExecStart=/usr/local/bin/node --disable-warning=ExperimentalWarning src/server.js
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/egylepesseltobb
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable egylepesseltobb-app.service
+
 # --- nginx ---------------------------------------------------------------
+# A főoldalt és az API-t a Node szolgálja ki (a családokat az adatbázisból rendereli), a többit az nginx.
 server_name="${DOMAIN//,/ }"
 cat > /etc/nginx/sites-available/egylepesseltobb <<EOF
 server {
@@ -35,22 +92,43 @@ server {
     index index.html;
 
     gzip on;
-    gzip_types text/css application/javascript image/svg+xml;
+    gzip_types text/css application/javascript application/json image/svg+xml;
 
     add_header X-Content-Type-Options nosniff always;
 
-    location / {
-        try_files \$uri \$uri/ =404;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+
+    location = / {
+        proxy_pass http://127.0.0.1:3000;
+    }
+
+    location = /index.html {
+        proxy_pass http://127.0.0.1:3000;
+    }
+
+    location /api/ {
+        client_max_body_size 12m;
+        proxy_pass http://127.0.0.1:3000;
+    }
+
+    location /uploads/ {
+        alias /var/lib/egylepesseltobb/uploads/;
+        expires 30d;
     }
 
     location /assets/ {
         expires 30d;
     }
 
-    # A mock adatos admin felület ne kerüljön be a keresőkbe.
     location = /admin.html {
         add_header X-Content-Type-Options nosniff always;
         add_header X-Robots-Tag "noindex, nofollow" always;
+    }
+
+    location / {
+        try_files \$uri \$uri/ =404;
     }
 }
 EOF
@@ -62,7 +140,7 @@ systemctl reload nginx
 # --- frissítő szkript ------------------------------------------------------
 cat > /usr/local/bin/egylepesseltobb-update <<'EOF'
 #!/bin/bash
-# Lehúzza a legfrissebb változatot a GitHubról és kirakja a webrootba.
+# Lehúzza a legfrissebb változatot a GitHubról, kirakja a webrootba, és ha kell, újraindítja a backendet.
 set -euo pipefail
 . /etc/egylepesseltobb/env
 SRC=/opt/egylepesseltobb
@@ -72,14 +150,23 @@ if [ -z "$BRANCH" ]; then
   BRANCH=$(git ls-remote --symref "$REPO_URL" HEAD | awk '/^ref:/ { sub("refs/heads/", "", $2); print $2 }')
 fi
 
+before=$(git -C "$SRC" rev-parse HEAD 2>/dev/null || echo none)
 if [ ! -d "$SRC/.git" ]; then
   git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$SRC"
 else
   git -C "$SRC" fetch --depth 1 origin "$BRANCH"
   git -C "$SRC" reset --hard FETCH_HEAD
 fi
+after=$(git -C "$SRC" rev-parse HEAD)
 
-rsync -a --delete --exclude '.*' --exclude 'deploy/' --exclude '*.md' "$SRC/" "$WEB/"
+rsync -a --delete --exclude '.*' --exclude 'deploy/' --exclude 'server/' --exclude '*.md' "$SRC/" "$WEB/"
+
+if [ "$before" != "$after" ] || [ ! -d "$SRC/server/node_modules" ]; then
+  (cd "$SRC/server" && npm ci --omit=dev --ignore-scripts --no-audit --no-fund)
+  systemctl restart egylepesseltobb-app
+elif ! systemctl is-active --quiet egylepesseltobb-app; then
+  systemctl start egylepesseltobb-app
+fi
 
 if [ -n "$DOMAIN" ] && [ ! -d "/etc/letsencrypt/live/${DOMAIN%%,*}" ]; then
   # Csak akkor kérünk tanúsítványt, ha minden domain már erre a szerverre mutat,
@@ -98,6 +185,13 @@ fi
 EOF
 chmod 755 /usr/local/bin/egylepesseltobb-update
 /usr/local/bin/egylepesseltobb-update
+
+# --- első admin ------------------------------------------------------------
+if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD_HASH" ]; then
+  (cd /opt/egylepesseltobb/server && sudo -u egylepesseltobb env DATA_DIR=/var/lib/egylepesseltobb \
+    /usr/local/bin/node --disable-warning=ExperimentalWarning scripts/create-admin.js \
+    --email "$ADMIN_EMAIL" --password-hash "$ADMIN_PASSWORD_HASH")
+fi
 
 cat > /etc/systemd/system/egylepesseltobb-update.service <<'EOF'
 [Unit]
