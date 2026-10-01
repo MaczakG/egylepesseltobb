@@ -79,6 +79,16 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - Az elrendezési elemek (a HTML forrásban): `section` (szakasz), `p.eyebrow` (kis címke), `div.media` + `div.media-img` + `div.media-body` (kép és szöveg), `div.cards` + `div.card` (kártyák), `div.logos` (logók), `div.gallery` (galéria nagyítóval), `div.split` (két hasáb), `a.button` (gomb), `ul.doc-list` (dokumentumlista), `p.num`, `p.price`.
 - A régi címek átirányítanak: `/fooldal` → főoldal, `/orokbefogadhato-csaladok` és `/orokbefogadott-csaladok` → családlista, `/kozos-elmenyeink` → blog, a régi bejegyzéscímek (`/2025/12/08/<webcím>/`) → a blogbejegyzés vagy a család oldala.
 
+## Üzenetek (kapcsolat, programjelentkezés, díjjelölés)
+
+- A régi oldal további űrlapjai, ugyanazokkal a mezőkkel:
+  - **Kapcsolati űrlap** (az 1% adó oldalon): név, e-mail, üzenet;
+  - **Jelentkezés a programba** (Kerülj be programunkba): név, e-mail, telefonszám, a gyermek története, orvosi dokumentumok feltöltése (PDF vagy kép, legfeljebb 5 fájl, egyenként max. 10 MB);
+  - **Váradi Eszter-díj jelölés**: jelölő adatai, jelölt neve, díjkategória, nagykövet, indoklás (legalább 200 karakter).
+- Mindegyikhez kell az adatkezelési tájékoztató elfogadása; ugyanaz a védelem a kéretlen beküldések ellen, mint a támogatói jelentkezésnél.
+- Az adminban az **Üzenetek** menüpontban jelennek meg (a menüpont mellett az újak száma), típus szerint szűrhetők, állapotuk „Új” vagy „Feldolgozva”, és törölhetők.
+- A feltöltött dokumentumok nem nyilvánosak: a szerveren a `/var/lib/egylepesseltobb/private` mappába kerülnek (csak az alkalmazás olvashatja), és csak bejelentkezett adminisztrátor töltheti le őket az üzenetnél. Az üzenet törlésekor a fájlok is törlődnek. A napi mentés ezeket is tartalmazza.
+
 ## Támogatói jelentkezések
 
 - Minden család aloldalán van egy „Jelentkezem támogatónak” űrlap:

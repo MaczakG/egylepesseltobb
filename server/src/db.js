@@ -100,6 +100,15 @@ export function openDb(file) {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY,
+      form TEXT NOT NULL,
+      page_slug TEXT NOT NULL DEFAULT '',
+      data TEXT NOT NULL DEFAULT '{}',
+      files TEXT NOT NULL DEFAULT '[]',
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
     CREATE TABLE IF NOT EXISTS applications (
       id INTEGER PRIMARY KEY,
       family_id INTEGER,
@@ -629,4 +638,49 @@ export function deleteApplication(db, id) {
     throw err;
   }
   return true;
+}
+
+// --- Üzenetek (kapcsolati űrlap, programjelentkezés, díjjelölés) ---------------
+
+export const MESSAGE_STATUSES = ['new', 'handled'];
+
+function toMessage(row) {
+  return {
+    id: row.id,
+    form: row.form,
+    pageSlug: row.page_slug,
+    data: JSON.parse(row.data),
+    files: JSON.parse(row.files),
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+export function createMessage(db, m) {
+  const { lastInsertRowid } = db.prepare(`INSERT INTO messages (form, page_slug, data, files) VALUES (?, ?, ?, ?)`)
+    .run(m.form, m.pageSlug, JSON.stringify(m.data), JSON.stringify(m.files || []));
+  return getMessage(db, lastInsertRowid);
+}
+
+export function setMessageFiles(db, id, files) {
+  db.prepare('UPDATE messages SET files = ? WHERE id = ?').run(JSON.stringify(files), id);
+  return getMessage(db, id);
+}
+
+export function getMessage(db, id) {
+  const row = db.prepare('SELECT * FROM messages WHERE id = ?').get(id);
+  return row ? toMessage(row) : null;
+}
+
+export function listMessages(db) {
+  return db.prepare('SELECT * FROM messages ORDER BY created_at DESC, id DESC').all().map(toMessage);
+}
+
+export function updateMessageStatus(db, id, status) {
+  db.prepare('UPDATE messages SET status = ? WHERE id = ?').run(status, id);
+  return getMessage(db, id);
+}
+
+export function deleteMessage(db, id) {
+  return db.prepare('DELETE FROM messages WHERE id = ?').run(id).changes > 0;
 }

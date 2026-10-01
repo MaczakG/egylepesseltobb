@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import busboy from 'busboy';
 import express from 'express';
 import * as store from './db.js';
 import {
@@ -11,10 +12,11 @@ import {
   renderNotFound, renderPage, siteFrame,
 } from './pages.js';
 import { IMPORT_FILE, legacyPostSlugs, loadImportData } from './wpimport.js';
+import { MESSAGE_FORMS, checkMessage, formSchema, renderMessageForm } from './forms.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
   ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
-  validatePage, validatePost, validateSettings,
+  validateMessageStatus, validatePage, validatePost, validateSettings,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -25,6 +27,49 @@ const POSTS_PER_PAGE = 12;
 const APPLICATION_WINDOW_MS = 60 * 60 * 1000;
 const APPLICATION_MAX_PER_IP = 5;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const MAX_FILES = 5;
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
+
+// Fájlfeltöltéses űrlap (multipart) beolvasása memóriába, korlátokkal.
+function parseMultipart(req) {
+  return new Promise((resolve, reject) => {
+    let bb;
+    try {
+      bb = busboy({ headers: req.headers, defParamCharset: 'utf8', limits: { files: MAX_FILES, fileSize: MAX_FILE_BYTES, fields: 40, fieldSize: 20_000, parts: 50 } });
+    } catch {
+      return reject(new ValidationError('Hibás kérés.'));
+    }
+    const fields = {};
+    const files = [];
+    let total = 0;
+    let problem = '';
+    bb.on('field', (name, value) => { fields[name] = value; });
+    bb.on('file', (name, stream, info) => {
+      const chunks = [];
+      stream.on('data', (chunk) => {
+        total += chunk.length;
+        if (total <= MAX_TOTAL_BYTES) chunks.push(chunk);
+      });
+      stream.on('limit', () => { problem = 'Egy fájl legfeljebb 10 MB lehet.'; });
+      stream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        if (info.filename && buffer.length && !stream.truncated) files.push({ name: info.filename, buffer });
+      });
+    });
+    bb.on('filesLimit', () => { problem = `Legfeljebb ${MAX_FILES} fájl tölthető fel.`; });
+    bb.on('close', () => resolve({
+      fields, files, problem: problem || (total > MAX_TOTAL_BYTES ? 'A fájlok összesen legfeljebb 25 MB-osak lehetnek.' : ''),
+    }));
+    bb.on('error', reject);
+    req.pipe(bb);
+  });
+}
+
+function fileKind(buffer) {
+  return detectImageType(buffer) || (buffer.subarray(0, 5).toString('latin1') === '%PDF-' ? 'pdf' : null);
+}
 
 function parseCookies(header = '') {
   const cookies = {};
@@ -66,6 +111,8 @@ function postImages(post) {
 
 export function createApp({ db, config }) {
   fs.mkdirSync(config.uploadsDir, { recursive: true });
+  const messagesDir = path.join(config.privateDir || path.join(config.dataDir, 'private'), 'messages');
+  fs.mkdirSync(messagesDir, { recursive: true, mode: 0o700 });
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 'loopback');
@@ -328,6 +375,39 @@ export function createApp({ db, config }) {
     res.json({ ok: true });
   });
 
+  admin.get('/messages', (req, res) => res.json({ forms: formSchema(), messages: store.listMessages(db) }));
+
+  admin.put('/messages/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.getMessage(db, id)) return res.status(404).json({ error: 'Az üzenet nem található.' });
+    res.json(store.updateMessageStatus(db, id, validateMessageStatus(req.body)));
+  });
+
+  admin.delete('/messages/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.deleteMessage(db, id)) return res.status(404).json({ error: 'Az üzenet nem található.' });
+    fs.rmSync(path.join(messagesDir, String(id)), { recursive: true, force: true });
+    res.json({ ok: true });
+  });
+
+  // A beküldött dokumentum letöltése (csak bejelentkezve; mindig letöltésként, sosem a böngészőben megnyitva).
+  admin.get('/messages/:id/files/:n', (req, res) => {
+    const id = idParam(req);
+    const message = id && store.getMessage(db, id);
+    const file = message && message.files[Number(req.params.n)];
+    if (!file) return res.status(404).json({ error: 'A fájl nem található.' });
+    // ASCII-tartalék és UTF-8 név (RFC 6266), hogy az ékezetes fájlnév minden böngészőben jó legyen.
+    const ascii = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7e]|["\\]/g, '_');
+    const utf8 = encodeURIComponent(file.name).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+    res.set({
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Disposition': `attachment; filename="${ascii}"; filename*=UTF-8''${utf8}`,
+    });
+    res.type(file.type === 'pdf' ? 'application/pdf' : file.type);
+    res.sendFile(path.join(messagesDir, String(id), path.basename(file.stored)));
+  });
+
   admin.get('/pages', (req, res) => res.json(store.listPages(db)));
 
   admin.post('/pages', (req, res) => {
@@ -432,6 +512,8 @@ export function createApp({ db, config }) {
     if (page.extras.form === 'application') {
       formHtml = applicationForm(frame, { action: `/${page.slug}/jelentkezes` },
         { options: adoptableOptions(), ...store.getFormSettings(db), ...form });
+    } else if (MESSAGE_FORMS[page.extras.form]) {
+      formHtml = renderMessageForm(MESSAGE_FORMS[page.extras.form], { action: `/${page.slug}/urlap`, privacyUrl: frame.privacyUrl, ...form });
     }
     if (!isPublic) res.set('X-Robots-Tag', 'noindex');
     sendHtml(res, renderPage(frame, {
@@ -453,6 +535,52 @@ export function createApp({ db, config }) {
       thanks: `/${found.page.slug}?jelentkezes=koszonjuk#jelentkezes`,
       sendPage: (form, status) => sendContentPage(req, res, found, form, status),
     });
+  });
+
+  // Kapcsolati űrlap, programjelentkezés (orvosi dokumentumokkal), díjjelölés. A dokumentumok a nem nyilvános
+  // mappába kerülnek, csak bejelentkezett admin töltheti le őket.
+  const messagesByIp = new Map();
+  app.post('/:slug/urlap', formBody, async (req, res, next) => {
+    const found = contentPage(req);
+    const def = found && MESSAGE_FORMS[found.page.extras.form];
+    if (!def) return next();
+    const thanks = `/${found.page.slug}?jelentkezes=koszonjuk#jelentkezes`;
+    const send = (form, status) => sendContentPage(req, res, found, form, status);
+    let body = req.body || {};
+    let files = [];
+    let problem = '';
+    if (req.is('multipart/form-data')) ({ fields: body, files, problem } = await parseMultipart(req));
+    if (body.website) return res.redirect(303, thanks);
+
+    const now = Date.now();
+    const recent = (messagesByIp.get(req.ip) || []).filter((t) => t > now - APPLICATION_WINDOW_MS);
+    if (recent.length >= APPLICATION_MAX_PER_IP) {
+      return send({ error: 'Erről a címről már túl sok üzenet érkezett. Kérjük, próbáld újra később, vagy írj nekünk e-mailt.' }, 429);
+    }
+    const { values, errors } = checkMessage(def, body);
+    const acceptsFiles = def.sections.some((sec) => sec.fields.some((f) => f.type === 'file'));
+    const kinds = files.map((f) => fileKind(f.buffer));
+    if (problem) errors.documents = problem;
+    else if (!acceptsFiles && files.length) errors.documents = 'Ezen az űrlapon nem lehet fájlt feltölteni.';
+    else if (kinds.some((k) => !k)) errors.documents = 'Csak PDF vagy kép (JPG, PNG, WEBP) tölthető fel.';
+    if (Object.keys(errors).length) return send({ values, errors }, 400);
+
+    const { consent, ...data } = values;
+    const message = store.createMessage(db, { form: found.page.extras.form, pageSlug: found.page.slug, data });
+    if (files.length) {
+      const dir = path.join(messagesDir, String(message.id));
+      fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+      const saved = files.map((f, i) => {
+        const display = path.basename(f.name).replace(/[\u0000-\u001f]/g, '').slice(0, 150) || `dokumentum-${i + 1}`;
+        const stored = `${i + 1}.${kinds[i]}`;
+        fs.writeFileSync(path.join(dir, stored), f.buffer, { mode: 0o600 });
+        return { name: display, stored, size: f.buffer.length, type: kinds[i] };
+      });
+      store.setMessageFiles(db, message.id, saved);
+    }
+    recent.push(now);
+    messagesByIp.set(req.ip, recent);
+    res.redirect(303, thanks);
   });
 
   // A régi oldal bejegyzéseinek címe (/2025/12/08/<webcím>/) a blogbejegyzésre vagy a család oldalára visz.

@@ -11,6 +11,8 @@ export function loadConfig(env = process.env) {
     siteDir: path.resolve(env.SITE_DIR || repoRoot),
     dataDir,
     uploadsDir: path.join(dataDir, 'uploads'),
+    // A beküldött dokumentumok (pl. orvosi papírok) helye: nem nyilvános, csak az adminból tölthetők le.
+    privateDir: path.join(dataDir, 'private'),
     dbPath: path.join(dataDir, 'egylepesseltobb.db'),
     sessionSecret: env.SESSION_SECRET || null,
   };

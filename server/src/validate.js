@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 import {
-  APPLICATION_STATUSES, PAGE_FORMS, PAGE_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
+  APPLICATION_STATUSES, MESSAGE_STATUSES, PAGE_FORMS, PAGE_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
 } from './db.js';
 import { slugify } from './slug.js';
 
@@ -169,6 +169,11 @@ export function validateFormSettings(body) {
     throw new ValidationError('A „Honnan hallott rólunk?” válaszai 1–20 db, egyenként legfeljebb 100 karakter.');
   }
   return { amounts: amounts.sort((a, b) => a - b), sources };
+}
+
+export function validateMessageStatus(body) {
+  if (!body || !MESSAGE_STATUSES.includes(body.status)) throw new ValidationError('Érvénytelen állapot.');
+  return body.status;
 }
 
 export function validateApplicationStatus(body) {

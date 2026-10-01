@@ -145,6 +145,11 @@
             Jelentkezések
             <span id="nav-app-badge" class="hidden ml-auto min-w-[20px] text-center rounded-full bg-sand-500 text-brand-900 text-[11px] font-semibold px-1.5 py-px tabular">0</span>
           </button>
+          <button class="nav-item" data-view="messages" onclick="goToView('messages')">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+            Üzenetek
+            <span id="nav-msg-badge" class="hidden ml-auto min-w-[20px] text-center rounded-full bg-sand-500 text-brand-900 text-[11px] font-semibold px-1.5 py-px tabular">0</span>
+          </button>
           <button class="nav-item" data-view="posts" onclick="goToView('posts')">
             <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"/></svg>
             Blog
@@ -602,6 +607,32 @@
         </div>
       </section>
 
+      <!-- ============ MESSAGES VIEW ============ -->
+      <section id="view-messages" class="hidden">
+
+        <div class="mb-6">
+          <h1 class="text-xl font-semibold text-slate-900">Üzenetek</h1>
+          <p class="text-slate-500 mt-1">A kapcsolati űrlap, a programjelentkezés és a Váradi Eszter-díj jelölés beküldései. A feltöltött orvosi dokumentumok csak innen tölthetők le.</p>
+        </div>
+
+        <div class="card overflow-hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b border-slate-200">
+            <div class="max-w-full overflow-x-auto self-start"><div class="inline-flex bg-slate-100 rounded-md p-0.5">
+              <button class="filter-btn active whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-msg-filter="all" onclick="setMessageFilter('all')">Mind <span id="mcount-all" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-msg-filter="contact" onclick="setMessageFilter('contact')">Kapcsolat <span id="mcount-contact" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-msg-filter="program" onclick="setMessageFilter('program')">Programjelentkezés <span id="mcount-program" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+              <button class="filter-btn whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-medium" data-msg-filter="nomination" onclick="setMessageFilter('nomination')">Díjjelölés <span id="mcount-nomination" class="count tabular text-[11px] px-1.5 rounded">0</span></button>
+            </div></div>
+            <p id="msg-result-count" class="text-xs text-slate-500"></p>
+          </div>
+          <div id="messages-list" class="divide-y divide-slate-100"></div>
+          <div id="messages-empty" class="hidden text-center py-16">
+            <p class="font-medium text-slate-900">Nincs üzenet</p>
+            <p class="text-slate-500 mt-1">Az oldalak űrlapjain beküldött üzenetek itt jelennek meg.</p>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ PAGES VIEW ============ -->
       <section id="view-pages" class="hidden">
 
@@ -990,6 +1021,9 @@
     applications: [],
     appFilter: 'all',
     pages: [],
+    messages: [],
+    messageForms: {},
+    msgFilter: 'all',
     editingPageId: null,
     pageSlugTouched: false
   };
@@ -1066,7 +1100,7 @@
     document.getElementById('user-initial').textContent = email.slice(0, 1).toUpperCase();
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('login-error').classList.add('hidden');
-    return loadSettings().then(loadFamilies).then(loadPosts).then(loadApplications).then(loadPages).catch(function (e) { showToast(e.message); });
+    return loadSettings().then(loadFamilies).then(loadPosts).then(loadApplications).then(loadPages).then(loadMessages).catch(function (e) { showToast(e.message); });
   }
 
   window.submitLogin = function (event) {
@@ -1144,11 +1178,11 @@
   // ---------------------------------------------------------------
   // View switching
   // ---------------------------------------------------------------
-  var TITLES = { list: 'Családok', settings: 'Beállítások', posts: 'Blog', applications: 'Jelentkezések', pages: 'Oldalak' };
+  var TITLES = { list: 'Családok', settings: 'Beállítások', posts: 'Blog', applications: 'Jelentkezések', pages: 'Oldalak', messages: 'Üzenetek' };
 
   window.goToView = function (view) {
     state.view = view;
-    ['list', 'form', 'settings', 'posts', 'post-form', 'applications', 'pages', 'page-form'].forEach(function (v) {
+    ['list', 'form', 'settings', 'posts', 'post-form', 'applications', 'pages', 'page-form', 'messages'].forEach(function (v) {
       document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
     });
     // Meglévő elem szerkesztésekor a lista menüpontja legyen kiemelve, ne az „Új …”.
@@ -1168,6 +1202,10 @@
     if (view === 'list') renderList();
     if (view === 'posts') renderPosts();
     if (view === 'pages') renderPages();
+    if (view === 'messages') {
+      renderMessages();
+      loadMessages().catch(function (e) { showToast(e.message); });
+    }
     if (view === 'applications') {
       renderApplications();
       loadApplications().catch(function (e) { showToast(e.message); });
@@ -1194,6 +1232,7 @@
     if (state.view === 'posts') renderPosts();
     else if (state.view === 'applications') renderApplications();
     else if (state.view === 'pages') renderPages();
+    else if (state.view === 'messages') renderMessages();
     else if (state.view === 'list') renderList();
     else goToView(state.view === 'post-form' ? 'posts' : 'list');
   };
@@ -1308,7 +1347,11 @@
     state.deleteTarget = { id: id, type: type };
     var title = document.getElementById('delete-modal-title');
     var text = document.getElementById('delete-modal-text');
-    if (type === 'page') {
+    if (type === 'message') {
+      var msg = state.messages.find(function (x) { return x.id === id; });
+      title.textContent = 'Üzenet törlése';
+      text.textContent = 'Biztosan törölni szeretnéd ' + (msg && msg.data.name ? msg.data.name + ' üzenetét' : 'az üzenetet') + ' és a hozzá feltöltött dokumentumokat? Ez a művelet nem vonható vissza.';
+    } else if (type === 'page') {
       var pg = state.pages.find(function (x) { return x.id === id; });
       title.textContent = 'Oldal törlése';
       text.textContent = 'Biztosan törölni szeretnéd a(z) „' + (pg ? pg.title : '') + '” oldalt és a hozzá feltöltött képeket? A menü linkje ezután nem működik. Ez a művelet nem vonható vissza.';
@@ -1341,7 +1384,8 @@
       post: ['/api/admin/posts/', loadPosts, 'A bejegyzés törölve lett.'],
       family: ['/api/admin/families/', function () { return loadFamilies().then(loadApplications); }, 'A család törölve lett.'],
       application: ['/api/admin/applications/', function () { return loadFamilies().then(loadApplications); }, 'A jelentkezés törölve lett.'],
-      page: ['/api/admin/pages/', loadPages, 'Az oldal törölve lett.']
+      page: ['/api/admin/pages/', loadPages, 'Az oldal törölve lett.'],
+      message: ['/api/admin/messages/', loadMessages, 'Az üzenet törölve lett.']
     }[target.type];
     api('DELETE', cfg[0] + target.id)
       .then(cfg[1])
@@ -1842,6 +1886,97 @@
       })
       .catch(function (e) { showToast(e.message); })
       .then(function () { btn.disabled = false; });
+  };
+
+  // ---------------------------------------------------------------
+  // Üzenetek (kapcsolat, programjelentkezés, díjjelölés)
+  // ---------------------------------------------------------------
+  var MSG_STYLE = {
+    contact: 'bg-sky-50 text-sky-800 ring-sky-600/20',
+    program: 'bg-amber-50 text-amber-800 ring-amber-600/20',
+    nomination: 'bg-violet-50 text-violet-800 ring-violet-600/20'
+  };
+
+  function loadMessages() {
+    return api('GET', '/api/admin/messages').then(function (res) {
+      state.messageForms = res.forms;
+      state.messages = res.messages;
+      var fresh = res.messages.filter(function (m) { return m.status === 'new'; }).length;
+      var badge = document.getElementById('nav-msg-badge');
+      badge.textContent = fresh;
+      badge.classList.toggle('hidden', fresh === 0);
+      if (state.view === 'messages') renderMessages();
+    });
+  }
+
+  window.setMessageFilter = function (f) {
+    state.msgFilter = f;
+    document.querySelectorAll('.filter-btn[data-msg-filter]').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-msg-filter') === f);
+    });
+    renderMessages();
+  };
+
+  function fmtSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' kB'; }
+
+  function renderMessages() {
+    var counts = { all: state.messages.length, contact: 0, program: 0, nomination: 0 };
+    state.messages.forEach(function (m) { counts[m.form] = (counts[m.form] || 0) + 1; });
+    Object.keys(counts).forEach(function (k) { document.getElementById('mcount-' + k).textContent = counts[k]; });
+    var q = state.searchQuery;
+    var list = state.messages.filter(function (m) {
+      if (state.msgFilter !== 'all' && m.form !== state.msgFilter) return false;
+      if (!q) return true;
+      return Object.keys(m.data).map(function (k) { return m.data[k]; }).join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    var box = document.getElementById('messages-list');
+    box.innerHTML = '';
+    document.getElementById('messages-empty').classList.toggle('hidden', list.length !== 0);
+    document.getElementById('msg-result-count').textContent = list.length + ' találat';
+    list.forEach(function (m) {
+      var schema = state.messageForms[m.form] || { label: m.form, fields: [] };
+      var d = m.data;
+      var contact = [d.email ? '<a href="mailto:' + escapeHtml(d.email) + '" class="hover:underline">' + escapeHtml(d.email) + '</a>' : '',
+        d.phone ? '<a href="tel:' + escapeHtml(d.phone.replace(/[^\d+]/g, '')) + '" class="hover:underline whitespace-nowrap">' + escapeHtml(d.phone) + '</a>' : '']
+        .filter(Boolean).join(' · ');
+      var rows = schema.fields.filter(function (f) { return ['name', 'email', 'phone'].indexOf(f.name) === -1 && d[f.name]; }).map(function (f) {
+        return '<dt class="text-slate-500">' + escapeHtml(f.label) + '</dt><dd class="text-slate-800 whitespace-pre-line break-words">' + escapeHtml(d[f.name]) + '</dd>';
+      }).join('');
+      var files = m.files.map(function (f, i) {
+        return '<a href="/api/admin/messages/' + m.id + '/files/' + i + '" class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-white px-2.5 py-1.5 text-[13px] text-slate-700">' +
+          '<span class="text-[10px] font-bold uppercase rounded bg-slate-700 text-white px-1 py-px">' + escapeHtml(f.type) + '</span>' + escapeHtml(f.name) +
+          ' <span class="text-slate-400">' + fmtSize(f.size) + '</span></a>';
+      }).join('');
+      var el = document.createElement('article');
+      el.className = 'p-4 sm:p-5' + (m.status === 'new' ? ' bg-amber-50/40' : '');
+      el.innerHTML = '' +
+        '<div class="flex flex-wrap items-start justify-between gap-3">' +
+          '<div class="min-w-0">' +
+            '<div class="flex flex-wrap items-center gap-2">' +
+              '<span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ' + (MSG_STYLE[m.form] || '') + '">' + escapeHtml(schema.label) + '</span>' +
+              '<p class="font-medium text-slate-900">' + escapeHtml(d.name || '–') + '</p>' +
+            '</div>' +
+            '<p class="text-xs text-slate-500 mt-1">' + (contact ? contact + ' · ' : '') + fmtDateTime(m.createdAt) + ' · <a href="/' + encodeURIComponent(m.pageSlug) + '" target="_blank" rel="noopener" class="hover:underline">/' + escapeHtml(m.pageSlug) + '</a></p>' +
+          '</div>' +
+          '<div class="flex items-center gap-1.5">' +
+            '<select onchange="setMessageStatus(' + m.id + ', this.value)" class="field !py-1 !text-xs !w-auto" aria-label="Állapot">' +
+              '<option value="new"' + (m.status === 'new' ? ' selected' : '') + '>Új</option>' +
+              '<option value="handled"' + (m.status === 'handled' ? ' selected' : '') + '>Feldolgozva</option>' +
+            '</select>' +
+            '<button onclick="openDeleteModal(' + m.id + ', \'message\')" class="icon-btn danger" title="Törlés" aria-label="Törlés">' + ICON_DELETE + '</button>' +
+          '</div>' +
+        '</div>' +
+        (rows ? '<dl class="mt-3 grid sm:grid-cols-[220px_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">' + rows + '</dl>' : '') +
+        (files ? '<div class="mt-3 flex flex-wrap gap-2">' + files + '</div>' : '');
+      box.appendChild(el);
+    });
+  }
+
+  window.setMessageStatus = function (id, status) {
+    api('PUT', '/api/admin/messages/' + id, { status: status })
+      .then(loadMessages)
+      .then(function () { showToast('Az állapot mentve.'); })
+      .catch(function (e) { showToast(e.message); });
   };
 
   // ---------------------------------------------------------------

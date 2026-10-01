@@ -136,6 +136,7 @@ server {
     }
 
     location @app {
+        client_max_body_size 30m;  # űrlapok fájlfeltöltéssel (pl. orvosi dokumentumok)
         proxy_pass http://127.0.0.1:3000;
     }
 }
@@ -234,6 +235,7 @@ mkdir "$work/egylepesseltobb"
 # A .backup futás közben is konzisztens másolatot ad (a WAL tartalmát is beleérti).
 sqlite3 "$DATA/egylepesseltobb.db" ".backup '$work/egylepesseltobb/egylepesseltobb.db'"
 cp -a "$DATA/uploads" "$work/egylepesseltobb/uploads"
+if [ -d "$DATA/private" ]; then cp -a "$DATA/private" "$work/egylepesseltobb/private"; fi
 archive="$work/egylepesseltobb-$(date +%Y-%m-%d_%H%M).tar.gz"
 tar -czf "$archive" -C "$work" egylepesseltobb
 
