@@ -7,7 +7,7 @@ NAME="${NAME:-egylepesseltobb}"
 INSTANCE_TYPE="${INSTANCE_TYPE:-t3.micro}"
 REPO_URL="${REPO_URL:-https://github.com/MaczakG/egylepesseltobb.git}"
 BRANCH="${BRANCH:-}"       # üresen: a repó alapértelmezett ága
-DOMAIN="${DOMAIN:-}"       # üresen: ideiglenes <ip>.sslip.io domain
+DOMAIN="${DOMAIN:-}"       # saját (al)domain(ek) vesszővel; az ideiglenes <ip>.sslip.io mindig mellé kerül
 EMAIL="${EMAIL:-}"         # Let's Encrypt értesítésekhez
 KEY_NAME="${KEY_NAME:-}"   # meglévő EC2 key pair, ha SSH-hozzáférés kell
 SSH_CIDR="${SSH_CIDR:-}"   # innen engedjük az SSH-t, pl. 1.2.3.4/32
@@ -100,10 +100,10 @@ address=$(aws ec2 allocate-address --domain vpc \
   --tag-specifications "ResourceType=elastic-ip,Tags=[{Key=Name,Value=$NAME}]" \
   --query '[AllocationId, PublicIp]' --output text)
 read -r alloc ip <<< "$address"
-if [ -z "$DOMAIN" ]; then
-  DOMAIN="${ip//./-}.sslip.io"
-fi
-host="${DOMAIN%%,*}"
+# Az ideiglenes sslip.io cím azonnal működik; a saját domain(ek) akkor kapnak HTTPS-t, amikor a DNS ide mutat.
+host="${ip//./-}.sslip.io"
+custom="$DOMAIN"
+DOMAIN="$host${custom:+,$custom}"
 
 {
   echo '#!/bin/bash'
@@ -151,16 +151,19 @@ case "$code" in
     ;;
 esac
 
-if [[ "$host" == *.sslip.io ]]; then
-  for _ in $(seq 18); do
-    if curl -fs -o /dev/null --max-time 5 "https://$host/"; then
-      summary "Kész: https://$host (IP: $ip)"
-      exit 0
-    fi
-    sleep 10
-  done
-  summary "Kész: http://$host (IP: $ip) – a HTTPS tanúsítvány pár percen belül elkészül."
+https_ok=0
+for _ in $(seq 18); do
+  if curl -fs -o /dev/null --max-time 5 "https://$host/"; then
+    https_ok=1
+    break
+  fi
+  sleep 10
+done
+if [ "$https_ok" = 1 ]; then
+  summary "Kész: https://$host (IP: $ip)"
 else
-  summary "Kész: http://$ip"
-  summary "DNS: állíts be A rekordot erre az IP-re: ${DOMAIN//,/ }. A HTTPS tanúsítványt a szerver automatikusan kéri, amint a DNS ide mutat."
+  summary "Kész: http://$host (IP: $ip) – a HTTPS tanúsítvány pár percen belül elkészül."
+fi
+if [ -n "$custom" ]; then
+  summary "DNS: vegyél fel A rekordot erre az IP-re ($ip): ${custom//,/ }. A HTTPS-t a szerver automatikusan beállítja, amint a DNS ide mutat."
 fi

@@ -5,7 +5,7 @@ set -euxo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/MaczakG/egylepesseltobb.git}"
 BRANCH="${BRANCH:-}"                         # üresen: a repó alapértelmezett ága
-DOMAIN="${DOMAIN:-}"                         # pl. "egylepesseltobb.hu,www.egylepesseltobb.hu" – ha meg van adva, HTTPS is lesz
+DOMAIN="${DOMAIN:-}"                         # vesszővel elválasztott domainek; mindegyikre HTTPS, amint a DNS ide mutat
 EMAIL="${EMAIL:-}"                           # Let's Encrypt értesítésekhez
 ADMIN_EMAIL="${ADMIN_EMAIL:-}"               # az első admin felhasználó
 ADMIN_PASSWORD_HASH="${ADMIN_PASSWORD_HASH:-}"  # scrypt hash, a jelszó maga nem kerül a szerverre
@@ -149,7 +149,8 @@ set -euo pipefail
 SRC=/opt/egylepesseltobb
 WEB=/var/www/egylepesseltobb
 
-if [ -z "$BRANCH" ]; then
+# Ha a megadott ág már nem létezik (pl. merge után törölték), az alapértelmezett ágra vált.
+if [ -z "$BRANCH" ] || ! git ls-remote --exit-code --heads "$REPO_URL" "$BRANCH" >/dev/null; then
   BRANCH=$(git ls-remote --symref "$REPO_URL" HEAD | awk '/^ref:/ { sub("refs/heads/", "", $2); print $2 }')
 fi
 
@@ -171,18 +172,27 @@ elif ! systemctl is-active --quiet egylepesseltobb-app; then
   systemctl start egylepesseltobb-app
 fi
 
-if [ -n "$DOMAIN" ] && [ ! -d "/etc/letsencrypt/live/${DOMAIN%%,*}" ]; then
-  # Csak akkor kérünk tanúsítványt, ha minden domain már erre a szerverre mutat,
-  # különben a Let's Encrypt a sikertelen próbálkozások miatt egy időre letiltana.
+if [ -n "$DOMAIN" ]; then
+  # Csak a már erre a szerverre mutató domainekre kérünk tanúsítványt (különben a Let's Encrypt
+  # a sikertelen próbálkozások miatt egy időre letiltana). Ha később egy újabb domain DNS-e is
+  # ideér, a közös tanúsítványt kibővítjük vele.
   token=$(curl -sf --max-time 2 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token || true)
   my_ip=$(curl -sf --max-time 2 -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/public-ipv4 || true)
-  ready=$([ -n "$my_ip" ] && echo 1 || echo 0)
+  ready=()
   for d in ${DOMAIN//,/ }; do
-    [ "$(getent ahostsv4 "$d" | awk 'NR == 1 { print $1 }')" = "$my_ip" ] || ready=0
+    if [ -n "$my_ip" ] && [ "$(getent ahostsv4 "$d" | awk 'NR == 1 { print $1 }')" = "$my_ip" ]; then
+      ready+=("$d")
+    fi
   done
-  if [ "$ready" = 1 ]; then
+  have=" $(certbot certificates --cert-name egylepesseltobb 2>/dev/null | awk -F': ' '/Domains:/ { print $2 }') "
+  missing=0
+  for d in "${ready[@]}"; do
+    [[ "$have" == *" $d "* ]] || missing=1
+  done
+  if [ "$missing" = 1 ]; then
     if [ -n "$EMAIL" ]; then email_args=(-m "$EMAIL"); else email_args=(--register-unsafely-without-email); fi
-    certbot --nginx --non-interactive --agree-tos --redirect "${email_args[@]}" -d "$DOMAIN" || true
+    certbot --nginx --non-interactive --agree-tos --redirect --expand --cert-name egylepesseltobb \
+      "${email_args[@]}" -d "$(IFS=,; echo "${ready[*]}")" || true
   fi
 fi
 EOF

@@ -35,15 +35,15 @@ deploy/aws/destroy.sh   # törlés (rákérdez; FORCE=1-gyel nem)
 
 ## Saját domain
 
-Az ideiglenes domain helyett saját domaint a `DOMAIN` megadásával lehet használni (GitHubon a **Run workflow** `domain` mezőjében):
+Az ideiglenes `<ip>.sslip.io` cím mindig megmarad. Mellé saját (al)domain(eke)t a `DOMAIN` megadásával lehet adni (GitHubon a **Run workflow** `domain` mezőjében), például:
 
 ```bash
-DOMAIN="egylepesseltobb.hu,www.egylepesseltobb.hu" EMAIL="info@pelda.hu" deploy/aws/deploy.sh
+DOMAIN="teszt.egylepesseltobb.hu" EMAIL="info@pelda.hu" deploy/aws/deploy.sh
 ```
 
-Ezután a domain(ek) A rekordját állítsd a kiírt IP címre. Amint a DNS odamutat, a szerver magától kér Let's Encrypt tanúsítványt, és átirányít HTTPS-re. A megújítás automatikus.
+Ezután a domain(ek)hez vegyél fel egy A rekordot a kiírt IP címre. A szerver 5 percenként ellenőrzi a DNS-t: amint egy domain ide mutat, a közös Let's Encrypt tanúsítványt kibővíti vele, és HTTP-ről HTTPS-re irányít. A megújítás automatikus.
 
-A domain a szerver létrehozásakor dől el: egy már futó (ideiglenes domaines) szervert előbb törölni kell (`destroy`), aztán újra létrehozni a saját domainnel. Ilyenkor az IP cím is megváltozik.
+A domainek listája a szerver létrehozásakor dől el. Új domain hozzáadásához a szervert újra kell telepíteni (`destroy`, majd `deploy`). Az IP cím ilyenkor megváltozik, és az adatbázis is törlődik (a napi mentésből visszaállítható).
 
 ## További beállítások
 
