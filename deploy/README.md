@@ -43,6 +43,8 @@ DOMAIN="teszt.egylepesseltobb.hu" EMAIL="info@pelda.hu" deploy/aws/deploy.sh
 
 Ezután a domain(ek)hez vegyél fel egy A rekordot a kiírt IP címre. A szerver 5 percenként ellenőrzi a DNS-t: amint egy domain ide mutat, a közös Let's Encrypt tanúsítványt kibővíti vele, és HTTP-ről HTTPS-re irányít. A megújítás automatikus.
 
+A domainnek csak ez az egy A rekordja legyen: ha a régi tárhely IP-je is megmaradt mellette, a Let's Encrypt azt is ellenőrzi, és nem ad tanúsítványt. Ilyenkor a szerver nem is próbálkozik, amíg a régi rekordot nem törlöd.
+
 A domainek listája a szerver létrehozásakor dől el. Új domain hozzáadásához a szervert újra kell telepíteni (`destroy`, majd `deploy`). Az IP cím ilyenkor megváltozik, és az adatbázis is törlődik (a napi mentésből visszaállítható).
 
 ## További beállítások

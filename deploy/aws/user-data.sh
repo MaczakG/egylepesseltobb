@@ -179,13 +179,14 @@ fi
 
 if [ -n "$DOMAIN" ]; then
   # Csak a már erre a szerverre mutató domainekre kérünk tanúsítványt (különben a Let's Encrypt
-  # a sikertelen próbálkozások miatt egy időre letiltana). Ha később egy újabb domain DNS-e is
-  # ideér, a közös tanúsítványt kibővítjük vele.
+  # a sikertelen próbálkozások miatt egy időre letiltana). Minden A-rekordnak ide kell mutatnia:
+  # ha a régi tárhely IP-je is ott maradt, a Let's Encrypt azt is ellenőrzi, és elutasítja.
+  # Ha később egy újabb domain DNS-e is ideér, a közös tanúsítványt kibővítjük vele.
   token=$(curl -sf --max-time 2 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token || true)
   my_ip=$(curl -sf --max-time 2 -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/public-ipv4 || true)
   ready=()
   for d in ${DOMAIN//,/ }; do
-    if [ -n "$my_ip" ] && [ "$(getent ahostsv4 "$d" | awk 'NR == 1 { print $1 }')" = "$my_ip" ]; then
+    if [ -n "$my_ip" ] && [ "$(getent ahostsv4 "$d" | awk '$2 == "STREAM" { print $1 }' | sort -u | paste -sd' ')" = "$my_ip" ]; then
       ready+=("$d")
     fi
   done
