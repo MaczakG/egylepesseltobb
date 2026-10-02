@@ -99,18 +99,20 @@ const CONTENT_CSS = `
   .page-content .card:has(> .num) > * { grid-column: 2; margin: 0; }
   .page-content .card > .num { grid-column: 1; grid-row: 1 / span 6; font-family: 'Baloo 2', sans-serif; font-size: 2.75rem; font-weight: 700; line-height: 1; color: #c3ac7e; }
 
-  /* Személyek (pl. nagykövetek): mint a főoldal nagykövet-kártyái. */
+  /* Személyek (pl. nagykövetek): mint a főoldal nagykövet-kártyái, nagy kijelzőn egy sorban (6 × 1). */
   .page-content .cards-people { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-  @media (min-width: 640px) { .page-content .cards-people { gap: 2rem; } }
-  @media (min-width: 1024px) { .page-content .cards-people { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 640px) { .page-content .cards-people { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; } }
+  @media (min-width: 1024px) { .page-content .cards-people { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.25rem; } }
   .page-content .cards-people .card { padding: 0; overflow: hidden; text-align: center; background: rgba(51, 71, 88, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); }
   .band-white .page-content .cards-people .card { background: #263640; border-color: #263640; }
   .page-content .cards-people .card-media { position: relative; aspect-ratio: 4 / 5; overflow: hidden; }
   .page-content .cards-people .card-media a { display: block; height: 100%; }
   .page-content .cards-people .card img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 0; filter: contrast(0.78) saturate(0.85) brightness(1.05); transition: transform 0.5s var(--ease-soft); }
   .page-content .cards-people .card:hover img { transform: scale(1.04); }
-  .page-content .cards-people .card h3 { color: #fff; font-size: 18px; margin: 1.5rem 1.25rem 0.25rem; }
-  .page-content .cards-people .card p { color: #dac7a0; font-size: 14px; line-height: 1.5; text-transform: uppercase; letter-spacing: 0.025em; margin: 0 1.25rem 1.5rem; }
+  .page-content .cards-people .card h3 { color: #fff; font-size: 17px; line-height: 1.35; margin: 1rem 1rem 0.25rem; }
+  .page-content .cards-people .card p { color: #dac7a0; font-size: 12px; line-height: 1.45; text-transform: uppercase; letter-spacing: 0.025em; margin: 0 1rem 1rem; }
+  @media (min-width: 1024px) { .page-content .cards-people .card h3 { font-size: 15px; } }
+  @media (min-width: 1280px) { .page-content .cards-people .card h3 { font-size: 17px; } .page-content .cards-people .card p { font-size: 13px; } }
 
   /* Partnerlogók: fehér csempék, szürkéből színesbe. */
   .page-content .logos { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
