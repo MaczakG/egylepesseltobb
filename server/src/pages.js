@@ -1008,7 +1008,7 @@ export function renderFamilyPage(frame, { family, more, baseUrl, preview, form }
     : '';
   const body = band('white', `
     <div class="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-      <div id="tortenet" class="lg:col-span-7 scroll-mt-28">
+      <div id="tortenet" class="lg:col-span-7 lg:sticky lg:top-28 scroll-mt-28">
         <span class="reveal ${EYEBROW} text-sand-700 mb-4">A történetük</span>
         <h2 class="reveal font-display text-3xl md:text-4xl font-medium text-navy-800 leading-tight mb-8">${escapeHtml(family.name)}</h2>
         <div class="blog-content">${family.story}</div>${galleryHtml}
@@ -1030,11 +1030,29 @@ ${more.map(familyCard).join('\n')}
     type: 'article',
     main: hero + body + moreHtml,
     // Hibás beküldés után az űrlaphoz görgetünk, hogy a hibaüzenetek rögtön látsszanak.
-    extra: (cover ? GALLERY_LIGHTBOX : '')
+    extra: (cover ? GALLERY_LIGHTBOX : '') + STICKY_STORY
       + (form.errors && Object.keys(form.errors).length || form.error
         ? "<script>document.getElementById('jelentkezes').scrollIntoView();</script>" : ''),
   });
 }
+
+// A történet oszlopa görgetéskor a fejléc alatt marad. Ha a képernyőnél magasabb, az alja áll meg a képernyő
+// alján, így előbb végig lehet olvasni (különben az alja csak az oszlop végén látszana).
+const STICKY_STORY = `
+<script>
+(function () {
+  var el = document.getElementById('tortenet');
+  if (!el) return;
+  function fit() {
+    var top = 112;
+    var room = window.innerHeight - top - 24;
+    el.style.top = (el.offsetHeight <= room ? top : window.innerHeight - el.offsetHeight - 24) + 'px';
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(el);
+})();
+</script>`;
 
 // --- Oldalak ------------------------------------------------------------------
 

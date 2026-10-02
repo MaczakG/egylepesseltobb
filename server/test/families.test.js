@@ -99,6 +99,7 @@ describe('a gyerek aloldala', () => {
     assert.match(html, /<title>B\. Lili és családja — Egy Lépéssel Több Alapítvány<\/title>/);
     assert.match(html, /<h1[^>]*>B\. Lili és családja<\/h1>/);
     assert.match(html, /6 éves · SMA/);
+    assert.match(html, /<div id="tortenet" class="lg:col-span-7 lg:sticky lg:top-28 scroll-mt-28">/);
     assert.match(html, /<div class="blog-content"><p>Lili <strong>vidám<\/strong> kislány\.<\/p><h2>Kezelések<\/h2>/);
     assert.match(html, /<link rel="canonical" href="http:\/\/127\.0\.0\.1:\d+\/csaladok\/b-lili-es-csaladja">/);
     assert.match(html, /<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/assets\/img\/story-noel\.webp">/);
