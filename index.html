@@ -112,8 +112,6 @@
   .nav-underline:hover::after { transform: scaleX(1); }
 
   /* Lightbox */
-  #lightbox { transition: opacity 0.3s var(--ease-soft); }
-  .lightbox-img { transition: opacity 0.25s var(--ease-soft); }
 
   /* Mobile menu */
   #mobile-menu { transition: max-height 0.4s var(--ease-soft), opacity 0.3s var(--ease-soft); }
@@ -137,14 +135,15 @@
 </head>
 <body class="bg-white text-navy-700 antialiased">
 
+<!-- site:header:start -->
 <!-- ============ HEADER / NAV ============ -->
 <header id="site-header" class="fixed top-0 inset-x-0 z-50 bg-navy-900/95 backdrop-blur shadow-lg transition-colors duration-500">
-  <div id="header-inner" class="max-w-[96rem] mx-auto px-6 lg:px-10 flex items-center justify-between 2xl:justify-center gap-10 h-20">
+  <div id="header-inner" class="max-w-[96rem] mx-auto px-6 lg:px-10 flex items-center justify-between 2xl:justify-center gap-6 h-20">
     <a href="#top" class="flex items-center shrink-0">
       <img src="assets/img/logo-full.png" alt="Egy Lépéssel Több Hajós István Alapítvány logó" class="h-12 md:h-14 w-auto object-contain">
     </a>
 
-    <nav class="hidden 2xl:flex items-center gap-10 text-sm font-medium tracking-wide text-white/90 whitespace-nowrap">
+    <nav class="hidden 2xl:flex items-center gap-6 text-sm font-medium text-white/90 whitespace-nowrap">
       <a href="#top" class="nav-underline hover:text-sand-400 transition-colors">Főoldal</a>
 
       <div class="nav-dropdown group relative">
@@ -154,10 +153,10 @@
         </button>
         <div class="nav-dropdown-panel absolute left-0 top-full pt-3 opacity-0 invisible -translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
           <div class="bg-navy-800 border border-white/10 rounded-xl shadow-2xl py-2 min-w-[220px]">
-            <a href="#founder" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Alapítónk</a>
-            <a href="#ambassadors" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Nagyköveteink</a>
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Kuratórium</a>
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Dokumentumok</a>
+            <a href="/alapitonk" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Alapítónk</a>
+            <a href="/nagykoveteink" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Nagyköveteink</a>
+            <a href="/kuratorium" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Kuratórium</a>
+            <a href="/dokumentumok" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Dokumentumok</a>
           </div>
         </div>
       </div>
@@ -169,14 +168,17 @@
         </button>
         <div class="nav-dropdown-panel absolute left-0 top-full pt-3 opacity-0 invisible -translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
           <div class="bg-navy-800 border border-white/10 rounded-xl shadow-2xl py-2 min-w-[260px]">
-            <a href="#families" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Család örökbefogadás</a>
-            <a href="#families" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadható családok</a>
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadott családok</a>
-            <a href="#contact" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Az Alapítvány működésének támogatása</a>
-            <a href="#events" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Jótékonysági meccs</a>
+            <a href="/fogadj-orokbe-egy-csaladot" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Család örökbefogadás</a>
+            <a href="/csaladok?statusz=orokbefogadhato" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadható családok</a>
+            <a href="/csaladok?statusz=orokbefogadott" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Örökbefogadott családok</a>
+            <a href="/linkesfizetes" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Az Alapítvány működésének támogatása</a>
+            <a href="/jotekonysagi-meccs" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Jótékonysági meccs</a>
           </div>
         </div>
       </div>
+
+      <a href="/jelntkezz-tamogatonak" class="nav-underline hover:text-sand-400 transition-colors">Jelentkezz támogatónak</a>
+      <a href="/kerulj-be-programunkba" class="nav-underline hover:text-sand-400 transition-colors">Kerülj be programunkba</a>
 
       <div class="nav-dropdown group relative">
         <button class="nav-underline flex items-center gap-1.5 hover:text-sand-400 transition-colors">
@@ -185,12 +187,12 @@
         </button>
         <div class="nav-dropdown-panel absolute left-0 top-full pt-3 opacity-0 invisible -translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
           <div class="bg-navy-800 border border-white/10 rounded-xl shadow-2xl py-2 min-w-[220px]">
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Közös élményeink</a>
-            <a href="#events" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Családi napok</a>
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Aláírási ceremónia</a>
-            <a href="#events" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Gálaest</a>
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Média megjelenések</a>
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Prospektus</a>
+            <a href="/blog?kategoria=kozos-elmenyeink" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Közös élményeink</a>
+            <a href="/csaladi-napok" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Családi napok</a>
+            <a href="/alairasi-ceremonia" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Aláírási ceremónia</a>
+            <a href="/galaest" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Gálaest</a>
+            <a href="/media-megjelenesek" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Média megjelenések</a>
+            <a href="/uploads/Prospektus.pdf" target="_blank" rel="noopener" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Prospektus</a>
           </div>
         </div>
       </div>
@@ -202,14 +204,15 @@
         </button>
         <div class="nav-dropdown-panel absolute left-0 top-full pt-3 opacity-0 invisible -translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
           <div class="bg-navy-800 border border-white/10 rounded-xl shadow-2xl py-2 min-w-[240px]">
-            <a href="#" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Váradi Eszter-díja jelölés</a>
+            <a href="https://hu.wikipedia.org/wiki/V%C3%A1radi_Eszter-d%C3%ADj" target="_blank" rel="noopener" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Váradi Eszter-díj</a>
+            <a href="/varadi-eszter-dijra-jeloles" class="block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors">Váradi Eszter-díjra jelölés</a>
           </div>
         </div>
       </div>
     </nav>
 
     <div class="hidden 2xl:flex items-center gap-3 shrink-0">
-      <a href="#contact" class="inline-flex items-center gap-2 border border-white/40 hover:border-sand-400 hover:text-sand-400 text-white font-semibold text-sm px-5 py-3 rounded-full transition-colors whitespace-nowrap">
+      <a href="/1-ado" class="inline-flex items-center gap-2 border border-white/40 hover:border-sand-400 hover:text-sand-400 text-white font-semibold text-sm px-5 py-3 rounded-full transition-colors whitespace-nowrap">
         Adó 1%
       </a>
       <a href="#families" class="btn-primary inline-flex items-center gap-2 bg-sand-500 hover:bg-sand-600 text-navy-900 font-semibold text-sm px-5 py-3 rounded-full whitespace-nowrap">
@@ -236,10 +239,10 @@
         <svg class="mobile-dropdown-chevron w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
       </button>
       <div id="mob-sub-alapitvany" class="hidden flex-col pl-4 gap-1 text-sm font-sans text-white/70">
-        <a href="#founder" class="block py-2 hover:text-sand-400 transition-colors">Alapítónk</a>
-        <a href="#ambassadors" class="block py-2 hover:text-sand-400 transition-colors">Nagyköveteink</a>
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Kuratórium</a>
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Dokumentumok</a>
+        <a href="/alapitonk" class="block py-2 hover:text-sand-400 transition-colors">Alapítónk</a>
+        <a href="/nagykoveteink" class="block py-2 hover:text-sand-400 transition-colors">Nagyköveteink</a>
+        <a href="/kuratorium" class="block py-2 hover:text-sand-400 transition-colors">Kuratórium</a>
+        <a href="/dokumentumok" class="block py-2 hover:text-sand-400 transition-colors">Dokumentumok</a>
       </div>
 
       <button class="mobile-dropdown-toggle flex items-center justify-between py-3 text-left" data-target="mob-sub-orokbefogadas">
@@ -247,24 +250,26 @@
         <svg class="mobile-dropdown-chevron w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
       </button>
       <div id="mob-sub-orokbefogadas" class="hidden flex-col pl-4 gap-1 text-sm font-sans text-white/70">
-        <a href="#families" class="block py-2 hover:text-sand-400 transition-colors">Család örökbefogadás</a>
-        <a href="#families" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadható családok</a>
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadott családok</a>
-        <a href="#contact" class="block py-2 hover:text-sand-400 transition-colors">Az Alapítvány működésének támogatása</a>
-        <a href="#events" class="block py-2 hover:text-sand-400 transition-colors">Jótékonysági meccs</a>
+        <a href="/fogadj-orokbe-egy-csaladot" class="block py-2 hover:text-sand-400 transition-colors">Család örökbefogadás</a>
+        <a href="/csaladok?statusz=orokbefogadhato" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadható családok</a>
+        <a href="/csaladok?statusz=orokbefogadott" class="block py-2 hover:text-sand-400 transition-colors">Örökbefogadott családok</a>
+        <a href="/linkesfizetes" class="block py-2 hover:text-sand-400 transition-colors">Az Alapítvány működésének támogatása</a>
+        <a href="/jotekonysagi-meccs" class="block py-2 hover:text-sand-400 transition-colors">Jótékonysági meccs</a>
       </div>
 
+      <a href="/jelntkezz-tamogatonak" class="block py-3 hover:text-sand-400 transition-colors">Jelentkezz támogatónak</a>
+      <a href="/kerulj-be-programunkba" class="block py-3 hover:text-sand-400 transition-colors">Kerülj be programunkba</a>
       <button class="mobile-dropdown-toggle flex items-center justify-between py-3 text-left" data-target="mob-sub-galeria">
         Galéria
         <svg class="mobile-dropdown-chevron w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
       </button>
       <div id="mob-sub-galeria" class="hidden flex-col pl-4 gap-1 text-sm font-sans text-white/70">
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Közös élményeink</a>
-        <a href="#events" class="block py-2 hover:text-sand-400 transition-colors">Családi napok</a>
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Aláírási ceremónia</a>
-        <a href="#events" class="block py-2 hover:text-sand-400 transition-colors">Gálaest</a>
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Média megjelenések</a>
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Prospektus</a>
+        <a href="/blog?kategoria=kozos-elmenyeink" class="block py-2 hover:text-sand-400 transition-colors">Közös élményeink</a>
+        <a href="/csaladi-napok" class="block py-2 hover:text-sand-400 transition-colors">Családi napok</a>
+        <a href="/alairasi-ceremonia" class="block py-2 hover:text-sand-400 transition-colors">Aláírási ceremónia</a>
+        <a href="/galaest" class="block py-2 hover:text-sand-400 transition-colors">Gálaest</a>
+        <a href="/media-megjelenesek" class="block py-2 hover:text-sand-400 transition-colors">Média megjelenések</a>
+        <a href="/uploads/Prospektus.pdf" target="_blank" rel="noopener" class="block py-2 hover:text-sand-400 transition-colors">Prospektus</a>
       </div>
 
       <button class="mobile-dropdown-toggle flex items-center justify-between py-3 text-left" data-target="mob-sub-varadi">
@@ -272,14 +277,16 @@
         <svg class="mobile-dropdown-chevron w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
       </button>
       <div id="mob-sub-varadi" class="hidden flex-col pl-4 gap-1 text-sm font-sans text-white/70">
-        <a href="#" class="block py-2 hover:text-sand-400 transition-colors">Váradi Eszter-díja jelölés</a>
+        <a href="https://hu.wikipedia.org/wiki/V%C3%A1radi_Eszter-d%C3%ADj" target="_blank" rel="noopener" class="block py-2 hover:text-sand-400 transition-colors">Váradi Eszter-díj</a>
+        <a href="/varadi-eszter-dijra-jeloles" class="block py-2 hover:text-sand-400 transition-colors">Váradi Eszter-díjra jelölés</a>
       </div>
 
-      <a href="#contact" class="inline-flex justify-center border border-white/40 text-white font-semibold text-base px-6 py-3 rounded-full mt-4">Adó 1%</a>
+      <a href="/1-ado" class="inline-flex justify-center border border-white/40 text-white font-semibold text-base px-6 py-3 rounded-full mt-4">Adó 1%</a>
       <a href="#families" class="btn-primary inline-flex justify-center bg-sand-500 text-navy-900 font-semibold text-base px-6 py-3 rounded-full mt-2">Fogadj örökbe egy családot</a>
     </nav>
   </div>
 </header>
+<!-- site:header:end -->
 
 <!-- ============ HERO ============ -->
 <section id="top" class="relative h-screen min-h-[640px] w-full overflow-hidden">
@@ -316,14 +323,19 @@
 <!-- ============ FAMILIES ============ -->
 <section id="families" class="relative bg-white py-24 md:py-36 px-6 lg:px-10">
   <div class="max-w-7xl mx-auto">
-    <div class="mb-16 md:mb-20">
-      <span class="reveal block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Fogadj örökbe egy családot</span>
-      <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-navy-800 max-w-2xl leading-tight">
-        Nem statisztika. Nem szám. Egy valódi család, akinek az élete változhat veled.
-      </h2>
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16 md:mb-20">
+      <div>
+        <span class="reveal block text-sand-700 tracking-[0.3em] text-xs md:text-sm font-semibold uppercase mb-4">Fogadj örökbe egy családot</span>
+        <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-navy-800 max-w-2xl leading-tight">
+          Nem statisztika. Nem szám. Egy valódi család, akinek az élete változhat veled.
+        </h2>
+      </div>
+      <a href="/csaladok?statusz=orokbefogadott" class="reveal inline-flex items-center gap-2 border border-navy-800 text-navy-800 hover:bg-navy-800 hover:text-white font-semibold px-6 py-3 rounded-full transition-colors self-start md:self-auto whitespace-nowrap">Örökbefogadott családjaink →</a>
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+      <!-- families:start -->
+      <!-- A szerver ezt a részt az admin felületen kezelt családokra cseréli; a lenti kártyák csak tartalék. -->
 
       <!-- Noel -->
       <article class="reveal lift-card group bg-navy-50 rounded-2xl overflow-hidden border border-navy-100">
@@ -367,6 +379,7 @@
         </div>
       </article>
 
+      <!-- families:end -->
     </div>
   </div>
 </section>
@@ -379,16 +392,16 @@
       <h2 class="reveal font-display text-3xl md:text-5xl font-medium text-white leading-tight">Akik a nevüket adják hozzá, hogy több család jusson segítséghez</h2>
     </div>
 
-    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 lg:gap-5">
 
       <article class="reveal lift-card group bg-navy-700/60 border border-white/10 rounded-2xl overflow-hidden text-center">
         <div class="relative aspect-[4/5] w-full overflow-hidden">
           <img src="assets/img/ambassador-gyorfi-pal.jpg" loading="lazy" alt="Győrfi Pál portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
           <span class="ambassador-accent"></span>
         </div>
-        <div class="p-6">
-          <h3 class="font-display text-white font-semibold text-[18px] mb-1">Győrfi Pál</h3>
-          <p class="text-sand-500 text-[14px] uppercase tracking-wide">OMSZ szóvivő</p>
+        <div class="p-4 xl:p-5">
+          <h3 class="font-display text-white font-semibold text-[16px] lg:text-[15px] xl:text-[17px] leading-snug mb-1">Győrfi Pál</h3>
+          <p class="text-sand-500 text-[12px] xl:text-[13px] leading-snug uppercase tracking-wide">OMSZ szóvivő</p>
         </div>
       </article>
 
@@ -397,9 +410,9 @@
           <img src="assets/img/ambassador-racz-jeno.jpg" loading="lazy" alt="Rácz Jenő portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
           <span class="ambassador-accent"></span>
         </div>
-        <div class="p-6">
-          <h3 class="font-display text-white font-semibold text-[18px] mb-1">Rácz Jenő</h3>
-          <p class="text-sand-500 text-[14px] uppercase tracking-wide">Michelin-csillagos séf</p>
+        <div class="p-4 xl:p-5">
+          <h3 class="font-display text-white font-semibold text-[16px] lg:text-[15px] xl:text-[17px] leading-snug mb-1">Rácz Jenő</h3>
+          <p class="text-sand-500 text-[12px] xl:text-[13px] leading-snug uppercase tracking-wide">Michelin-csillagos séf</p>
         </div>
       </article>
 
@@ -408,9 +421,9 @@
           <img src="assets/img/ambassador-kucsera-gabor.jpg" loading="lazy" alt="Kucsera Gábor portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
           <span class="ambassador-accent"></span>
         </div>
-        <div class="p-6">
-          <h3 class="font-display text-white font-semibold text-[18px] mb-1">Kucsera Gábor</h3>
-          <p class="text-sand-500 text-[14px] uppercase tracking-wide">Kétszeres világbajnok kajakos</p>
+        <div class="p-4 xl:p-5">
+          <h3 class="font-display text-white font-semibold text-[16px] lg:text-[15px] xl:text-[17px] leading-snug mb-1">Kucsera Gábor</h3>
+          <p class="text-sand-500 text-[12px] xl:text-[13px] leading-snug uppercase tracking-wide">Kétszeres világbajnok kajakos</p>
         </div>
       </article>
 
@@ -419,9 +432,9 @@
           <img src="assets/img/ambassador-proksa-szandra.jpg" loading="lazy" alt="Proksa Szandra portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
           <span class="ambassador-accent"></span>
         </div>
-        <div class="p-6">
-          <h3 class="font-display text-white font-semibold text-[18px] mb-1">Proksa Szandra</h3>
-          <p class="text-sand-500 text-[14px] uppercase tracking-wide">TV2 műsorvezető</p>
+        <div class="p-4 xl:p-5">
+          <h3 class="font-display text-white font-semibold text-[16px] lg:text-[15px] xl:text-[17px] leading-snug mb-1">Proksa Szandra</h3>
+          <p class="text-sand-500 text-[12px] xl:text-[13px] leading-snug uppercase tracking-wide">TV2 műsorvezető</p>
         </div>
       </article>
 
@@ -430,9 +443,9 @@
           <img src="assets/img/ambassador-kovacs-dobos-evelin.jpg" loading="lazy" alt="Kovács-Dobos Evelin portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
           <span class="ambassador-accent"></span>
         </div>
-        <div class="p-6">
-          <h3 class="font-display text-white font-semibold text-[18px] mb-1">Kovács-Dobos Evelin</h3>
-          <p class="text-sand-500 text-[14px] uppercase tracking-wide">Színésznő</p>
+        <div class="p-4 xl:p-5">
+          <h3 class="font-display text-white font-semibold text-[16px] lg:text-[15px] xl:text-[17px] leading-snug mb-1">Kovács-Dobos Evelin</h3>
+          <p class="text-sand-500 text-[12px] xl:text-[13px] leading-snug uppercase tracking-wide">Színésznő</p>
         </div>
       </article>
 
@@ -441,9 +454,9 @@
           <img src="assets/img/ambassador-andrasfi-tibor.jpg" loading="lazy" alt="Andrásfi Tibor portréja" class="ambassador-photo w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-500">
           <span class="ambassador-accent"></span>
         </div>
-        <div class="p-6">
-          <h3 class="font-display text-white font-semibold text-[18px] mb-1">Andrásfi Tibor</h3>
-          <p class="text-sand-500 text-[14px] uppercase tracking-wide">Olimpiai bajnok</p>
+        <div class="p-4 xl:p-5">
+          <h3 class="font-display text-white font-semibold text-[16px] lg:text-[15px] xl:text-[17px] leading-snug mb-1">Andrásfi Tibor</h3>
+          <p class="text-sand-500 text-[12px] xl:text-[13px] leading-snug uppercase tracking-wide">Olimpiai bajnok</p>
         </div>
       </article>
 
@@ -519,6 +532,11 @@
   </div>
 </section>
 
+<!-- A szerver ide teszi a legfrissebb blogbejegyzéseket (ha vannak). -->
+<!-- posts:start -->
+<!-- posts:end -->
+
+<!-- site:footer:start -->
 <!-- ============ FOOTER ============ -->
 <footer class="bg-navy-900 text-white">
 
@@ -542,52 +560,16 @@
   </div>
 
   <!-- Events -->
+  <!-- events:start -->
+  <!-- A szerver ezt a részt a blog legfrissebb „Rendezvények” bejegyzéseire cseréli; ez csak tartalék. -->
   <div id="events" class="border-b border-white/10 py-16 px-6 lg:px-10">
     <div class="max-w-7xl mx-auto">
       <p class="text-xs tracking-[0.3em] uppercase text-sand-400 mb-3">Rendezvényeink</p>
-      <h3 class="font-display text-2xl md:text-3xl font-medium mb-10">Találkozzunk élőben is</h3>
-
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-        <button class="event-card text-left group" data-event="0">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/charity,gala/all" loading="lazy" alt="Jótékonysági Gála" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Jótékonysági Gála</h4>
-          <p class="text-sm text-white/60">2026. szeptember 20. · Budapest, Bálna</p>
-        </button>
-
-        <button class="event-card text-left group" data-event="1">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/picnic,family,park/all" loading="lazy" alt="Családi Piknik Nap" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Családi Piknik Nap</h4>
-          <p class="text-sm text-white/60">2026. október 4. · Margitsziget</p>
-        </button>
-
-        <button class="event-card text-left group" data-event="2">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/christmas,donation/all" loading="lazy" alt="Karácsonyi Adományosztás" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Karácsonyi Adományosztás</h4>
-          <p class="text-sm text-white/60">2026. december 14. · Debrecen</p>
-        </button>
-
-        <button class="event-card text-left group" data-event="3">
-          <div class="relative h-44 rounded-xl overflow-hidden mb-4">
-            <img src="https://loremflickr.com/480/360/kids,sports,day/all" loading="lazy" alt="Sportnap a Gyerekekért" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
-            <div class="absolute inset-0 bg-navy-900/30 group-hover:bg-navy-900/10 transition-colors"></div>
-          </div>
-          <h4 class="font-display font-semibold text-white mb-1">Sportnap a Gyerekekért</h4>
-          <p class="text-sm text-white/60">2027. február 1. · Szeged, Sportcsarnok</p>
-        </button>
-
-      </div>
+      <h3 class="font-display text-2xl md:text-3xl font-medium mb-6">Találkozzunk élőben is</h3>
+      <a href="/blog?kategoria=rendezvenyek" class="inline-flex items-center gap-2 text-sm font-semibold text-sand-400 hover:text-sand-300">Rendezvényeink a blogon →</a>
     </div>
   </div>
+  <!-- events:end -->
 
   <!-- Footer menu / contact -->
   <div id="contact" class="py-16 px-6 lg:px-10">
@@ -599,14 +581,14 @@
         </a>
         <p class="text-white/60 text-sm leading-relaxed mb-6">Most Te is tehetsz egy lépéssel többet!</p>
         <div class="flex gap-3">
-          <a href="#" aria-label="Facebook" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
+          <a href="https://www.facebook.com/egylepesseltobb/" target="_blank" rel="noopener" aria-label="Facebook" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0022 12z"/></svg>
           </a>
-          <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
+          <a href="https://www.instagram.com/egylepesseltobbalapitvany/" target="_blank" rel="noopener" aria-label="Instagram" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 2 .3 2.4.5.6.2 1 .5 1.5 1 .4.4.7.9 1 1.5.2.4.4 1.2.5 2.4.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2-.5 2.4-.3.6-.6 1-1 1.5-.5.4-.9.7-1.5 1-.4.2-1.2.4-2.4.5-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2-.3-2.4-.5-.6-.3-1-.6-1.5-1-.4-.5-.7-.9-1-1.5-.2-.4-.4-1.2-.5-2.4-.1-1.3-.1-1.7-.1-4.9s0-3.6.1-4.9c.1-1.2.3-2 .5-2.4.2-.6.6-1 1-1.5.4-.4.9-.7 1.5-1 .4-.2 1.2-.4 2.4-.5C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.8.1-1 .1-1.5.2-1.9.4-.5.2-.8.4-1.1.7-.3.3-.5.6-.7 1.1-.2.4-.3.9-.4 1.9-.1 1.3-.1 1.7-.1 4.8s0 3.5.1 4.8c.1 1 .2 1.5.4 1.9.2.5.4.8.7 1.1.3.3.6.5 1.1.7.4.2.9.3 1.9.4 1.3.1 1.7.1 4.8.1s3.5 0 4.8-.1c1-.1 1.5-.2 1.9-.4.5-.2.8-.4 1.1-.7.3-.3.5-.6.7-1.1.2-.4.3-.9.4-1.9.1-1.3.1-1.7.1-4.8s0-3.5-.1-4.8c-.1-1-.2-1.5-.4-1.9-.2-.5-.4-.8-.7-1.1-.3-.3-.6-.5-1.1-.7-.4-.2-.9-.3-1.9-.4-1.3-.1-1.7-.1-4.8-.1zm0 3.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 1.8a2.7 2.7 0 100 5.4 2.7 2.7 0 000-5.4zm5.7-2a1.1 1.1 0 11-2.2 0 1.1 1.1 0 012.2 0z"/></svg>
           </a>
-          <a href="#" aria-label="YouTube" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23 12s0-3.6-.5-5.3a3 3 0 00-2.1-2.1C18.7 4 12 4 12 4s-6.7 0-8.4.6A3 3 0 001.5 6.7C1 8.4 1 12 1 12s0 3.6.5 5.3a3 3 0 002.1 2.1C5.3 20 12 20 12 20s6.7 0 8.4-.6a3 3 0 002.1-2.1c.5-1.7.5-5.3.5-5.3zM9.7 15.5v-7l6.1 3.5-6.1 3.5z"/></svg>
+          <a href="https://www.tiktok.com/@egylepesseltobb" target="_blank" rel="noopener" aria-label="TikTok" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:bg-sand-500 hover:text-navy-900 hover:border-sand-500 transition-colors">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
           </a>
         </div>
       </div>
@@ -614,26 +596,35 @@
       <div>
         <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Rólunk</h5>
         <ul class="space-y-3 text-sm text-white/65">
-          <li><a href="#founder" class="hover:text-white transition-colors">Az alapító</a></li>
-          <li><a href="#ambassadors" class="hover:text-white transition-colors">Nagyköveteink</a></li>
-          <li><a href="#areas" class="hover:text-white transition-colors">Támogatott területek</a></li>
+          <li><a href="/alapitonk" class="hover:text-white transition-colors">Az alapító</a></li>
+          <li><a href="/nagykoveteink" class="hover:text-white transition-colors">Nagyköveteink</a></li>
+          <li><a href="/kuldetesunk" class="hover:text-white transition-colors">Küldetésünk</a></li>
+          <li><a href="/kuratorium" class="hover:text-white transition-colors">Kuratórium</a></li>
+          <li><a href="/tamogatott-teruletek" class="hover:text-white transition-colors">Támogatott területek</a></li>
+          <li><a href="/partnereink" class="hover:text-white transition-colors">Partnereink</a></li>
+          <li><a href="/dokumentumok" class="hover:text-white transition-colors">Dokumentumok</a></li>
+          <li><a href="/blog" class="hover:text-white transition-colors">Blog</a></li>
         </ul>
       </div>
 
       <div>
         <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Támogatás</h5>
         <ul class="space-y-3 text-sm text-white/65">
-          <li><a href="#families" class="hover:text-white transition-colors">Fogadj örökbe egy családot</a></li>
-          <li><a href="#events" class="hover:text-white transition-colors">Rendezvények</a></li>
-          <li><a href="#" class="hover:text-white transition-colors">Adatkezelési tájékoztató</a></li>
+          <li><a href="/fogadj-orokbe-egy-csaladot" class="hover:text-white transition-colors">Fogadj örökbe egy családot</a></li>
+          <li><a href="/jelntkezz-tamogatonak" class="hover:text-white transition-colors">Jelentkezz támogatónak</a></li>
+          <li><a href="/kerulj-be-programunkba" class="hover:text-white transition-colors">Kerülj be programunkba</a></li>
+          <li><a href="/1-ado" class="hover:text-white transition-colors">1% adó</a></li>
+          <li><a href="/linkesfizetes" class="hover:text-white transition-colors">Az Alapítvány működésének támogatása</a></li>
+          <li><a href="/blog?kategoria=rendezvenyek" class="hover:text-white transition-colors">Rendezvények</a></li>
+          <li><a href="/adatkezelesi-tajekoztato" class="hover:text-white transition-colors">Adatkezelési tájékoztató</a></li>
         </ul>
       </div>
 
       <div>
-        <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5">Kapcsolat</h5>
+        <h5 class="font-display text-sm font-semibold text-sand-400 uppercase tracking-wide mb-5"><a href="/kapcsolat" class="hover:text-white transition-colors">Kapcsolat</a></h5>
         <ul class="space-y-3 text-sm text-white/65">
           <li>1131 Budapest, Rokolya utca 1-13. 5. emelet</li>
-          <li>+36 30 123 4567</li>
+          <li>+36 70 789 2340</li>
           <li>info@egylepesseltobb.hu</li>
         </ul>
       </div>
@@ -672,36 +663,14 @@
     <div class="max-w-7xl mx-auto pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/40">
       <p>© 2026 Egy Lépéssel Több Alapítvány. Minden jog fenntartva.</p>
       <div class="flex gap-6">
-        <a href="#" class="hover:text-white transition-colors">Adatkezelési tájékoztató</a>
+        <a href="/adatkezelesi-tajekoztato" class="hover:text-white transition-colors">Adatkezelési tájékoztató</a>
       </div>
     </div>
   </div>
 </footer>
+<!-- site:footer:end -->
 
-<!-- ============ LIGHTBOX ============ -->
-<div id="lightbox" class="fixed inset-0 z-[100] hidden opacity-0 bg-navy-900/95 backdrop-blur-sm items-center justify-center px-4">
-  <button id="lightbox-close" aria-label="Bezárás" class="absolute top-6 right-6 text-white/80 hover:text-sand-400 transition-colors">
-    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-  </button>
-
-  <button id="lightbox-prev" aria-label="Előző kép" class="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-sand-400 transition-colors">
-    <svg class="w-9 h-9 md:w-12 md:h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-  </button>
-  <button id="lightbox-next" aria-label="Következő kép" class="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-sand-400 transition-colors">
-    <svg class="w-9 h-9 md:w-12 md:h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-  </button>
-
-  <div class="max-w-4xl w-full">
-    <div class="relative rounded-xl overflow-hidden bg-navy-800 aspect-[4/3]">
-      <img id="lightbox-img" src="" alt="" class="lightbox-img w-full h-full object-cover">
-    </div>
-    <div class="text-center mt-5">
-      <h4 id="lightbox-title" class="font-display text-white text-lg font-semibold"></h4>
-      <p id="lightbox-counter" class="text-white/50 text-sm mt-1"></p>
-    </div>
-  </div>
-</div>
-
+<!-- site:script:start -->
 <script>
 (function () {
   // ---- Header background on scroll ----
@@ -797,114 +766,9 @@
     });
   }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
   revealEls.forEach(function (el) { observer.observe(el); });
-
-  // ---- Events lightbox ----
-  var eventGalleries = [
-    {
-      title: 'Jótékonysági Gála',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/gala,event/all', alt: 'Jótékonysági Gála – vendégek érkezése' },
-        { src: 'https://loremflickr.com/1200/800/gala,dinner/all', alt: 'Jótékonysági Gála – vacsora' },
-        { src: 'https://loremflickr.com/1200/800/charity,auction/all', alt: 'Jótékonysági Gála – árverés' }
-      ]
-    },
-    {
-      title: 'Családi Piknik Nap',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/picnic,park,family/all', alt: 'Családi Piknik Nap – piknikező családok' },
-        { src: 'https://loremflickr.com/1200/800/children,games,park/all', alt: 'Családi Piknik Nap – gyerekjátékok' },
-        { src: 'https://loremflickr.com/1200/800/summer,picnic/all', alt: 'Családi Piknik Nap – nyári hangulat' }
-      ]
-    },
-    {
-      title: 'Karácsonyi Adományosztás',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/christmas,gifts/all', alt: 'Karácsonyi Adományosztás – ajándékcsomagok' },
-        { src: 'https://loremflickr.com/1200/800/christmas,children/all', alt: 'Karácsonyi Adományosztás – gyerekek az ajándékokkal' },
-        { src: 'https://loremflickr.com/1200/800/winter,charity/all', alt: 'Karácsonyi Adományosztás – önkéntesek' }
-      ]
-    },
-    {
-      title: 'Sportnap a Gyerekekért',
-      images: [
-        { src: 'https://loremflickr.com/1200/800/kids,sports,field/all', alt: 'Sportnap a Gyerekekért – pályán' },
-        { src: 'https://loremflickr.com/1200/800/children,running,race/all', alt: 'Sportnap a Gyerekekért – futóverseny' },
-        { src: 'https://loremflickr.com/1200/800/sports,team,kids/all', alt: 'Sportnap a Gyerekekért – csapatjáték' }
-      ]
-    }
-  ];
-
-  var lightbox = document.getElementById('lightbox');
-  var lightboxImg = document.getElementById('lightbox-img');
-  var lightboxTitle = document.getElementById('lightbox-title');
-  var lightboxCounter = document.getElementById('lightbox-counter');
-  var lbClose = document.getElementById('lightbox-close');
-  var lbPrev = document.getElementById('lightbox-prev');
-  var lbNext = document.getElementById('lightbox-next');
-
-  var activeGallery = null;
-  var activeIndex = 0;
-
-  function renderLightbox() {
-    var gallery = eventGalleries[activeGallery];
-    var img = gallery.images[activeIndex];
-    lightboxImg.style.opacity = '0';
-    setTimeout(function () {
-      lightboxImg.src = img.src;
-      lightboxImg.alt = img.alt;
-      lightboxImg.style.opacity = '1';
-    }, 120);
-    lightboxTitle.textContent = gallery.title;
-    lightboxCounter.textContent = (activeIndex + 1) + ' / ' + gallery.images.length;
-  }
-
-  function openLightbox(idx) {
-    activeGallery = idx;
-    activeIndex = 0;
-    lightbox.classList.remove('hidden');
-    requestAnimationFrame(function () {
-      lightbox.classList.add('flex');
-      lightbox.style.opacity = '1';
-    });
-    document.body.style.overflow = 'hidden';
-    renderLightbox();
-  }
-
-  function closeLightbox() {
-    lightbox.style.opacity = '0';
-    document.body.style.overflow = '';
-    setTimeout(function () {
-      lightbox.classList.add('hidden');
-      lightbox.classList.remove('flex');
-    }, 300);
-  }
-
-  document.querySelectorAll('.event-card').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      openLightbox(parseInt(btn.getAttribute('data-event'), 10));
-    });
-  });
-
-  lbClose.addEventListener('click', closeLightbox);
-  lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLightbox(); });
-  lbPrev.addEventListener('click', function () {
-    var gallery = eventGalleries[activeGallery];
-    activeIndex = (activeIndex - 1 + gallery.images.length) % gallery.images.length;
-    renderLightbox();
-  });
-  lbNext.addEventListener('click', function () {
-    var gallery = eventGalleries[activeGallery];
-    activeIndex = (activeIndex + 1) % gallery.images.length;
-    renderLightbox();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (lightbox.classList.contains('hidden')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') lbPrev.click();
-    if (e.key === 'ArrowRight') lbNext.click();
-  });
 })();
 </script>
+<!-- site:script:end -->
 
 </body>
 </html>
