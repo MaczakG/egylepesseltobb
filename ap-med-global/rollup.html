@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>AP Med Global – roll-up 85 × 200 cm</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  /* Roll-up 850 × 2000 mm. Minden méret u-ban: nyomtatáskor 1u = 1mm, előnézetben 1u = 1px. */
+  @page { size: 850mm 2000mm; margin: 0; }
+  :root {
+    --u: 1mm;
+    --pad: calc(64 * var(--u));
+    --logo-w: calc(330 * var(--u));
+    --dest-size: calc(74 * var(--u));
+    --planet-r: calc(1250 * var(--u));
+    --planet-x: calc(425 * var(--u));
+    --apex: calc(480 * var(--u));
+  }
+  html.preview { --u: 1px; }
+  body, .canvas { width: calc(850 * var(--u)); height: calc(2000 * var(--u)); }
+
+  header {
+    position: absolute; z-index: 5;
+    left: var(--pad); right: var(--pad); top: calc(80 * var(--u));
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .destination { margin-top: calc(34 * var(--u)); }
+
+  /* partnerek */
+  .partners {
+    position: absolute; z-index: 4;
+    left: var(--pad); right: var(--pad); top: calc(598 * var(--u));
+  }
+  .partners > .eyebrow {
+    font-size: calc(20 * var(--u)); letter-spacing: 0.32em; text-align: center;
+    margin-right: -0.32em;
+  }
+  .partners > .rule-c {
+    width: calc(90 * var(--u)); height: calc(1 * var(--u)); margin: calc(22 * var(--u)) auto calc(30 * var(--u));
+    background: linear-gradient(90deg, rgba(217, 168, 78, 0), var(--gold-2), rgba(217, 168, 78, 0));
+  }
+  .row {
+    display: flex; align-items: center; gap: calc(52 * var(--u));
+    padding: calc(24 * var(--u)) calc(8 * var(--u));
+  }
+  .row + .row { border-top: calc(1 * var(--u)) solid rgba(217, 168, 78, 0.18); }
+  .thumb {
+    position: relative; flex: none;
+    width: calc(170 * var(--u)); height: calc(170 * var(--u));
+    --ring: calc(12 * var(--u)); --ring-stroke: 0.68;
+    display: flex; align-items: center; justify-content: center;
+    margin: var(--ring);
+  }
+  .thumb.photo::before {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 2;
+    box-shadow: inset 0 0 0 calc(1 * var(--u)) rgba(200, 225, 255, 0.18), inset 0 calc(-40 * var(--u)) calc(60 * var(--u)) rgba(4, 12, 30, 0.45);
+  }
+  .thumb.photo img {
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+    filter: saturate(0.82) contrast(1.05);
+  }
+  .row .eyebrow { font-size: calc(15 * var(--u)); letter-spacing: 0.24em; }
+  .row .name { font-size: calc(46 * var(--u)); line-height: 1.05; margin-top: calc(10 * var(--u)); }
+  .row .subtitle { font-size: calc(25 * var(--u)); margin-top: calc(6 * var(--u)); }
+
+  /* weboldalak */
+  .web {
+    position: absolute; z-index: 4; left: 0; right: 0; top: calc(1490 * var(--u));
+    text-align: center; font-family: var(--sans); font-weight: 500; color: var(--ink);
+    font-size: calc(44 * var(--u)); letter-spacing: 0.02em; line-height: 1.5;
+  }
+  .web .dot {
+    display: block; width: calc(6 * var(--u)); height: calc(6 * var(--u)); border-radius: 50%;
+    background: var(--gold-2); margin: calc(8 * var(--u)) auto calc(10 * var(--u));
+  }
+
+  footer.trust {
+    position: absolute; z-index: 4; left: 0; right: 0;
+    top: calc(1712 * var(--u)); height: calc(110 * var(--u)); gap: calc(58 * var(--u));
+  }
+  .trust .mta { height: calc(110 * var(--u)); }
+  .trust .better { height: calc(58 * var(--u)); }
+  .trust .mc { height: calc(56 * var(--u)); }
+</style>
+<script>if (location.search.includes("preview")) document.documentElement.classList.add("preview");</script>
+</head>
+<body>
+<div class="canvas">
+  <svg class="stars" id="stars"></svg>
+  <div class="planet"></div>
+  <div class="sunrise"></div>
+
+  <header>
+    <img class="brand-logo" src="assets/logos/apmed-global-dark.svg" alt="AP Med Global">
+    <svg class="destination" id="dest" role="img" aria-label="Destination: Better Life"></svg>
+  </header>
+
+  <section class="partners">
+    <div class="eyebrow">Partnereink</div>
+    <div class="rule-c"></div>
+    <div id="rows"></div>
+  </section>
+
+  <div class="web">apmedglobal.com<span class="dot"></span>apmedcenter.hu</div>
+
+  <footer class="trust">
+    <img class="mta" src="assets/logos/mta-seal.png" alt="Medical Tourism Association">
+    <span class="sep"></span>
+    <img class="better" src="assets/logos/better.png" alt="better">
+    <span class="sep"></span>
+    <img class="mc" src="assets/logos/mastercard.svg" alt="Mastercard">
+  </footer>
+</div>
+
+<script src="brand.js"></script>
+<script src="partners.js"></script>
+<script>
+  const rows = document.getElementById("rows");
+  for (const p of PARTNERS) {
+    const row = document.createElement("div");
+    row.className = "row";
+    const isLogo = p.visual.type === "logo";
+    const imgStyle = isLogo
+      ? `style="width:calc(${Math.round((p.visual.width || 300) * 0.36)} * var(--u))"`
+      : `style="object-position:${p.visual.rollupFocus || "52% 12%"}"`;
+    row.innerHTML = `
+      <div class="thumb ${isLogo ? "logo-disc" : "photo"}"><img src="${p.visual.src}" alt="" ${imgStyle}></div>
+      <div>
+        <div class="eyebrow"></div>
+        <div class="name"></div>
+        ${p.subtitle ? '<div class="subtitle"></div>' : ""}
+      </div>`;
+    row.querySelector(".eyebrow").textContent = p.field;
+    row.querySelector(".name").textContent = p.name;
+    if (p.subtitle) row.querySelector(".subtitle").textContent = p.subtitle;
+    rows.appendChild(row);
+  }
+  document.querySelectorAll(".thumb").forEach(addRing);
+  drawStars(document.getElementById("stars"), 850, 2000, 420, 23);
+  window.__ready = drawDestination(document.getElementById("dest"));
+</script>
+</body>
+</html>
