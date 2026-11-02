@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>AP Med Global – partnerposzt</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  /* Instagram 4:5 – 1080 × 1350 px */
+  :root {
+    --u: 1px;
+    --pad: 72px;
+    --logo-w: 236px;
+    --dest-size: 52px;
+    --planet-r: 1700px;
+    --planet-x: 640px;
+    --apex: 1172px;
+  }
+  body { width: 1080px; height: 1350px; }
+  .canvas { width: 1080px; height: 1350px; }
+
+  header {
+    position: absolute; z-index: 5;
+    left: var(--pad); right: var(--pad); top: 62px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .destination { margin-top: 20px; }
+
+  /* ---- partner vizuál: fotó (jobb oldal, a háttérbe olvadva) ---- */
+  .visual { position: absolute; z-index: 2; }
+  .visual.photo {
+    right: 0; top: 206px; width: 660px; height: 980px;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent 0, #000 220px),
+      linear-gradient(180deg, transparent 0, #000 110px, #000 66%, transparent 100%),
+      radial-gradient(130% 95% at 58% 38%, #000 52%, transparent 100%);
+    -webkit-mask-composite: source-in, source-in;
+    mask-image:
+      linear-gradient(90deg, transparent 0, #000 220px),
+      linear-gradient(180deg, transparent 0, #000 110px, #000 66%, transparent 100%),
+      radial-gradient(130% 95% at 58% 38%, #000 52%, transparent 100%);
+    mask-composite: intersect;
+  }
+  .visual.photo img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(0.82) contrast(1.05) brightness(1.0);
+  }
+  .visual.photo::after {           /* éjkék színfátyol, hogy a fotó a háttérbe simuljon */
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(200deg, rgba(14, 34, 76, 0.08), rgba(4, 12, 30, 0.42));
+    mix-blend-mode: multiply;
+  }
+
+  /* ---- partner vizuál: logó (jobb oldal, kör alakú „bolygó”-tárcsán) ---- */
+  .visual.logo {
+    left: 560px; top: 268px; width: 450px; height: 450px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .visual.logo img { position: relative; z-index: 1; height: auto; }
+
+  /* sötét fátyol a szöveg mögött, hogy a fotó előtt is olvasható maradjon */
+  .scrim {
+    position: absolute; z-index: 3; left: 0; bottom: 0; width: 820px; height: 900px;
+    background: radial-gradient(70% 62% at 18% 64%, rgba(3, 7, 16, 0.78), rgba(3, 7, 16, 0) 100%);
+    pointer-events: none;
+  }
+
+  /* ---- szöveg: bal oldal, alulra zárva ---- */
+  .copy {
+    position: absolute; z-index: 4;
+    left: var(--pad); bottom: 228px; width: 620px;
+  }
+  .copy .rule { width: 72px; margin-bottom: 28px; }
+  .copy .eyebrow { font-size: 19px; line-height: 1.55; letter-spacing: 0.2em; }
+  .copy .eyebrow span { display: block; }
+  .copy .name { font-size: 72px; line-height: 0.98; margin-top: 20px; }
+  .copy .subtitle { font-size: 34px; line-height: 1.2; margin-top: 12px; }
+  .copy .text { font-size: 25px; line-height: 1.5; font-weight: 400; margin-top: 28px; max-width: 590px; }
+
+  footer.trust {
+    position: absolute; z-index: 4;
+    left: 0; right: 0; bottom: 50px; height: 84px; gap: 46px;
+  }
+  .trust .mta { height: 84px; }
+  .trust .better { height: 44px; }
+  .trust .mc { height: 44px; }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+  <svg class="stars" id="stars"></svg>
+  <div class="planet"></div>
+  <div class="sunrise"></div>
+
+  <div class="visual" id="visual"><img id="visual-img" alt=""></div>
+  <div class="scrim"></div>
+
+  <header>
+    <img class="brand-logo" src="assets/logos/apmed-global-dark.svg" alt="AP Med Global">
+    <svg class="destination" id="dest" role="img" aria-label="Destination: Better Life"></svg>
+  </header>
+
+  <section class="copy">
+    <div class="rule"></div>
+    <div class="eyebrow"><span>Az AP Med Global</span><span id="role"></span></div>
+    <h1 class="name" id="name"></h1>
+    <div class="subtitle" id="subtitle"></div>
+    <p class="text" id="text"></p>
+  </section>
+
+  <footer class="trust">
+    <img class="mta" src="assets/logos/mta-seal.png" alt="Medical Tourism Association">
+    <span class="sep"></span>
+    <img class="better" src="assets/logos/better.png" alt="better">
+    <span class="sep"></span>
+    <img class="mc" src="assets/logos/mastercard.svg" alt="Mastercard">
+  </footer>
+</div>
+
+<script src="brand.js"></script>
+<script src="partners.js"></script>
+<script>
+  const id = new URLSearchParams(location.search).get("id") || PARTNERS[0].id;
+  const p = PARTNERS.find(x => x.id === id) || PARTNERS[0];
+  document.title = "AP Med Global – " + p.name;
+  document.getElementById("role").textContent = p.role;
+  document.getElementById("name").textContent = p.name;
+  const sub = document.getElementById("subtitle");
+  if (p.subtitle) sub.textContent = p.subtitle; else sub.remove();
+  document.getElementById("text").textContent = p.text;
+
+  const v = document.getElementById("visual"), img = document.getElementById("visual-img");
+  v.classList.add(p.visual.type);
+  if (p.visual.type === "logo") v.classList.add("logo-disc");
+  img.src = p.visual.src;
+  img.alt = p.name;
+  if (p.visual.type === "photo" && p.visual.focus) img.style.objectPosition = p.visual.focus;
+  if (p.visual.type === "logo" && p.visual.width) img.style.width = p.visual.width + "px";
+
+  if (p.visual.type === "logo") addRing(v);
+  drawStars(document.getElementById("stars"), 1080, 1350, 260, 11);
+  window.__ready = drawDestination(document.getElementById("dest"));
+</script>
+</body>
+</html>

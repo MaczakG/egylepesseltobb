@@ -1,0 +1,121 @@
+/* AP Med Global – közös arculati elemek (poszt + roll-up)
+   Minden méret "u" egységben: a poszton 1u = 1px, a roll-upon 1u = 1mm. */
+@import url("fonts/fonts.css");
+
+:root {
+  --u: 1px;
+
+  --space-0: #03060d;
+  --space-1: #071226;
+  --space-2: #0c1d3a;
+
+  --gold-1: #f6dc9a;
+  --gold-2: #d9a84e;
+  --gold-3: #a8742a;
+  --gold-hair: rgba(217, 168, 78, 0.55);
+
+  --ink: #f5f2ea;
+  --ink-soft: rgba(222, 230, 242, 0.80);
+  --ink-mute: rgba(222, 230, 242, 0.55);
+
+  --sky-1: #eef5ff;
+  --sky-2: #9cc3f2;
+  --sky-3: #4f86d0;
+
+  --display: "Anton", "Impact", sans-serif;
+  --serif: "Cormorant Garamond", "Georgia", serif;
+  --sans: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--space-0); }
+body { -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
+img { display: block; }
+
+/* ---------- háttér ---------- */
+.canvas {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(calc(900 * var(--u)) calc(700 * var(--u)) at 82% 18%, rgba(40, 92, 170, 0.22), transparent 70%),
+    radial-gradient(calc(1100 * var(--u)) calc(900 * var(--u)) at 10% 60%, rgba(18, 44, 92, 0.35), transparent 70%),
+    linear-gradient(180deg, var(--space-0) 0%, var(--space-1) 55%, var(--space-0) 100%);
+  color: var(--ink);
+}
+.stars { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* Föld-horizont: a bolygó pereme halványan izzik, a csúcsán napfelkelte.
+   --planet-r: sugár, --apex: a perem legmagasabb pontja felülről, --planet-x: vízszintes középpont */
+.planet {
+  position: absolute;
+  left: calc(var(--planet-x) - var(--planet-r) - 200 * var(--u));
+  top: calc(var(--apex) - 200 * var(--u));
+  width: calc(2 * var(--planet-r) + 400 * var(--u));
+  height: calc(2 * var(--planet-r) + 400 * var(--u));
+  pointer-events: none;
+  background: radial-gradient(circle calc(var(--planet-r) + 200 * var(--u)) at 50% calc(var(--planet-r) + 200 * var(--u)),
+    #02050b 0,
+    #040b19 calc(var(--planet-r) - 260 * var(--u)),
+    #0a2147 calc(var(--planet-r) - 40 * var(--u)),
+    #2c63b4 calc(var(--planet-r) - 6 * var(--u)),
+    #cfe5ff calc(var(--planet-r) - 1.2 * var(--u)),
+    #ffffff var(--planet-r),
+    rgba(150, 200, 255, 0.55) calc(var(--planet-r) + 3 * var(--u)),
+    rgba(70, 130, 235, 0.22) calc(var(--planet-r) + 24 * var(--u)),
+    rgba(40, 90, 200, 0.08) calc(var(--planet-r) + 80 * var(--u)),
+    transparent calc(var(--planet-r) + 200 * var(--u)));
+}
+.sunrise {
+  position: absolute;
+  left: calc(var(--planet-x) - 520 * var(--u));
+  top: calc(var(--apex) - 90 * var(--u));
+  width: calc(1040 * var(--u));
+  height: calc(180 * var(--u));
+  pointer-events: none;
+  background:
+    radial-gradient(calc(150 * var(--u)) calc(9 * var(--u)) at 50% 50%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 100%),
+    radial-gradient(calc(420 * var(--u)) calc(36 * var(--u)) at 50% 50%, rgba(190, 220, 255, 0.45), rgba(190, 220, 255, 0) 100%),
+    radial-gradient(calc(520 * var(--u)) calc(90 * var(--u)) at 50% 50%, rgba(70, 140, 255, 0.18), rgba(70, 140, 255, 0) 100%);
+}
+
+/* ---------- fejléc ---------- */
+.brand-logo { width: var(--logo-w); height: auto; }
+.destination { display: block; height: calc(var(--dest-size) * var(--dest-h, 1.6)); width: auto; overflow: visible; }
+.destination text { font-family: var(--display); }
+
+/* ---------- tipográfia ---------- */
+.eyebrow {
+  font-family: var(--sans);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: #ddb062;
+}
+.rule { height: 1px; background: linear-gradient(90deg, var(--gold-2), rgba(217, 168, 78, 0)); }
+.name { font-family: var(--serif); font-weight: 600; color: var(--ink); letter-spacing: -0.005em; }
+.subtitle { font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--gold-1); opacity: 0.9; }
+.text { font-family: var(--sans); font-weight: 300; color: var(--ink-soft); }
+
+/* ---------- lábléc: szakmai partnerek ---------- */
+.trust { display: flex; align-items: center; justify-content: center; }
+.trust .sep { width: 1px; align-self: stretch; background: linear-gradient(180deg, transparent, var(--gold-hair), transparent); }
+.trust img { flex: none; }
+
+/* ---------- logótárcsa: a partnerlogó egy sötét „bolygón”, körülötte arany pálya ---------- */
+.logo-disc { --ring: calc(26 * var(--u)); --ring-stroke: 0.24; }
+.logo-disc::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 26%, rgba(150, 190, 255, 0.16), transparent 58%),
+    radial-gradient(circle at 50% 50%, #0d2148 0, #081631 62%, #050d1f 100%);
+  box-shadow:
+    inset 0 calc(1 * var(--u)) 0 rgba(200, 225, 255, 0.18),
+    0 0 0 calc(1 * var(--u)) rgba(160, 195, 255, 0.10),
+    0 calc(40 * var(--u)) calc(90 * var(--u)) rgba(0, 0, 0, 0.55),
+    0 0 calc(120 * var(--u)) rgba(60, 120, 230, 0.16);
+}
+.ring {
+  position: absolute; inset: calc(-1 * var(--ring)); width: calc(100% + 2 * var(--ring)); height: calc(100% + 2 * var(--ring));
+  overflow: visible; pointer-events: none; z-index: 3;
+}
+.logo-disc img { position: relative; z-index: 1; height: auto; }
