@@ -518,10 +518,12 @@ export function updatePage(db, id, pg) {
 }
 
 export function upsertImportedPage(db, wpId, pg) {
-  const existing = db.prepare('SELECT id FROM pages WHERE wp_id = ?').get(wpId);
+  const existing = db.prepare('SELECT id, slug FROM pages WHERE wp_id = ?').get(wpId);
   if (existing) {
-    db.prepare(`UPDATE pages SET title = ?, content = ?, extras = ?, updated_at = datetime('now'),
-      wp_synced_at = datetime('now') WHERE id = ?`).run(pg.title, pg.content, JSON.stringify(pg.extras), existing.id);
+    // Ha a régi oldalon új címe lett (pl. jotekonysagi-meccs → jotekonysagi-galaest), az is átkerül.
+    const slug = existing.slug === pg.slug ? pg.slug : uniquePageSlug(db, pg.slug, existing.id);
+    db.prepare(`UPDATE pages SET slug = ?, title = ?, content = ?, extras = ?, updated_at = datetime('now'),
+      wp_synced_at = datetime('now') WHERE id = ?`).run(slug, pg.title, pg.content, JSON.stringify(pg.extras), existing.id);
     return existing.id;
   }
   return Number(db.prepare(`INSERT INTO pages (slug, title, content, extras, status, wp_id, updated_at, wp_synced_at)

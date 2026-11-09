@@ -95,6 +95,8 @@ const LEGACY_REDIRECTS = {
   'orokbefogadott-csaladok': '/csaladok?statusz=orokbefogadott',
   'kozos-elmenyeink': '/blog?kategoria=kozos-elmenyeink',
   'feltoltes-alatt': '/csaladok',
+  // A régi oldalon a „Jótékonysági meccs” oldal helyére a „Jótékonysági gálaest” került.
+  'jotekonysagi-meccs': '/jotekonysagi-galaest',
   en: '/',
 };
 

@@ -66,7 +66,7 @@ describe('a régi oldal aloldalainak importja', () => {
   test('minden tartalmi oldal bekerül, a képek és PDF-ek letöltve, a régi címek átírva', () => {
     assert.equal(firstRun.state, 'done');
     assert.equal(firstRun.done, pagesData.pages.length);
-    assert.equal(store.listPages(db).length, 21);
+    assert.equal(store.listPages(db).length, 22);
     assert.deepEqual(firstRun.failedFiles, [BROKEN]);
     for (const pg of store.listPages(db)) {
       assert.doesNotMatch(pg.content, /src="https:\/\/egylepesseltobb\.hu/, pg.slug);
@@ -85,7 +85,7 @@ describe('a régi oldal aloldalainak importja', () => {
     const before = fetched.length;
     const again = await runPagesImport({ db, config, data: pagesData, fetchImage, log: () => {} });
     assert.equal(again.skipped, 1);
-    assert.equal(store.listPages(db).length, 21);
+    assert.equal(store.listPages(db).length, 22);
     assert.deepEqual(fetched.slice(before), [BROKEN]);
     assert.equal(store.getPageBySlug(db, 'kapcsolat').title, 'Kapcsolat – átírva');
   });
@@ -126,7 +126,7 @@ describe('oldalak megjelenítése', () => {
   test('a régi szerkezetből a főoldal elemei: adatlap, idővonal, nagykövet-kártyák, sávok', async () => {
     const contact = (await page('/kapcsolat')).html;
     assert.match(contact, /<dl class="facts"><div class="fact"><dt>Adószám<\/dt><dd>19353825-1-41<\/dd><\/div>/);
-    assert.match(contact, /<dt>IBAN<\/dt><dd>HU88117030062599399400000000<\/dd>/);
+    assert.match(contact, /<dt>IBAN<\/dt><dd>HU75116000060000000207129663<\/dd>/);
     assert.match(contact, /<dt>Kuratórium<\/dt><dd>Dr\. Unger Barbara<br \/>Csiszér Sándor<br \/>Hajós István<\/dd>/);
     const areas = (await page('/tamogatott-teruletek')).html;
     assert.match(areas, /<h3>Akiket támogatunk<\/h3><p>Gyógyító Energia Alapítvány – Balla Tiba – táborainak támogatása<\/p><ol class="timeline"><li><span class="year">2016<\/span><div>Erdélyi tábor támogatása, tolószék vásárlása<\/div><\/li>/);
@@ -149,12 +149,35 @@ describe('oldalak megjelenítése', () => {
     assert.equal((pay.match(/<a class="button" href="https:\/\/checkout\.simplepay\.hu\/trx\/[^"]+" rel="noopener noreferrer" target="_blank">Fizetés<\/a>/g) || []).length, 8);
   });
 
+  test('a régi oldal novemberi változásai: új bankszámla, 2025-ös beszámoló, gálaest és Gyömrői Esték', async () => {
+    const ado = (await page('/1-ado')).html;
+    assert.match(ado, /11600006-00000002-07129663/);
+    assert.doesNotMatch(ado, /11703006|OTPVHUHB/);
+    assert.match((await page('/dokumentumok')).html, /<a href="\/uploads\/2025-eves-beszamolo\.pdf">2025 éves beszámoló\.pdf<\/a>/);
+    const gala = (await page('/jotekonysagi-galaest')).html;
+    assert.match(gala, /<h1[^>]*>Jótékonysági gálaest<\/h1>/);
+    assert.equal((gala.match(/<a class="button" href="https:\/\/checkout\.simplepay\.hu\/trx\/[^"]+"[^>]*>Fizetés<\/a>/g) || []).length, 3);
+    const gyomro = (await page('/gyomroi-estek-2')).html;
+    assert.match(gyomro, /Ditrói Molli és Bereczki Donát/);
+    assert.equal((gyomro.match(/>Támogatom<\/a>/g) || []).length, 5);
+    assert.match(gyomro, /href="\/gyomroi-estek-2"/, 'a menüben is szerepel');
+  });
+
+  test('ha a régi oldalon új címet kap egy oldal, újraimportáláskor az is átkerül', async () => {
+    const gala = store.getPageBySlug(db, 'jotekonysagi-galaest');
+    db.prepare("UPDATE pages SET slug = 'jotekonysagi-meccs' WHERE id = ?").run(gala.id);
+    await runPagesImport({ db, config, data: pagesData, fetchImage, log: () => {} });
+    assert.equal(store.getPageBySlug(db, 'jotekonysagi-galaest').id, gala.id);
+    assert.equal(store.getPageBySlug(db, 'jotekonysagi-meccs'), null);
+  });
+
   test('a régi címek átirányítanak', async () => {
     const loc = async (url) => { const r = await page(url); return [r.status, r.headers.get('location')]; };
     assert.deepEqual(await loc('/fooldal'), [301, '/']);
     assert.deepEqual(await loc('/orokbefogadhato-csaladok/'), [301, '/csaladok?statusz=orokbefogadhato']);
     assert.deepEqual(await loc('/orokbefogadott-csaladok'), [301, '/csaladok?statusz=orokbefogadott']);
     assert.deepEqual(await loc('/kozos-elmenyeink'), [301, '/blog?kategoria=kozos-elmenyeink']);
+    assert.deepEqual(await loc('/jotekonysagi-meccs'), [301, '/jotekonysagi-galaest']);
     assert.deepEqual(await loc('/2025/12/08/galaest/'), [301, '/blog/galaest']);
     const kinga = store.listFamilies(db).find((f) => f.name === 'H. Kinga és családja');
     assert.deepEqual(await loc('/2026/09/30/h-kinga-es-csaladja/'), [301, `/csaladok/${kinga.slug}`]);

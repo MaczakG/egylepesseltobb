@@ -73,7 +73,7 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 
 - A régi egylepesseltobb.hu aloldalai a mostani dizájnnal, ugyanazzal a szöveggel és képekkel, a régi címükön érhetők el (pl. `/alapitonk`, `/kuratorium`, `/dokumentumok`, `/1-ado`, `/linkesfizetes`, `/adatkezelesi-tajekoztato`).
 - Minden aloldal (oldalak, blog, családok, 404) a főoldal dizájnját követi: nagy nyitókép sötét átmenettel és morzsamenüvel, alatta a főoldal szekcióinak mintájára váltakozó sávok (fehér, homokszín, sötétkék). A régi tartalom elemei ehhez igazodnak: a kép + szöveg blokkok keretezett fotóval (mint az „Alapítónk”), a személyek nagykövet-kártyákon, a kártyák a „Területeink” stílusában, az évszámos felsorolások idővonalként, a „Címke: érték” sorok (adószám, bankszámla…) adatlapként.
-- A tartalom a `server/import/wordpress-pages-2026-10-01.json` fájlból kerül be az első induláskor; a képeket és a PDF-eket (alapító okirat, beszámolók, 1%-os nyomtatvány, prospektus) a szerver tölti le a régi oldalról. A PDF-ek a régi fájlnevükön érhetők el (pl. `/uploads/Prospektus.pdf`).
+- A tartalom a `server/import/wordpress-pages-2026-11-09.json` fájlból kerül be az első induláskor; a képeket és a PDF-eket (alapító okirat, beszámolók, 1%-os nyomtatvány, prospektus) a szerver tölti le a régi oldalról. A PDF-ek a régi fájlnevükön érhetők el (pl. `/uploads/Prospektus.pdf`).
 - Az oldalak kiegészíthetők: űrlap (pl. a „Jelentkezz támogatónak” oldalon a támogatói jelentkezés), az örökbefogadható családok kártyái, illetve blogbejegyzések kártyái (pl. a Gálaest, Családi napok, Aláírási ceremónia oldalon a galériák). Az adminban nincs külön menüpontjuk; a tartalmuk az importfájlban módosítható.
 - A régi címek átirányítanak: `/fooldal` → főoldal, `/orokbefogadhato-csaladok` és `/orokbefogadott-csaladok` → családlista, `/kozos-elmenyeink` → blog, a régi bejegyzéscímek (`/2025/12/08/<webcím>/`) → a blogbejegyzés vagy a család oldala.
 
@@ -120,11 +120,12 @@ Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad t
 
 ## Import a régi oldalról (egylepesseltobb.hu)
 
-- A régi WordPress-oldal tartalma (`server/import/wordpress-2026-10-01.json`) a szerver első indulásakor automatikusan bekerül:
+- A régi WordPress-oldal tartalma (`server/import/wordpress-2026-11-09.json`) a szerver első indulásakor automatikusan bekerül:
   - a családok a WordPress-kategóriájuk szerint kapnak státuszt (örökbefogadható, örökbefogadott, feltöltés alatt; a „kategória nélküliek” archiváltak), és a három minta-család helyére kerülnek;
   - a rendezvénygalériák (aláírási ceremóniák, családi napok, gálaest, Thai koncert) galériás blogbejegyzések lesznek.
 - A képeket a szerver tölti le az egylepesseltobb.hu-ról, és webre méretezi (nagy kép 1600 px, bélyegkép 480 px, WebP); ez a kb. 700 képpel néhány percig tart.
 - Az import a háttérben fut, az adminban nem jelenik meg. Ha megszakad (pl. újraindul a szerver), a következő induláskor folytatódik: a már letöltött képeket nem tölti le újra, a már importált tartalmat nem duplikálja, és az adminban azóta módosított családokhoz és bejegyzésekhez nem nyúl.
+- Frissítés a régi oldal újabb állapotából: `cd server && node scripts/wp-export.mjs` új exportfájlt készít; az `IMPORT_FILE` útvonalát (`src/wpimport.js`) erre kell átírni. A szerver a következő induláskor újra lefuttatja az importot: felveszi az új családokat és bejegyzéseket, és frissíti a meglévők státuszát és szövegét, kivéve amit azóta az adminban módosítottak.
 - Ha nincs rá szükség: `WP_IMPORT=0` a `/etc/egylepesseltobb/app.env`-ben.
 
 ## Napi mentés Google Drive-ra

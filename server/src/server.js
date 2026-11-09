@@ -26,12 +26,18 @@ createApp({ db, config }).listen(config.port, config.host, () => {
 // előbb a családok és a bejegyzések, utána az oldalak.
 if (process.env.WP_IMPORT !== '0') {
   (async () => {
-    if (fs.existsSync(IMPORT_FILE) && importStatus(db)?.state !== 'done') {
-      const s = await startImport({ db, config, data: loadImportData() });
+    // Újabb exportnál (scripts/wp-export.mjs) újra lefut: frissíti a családok státuszát és felveszi az újakat,
+    // az adminban módosított tételekhez nem nyúl.
+    const data = fs.existsSync(IMPORT_FILE) ? loadImportData() : null;
+    const last = importStatus(db);
+    if (data && (last?.state !== 'done' || (last.exportedAt || '') < data.exportedAt)) {
+      const s = await startImport({ db, config, data });
       console.log(`WordPress-import: ${s.state}, ${s.done}/${s.total} bejegyzés, ${s.images} kép, ${s.failedImages.length} hibás kép`);
     }
-    if (fs.existsSync(PAGES_FILE) && pagesImportStatus(db)?.state !== 'done') {
-      const s = await runPagesImport({ db, config, data: loadImportData(PAGES_FILE) });
+    const pages = fs.existsSync(PAGES_FILE) ? loadImportData(PAGES_FILE) : null;
+    const lastPages = pagesImportStatus(db);
+    if (pages && (lastPages?.state !== 'done' || (lastPages.exportedAt || '') < pages.exportedAt)) {
+      const s = await runPagesImport({ db, config, data: pages });
       console.log(`Oldalak importja: ${s.state}, ${s.done}/${s.total} oldal, ${s.files} fájl, ${s.failedFiles.length} hibás fájl`);
     }
   })();

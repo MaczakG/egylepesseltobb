@@ -11,7 +11,7 @@ import {
   detectImageType, sanitizePage, sanitizePost, sanitizeStory,
 } from './validate.js';
 
-export const IMPORT_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../import/wordpress-2026-10-01.json');
+export const IMPORT_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../import/wordpress-2026-11-09.json');
 
 const STATUS_KEY = 'wp_import';
 const IMAGES_KEY = 'wp_import_images';
@@ -58,7 +58,7 @@ async function inChunks(items, size, fn) {
 
 export async function runImport({ db, config, data, fetchImage = fetchFromWeb, log = console.log }) {
   const status = {
-    state: 'running', startedAt: new Date().toISOString(), finishedAt: null,
+    state: 'running', startedAt: new Date().toISOString(), finishedAt: null, exportedAt: data.exportedAt || null,
     total: data.posts.length, done: 0, skipped: 0, images: 0, failedImages: [], error: null,
   };
   const save = () => store.setSetting(db, STATUS_KEY, status);
@@ -170,7 +170,7 @@ export function startImport(options) {
 
 // --- Oldalak (pl. /alapitonk) ---------------------------------------------------
 
-export const PAGES_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../import/wordpress-pages-2026-10-01.json');
+export const PAGES_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../import/wordpress-pages-2026-11-09.json');
 const PAGES_STATUS_KEY = 'wp_pages_import';
 const FILES_KEY = 'wp_import_files';
 const UPLOAD_URL = /https:\/\/egylepesseltobb\.hu\/wp-content\/uploads\/[^"'\s<>)]+/g;
@@ -190,7 +190,7 @@ function pdfName(uploadsDir, url) {
 
 export async function runPagesImport({ db, config, data, fetchImage = fetchFromWeb, log = console.log }) {
   const status = {
-    state: 'running', startedAt: new Date().toISOString(), finishedAt: null,
+    state: 'running', startedAt: new Date().toISOString(), finishedAt: null, exportedAt: data.exportedAt || null,
     total: data.pages.length, done: 0, skipped: 0, files: 0, failedFiles: [], error: null,
   };
   const save = () => store.setSetting(db, PAGES_STATUS_KEY, status);
