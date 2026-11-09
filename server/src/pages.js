@@ -644,7 +644,8 @@ export function postCard(post) {
         <div class="p-7 flex flex-col flex-1">
           <p class="text-xs text-navy-500 mb-2"><time datetime="${post.publishedAt}">${formatDate(post.publishedAt)}</time></p>
           <h3 class="font-display text-xl font-semibold text-navy-800 mb-3 leading-snug"><a href="${url}" class="hover:text-sand-700 transition-colors">${escapeHtml(post.title)}</a></h3>
-          <p class="text-navy-600 text-sm leading-relaxed mb-6 flex-1">${escapeHtml(post.excerpt || excerpt(post.content, 200))}</p>
+          <!-- Kivonat nélkül: a kártyák egyforma magasak (a rendezvénygalériáknak nincs szövegük). -->
+          <div class="flex-1 mb-6"></div>
           <a href="${url}" class="inline-flex items-center gap-1 text-sm font-semibold text-navy-800 hover:text-sand-700 pt-5 border-t border-navy-200">Tovább olvasom →</a>
         </div>
       </article>`;

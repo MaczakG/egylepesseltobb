@@ -81,7 +81,7 @@ describe('WordPress-import', () => {
     assert.equal(first.state, 'done');
     assert.equal(first.done, 192);
     assert.deepEqual(first.failedImages, [BROKEN]);
-    assert.equal(first.images, 711);
+    assert.equal(first.images, 755);
     assert.equal(store.getSetting(ctx.db, 'wp_import').state, 'done');
   });
 

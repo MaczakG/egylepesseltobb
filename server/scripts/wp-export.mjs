@@ -10,6 +10,8 @@ const SOURCE = 'https://egylepesseltobb.hu';
 const API = `${SOURCE}/wp-json/wp/v2`;
 // Gyűjtőkategória: ha egy bejegyzésnek van pontosabb kategóriája is (pl. Aláírási ceremónia), az számít.
 const GENERIC_CATEGORIES = new Set(['rendezvenyek']);
+// A családok kategóriái: ezeknél csak a borítókép kell, a csatolt képek nem.
+const FAMILY_CATEGORIES = new Set(['orokbefogadhato', 'orokbefogadott-csaladok', 'feltoltes-alatt', 'kategoria-nelkuli-hu']);
 
 const ENTITIES = {
   amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ndash: '–', mdash: '—', hellip: '…',
@@ -84,12 +86,20 @@ async function main() {
     for (const m of await getAll('media', `&include=${ids}&_fields=id,source_url,alt_text`)) media.set(m.id, m);
   }
 
-  const result = posts.map((p) => {
+  const result = [];
+  for (const p of posts) {
     const slugs = p.categories.map((id) => categories.get(id)).filter(Boolean);
     const category = slugs.find((s) => !GENERIC_CATEGORIES.has(s)) || slugs[0] || '';
-    const { content, images } = splitGallery(p.content.rendered);
+    const { content, images: galleryImages } = splitGallery(p.content.rendered);
+    let images = galleryImages;
+    // Galéria nélküli blogbejegyzés: a bejegyzéshez feltöltött (csatolt) képek adják a galériát (pl. Pro Filii).
+    if (!images.length && !FAMILY_CATEGORIES.has(category)) {
+      const attached = await getAll('media', `&parent=${p.id}&media_type=image&_fields=id,source_url`);
+      images = attached.map((m) => m.source_url)
+        .sort((a, b) => a.localeCompare(b, 'hu', { numeric: true }));
+    }
     const featured = media.get(p.featured_media);
-    return {
+    result.push({
       wpId: p.id,
       title: decode(p.title.rendered),
       slug: p.slug,
@@ -99,10 +109,11 @@ async function main() {
       contentHtml: content,
       featuredImage: featured ? { url: featured.source_url, alt: featured.alt_text || '' } : null,
       images,
-    };
-  }).sort((a, b) => b.date.localeCompare(a.date) || b.wpId - a.wpId);
+    });
+  }
+  result.sort((a, b) => b.date.localeCompare(a.date) || b.wpId - a.wpId);
 
-  fs.writeFileSync(out, `${JSON.stringify({ source: SOURCE, exportedAt: new Date().toISOString().slice(0, 10), posts: result }, null, 1)}\n`);
+  fs.writeFileSync(out, `${JSON.stringify({ source: SOURCE, exportedAt: new Date().toISOString().slice(0, 19), posts: result }, null, 1)}\n`);
   console.log(`${result.length} bejegyzés → ${out}`);
 }
 
