@@ -124,6 +124,37 @@ export function openDb(file) {
       consent_at TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY,
+      page_slug TEXT NOT NULL DEFAULT '',
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      price INTEGER NOT NULL,
+      button TEXT NOT NULL DEFAULT 'Fizetés',
+      sort INTEGER NOT NULL DEFAULT 0,
+      active INTEGER NOT NULL DEFAULT 1,
+      legacy_url TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS orders (
+      id INTEGER PRIMARY KEY,
+      order_ref TEXT NOT NULL UNIQUE,
+      product_id INTEGER,
+      product_name TEXT NOT NULL,
+      page_slug TEXT NOT NULL DEFAULT '',
+      amount INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'started',
+      transaction_id TEXT NOT NULL DEFAULT '',
+      sandbox INTEGER NOT NULL DEFAULT 0,
+      error TEXT NOT NULL DEFAULT '',
+      consent_at TEXT NOT NULL,
+      paid_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
   migrate(db);
   return db;
@@ -471,7 +502,7 @@ export function removeSeedFamilies(db) {
 // --- Oldalak (a régi WordPress-oldal aloldalai, pl. /alapitonk) ---------------
 
 // Ezek a címek az alkalmazás saját útvonalai, oldal nem kaphatja meg őket.
-export const RESERVED_SLUGS = ['blog', 'csaladok', 'admin', 'api', 'assets', 'uploads', 'jelentkezes', 'index'];
+export const RESERVED_SLUGS = ['blog', 'csaladok', 'admin', 'api', 'assets', 'uploads', 'jelentkezes', 'index', 'fizetes'];
 
 function toPage(row) {
   return {
@@ -696,4 +727,131 @@ export function updateMessageStatus(db, id, status) {
 
 export function deleteMessage(db, id) {
   return db.prepare('DELETE FROM messages WHERE id = ?').run(id).changes > 0;
+}
+
+// --- Termékek és fizetések (SimplePay) ------------------------------------------
+
+export const ORDER_STATUSES = ['started', 'authorized', 'paid', 'failed', 'cancelled', 'timeout', 'error'];
+
+function toProduct(row) {
+  return {
+    id: row.id,
+    pageSlug: row.page_slug,
+    name: row.name,
+    description: row.description,
+    price: row.price,
+    button: row.button,
+    sort: row.sort,
+    active: Boolean(row.active),
+    legacyUrl: row.legacy_url,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function listProducts(db) {
+  return db.prepare('SELECT * FROM products ORDER BY page_slug, sort, price, id').all().map(toProduct);
+}
+
+export function listPageProducts(db, pageSlug) {
+  return db.prepare('SELECT * FROM products WHERE page_slug = ? AND active = 1 ORDER BY sort, price, id').all(pageSlug).map(toProduct);
+}
+
+export function getProduct(db, id) {
+  const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+  return row ? toProduct(row) : null;
+}
+
+export function createProduct(db, p) {
+  const { lastInsertRowid } = db.prepare(`INSERT INTO products (page_slug, name, description, price, button, sort, active, legacy_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(p.pageSlug, p.name, p.description || '', p.price, p.button || 'Fizetés', p.sort || 0, p.active === false ? 0 : 1, p.legacyUrl || '');
+  return getProduct(db, lastInsertRowid);
+}
+
+export function updateProduct(db, id, p) {
+  db.prepare(`UPDATE products SET page_slug = ?, name = ?, description = ?, price = ?, button = ?, sort = ?, active = ?,
+    updated_at = datetime('now') WHERE id = ?`)
+    .run(p.pageSlug, p.name, p.description || '', p.price, p.button || 'Fizetés', p.sort || 0, p.active === false ? 0 : 1, id);
+  return getProduct(db, id);
+}
+
+export function deleteProduct(db, id) {
+  return db.prepare('DELETE FROM products WHERE id = ?').run(id).changes > 0;
+}
+
+// A régi oldal fizetési linkjeiből (kártyák) egyszer termékek lesznek; oldalanként csak az első importkor,
+// hogy az adminban törölt terméket a következő import ne hozza vissza.
+export function seedPageProducts(db, pageSlug, cards) {
+  const seeded = getSetting(db, 'products_seeded_pages', []);
+  if (seeded.includes(pageSlug) || !cards.length) return 0;
+  cards.forEach((c, i) => createProduct(db, { ...c, pageSlug, sort: i + 1 }));
+  setSetting(db, 'products_seeded_pages', [...seeded, pageSlug]);
+  return cards.length;
+}
+
+function toOrder(row) {
+  return {
+    id: row.id,
+    orderRef: row.order_ref,
+    productId: row.product_id,
+    productName: row.product_name,
+    pageSlug: row.page_slug,
+    amount: row.amount,
+    name: row.name,
+    email: row.email,
+    status: row.status,
+    transactionId: row.transaction_id,
+    sandbox: Boolean(row.sandbox),
+    error: row.error,
+    paidAt: row.paid_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function createOrder(db, o) {
+  const { lastInsertRowid } = db.prepare(`INSERT INTO orders (order_ref, product_id, product_name, page_slug, amount, name, email,
+    sandbox, consent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`)
+    .run(o.orderRef, o.productId, o.productName, o.pageSlug, o.amount, o.name, o.email, o.sandbox ? 1 : 0);
+  return getOrder(db, lastInsertRowid);
+}
+
+export function getOrder(db, id) {
+  const row = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+  return row ? toOrder(row) : null;
+}
+
+export function getOrderByRef(db, orderRef) {
+  const row = db.prepare('SELECT * FROM orders WHERE order_ref = ?').get(String(orderRef));
+  return row ? toOrder(row) : null;
+}
+
+export function listOrders(db) {
+  return db.prepare('SELECT * FROM orders ORDER BY created_at DESC, id DESC').all().map(toOrder);
+}
+
+// Az IPN a végleges állapot: a visszairányítás (pl. „sikeres”) a kifizetett rendelést nem írja vissza.
+export function updateOrder(db, id, { status, transactionId, error, fromIpn = false }) {
+  const current = getOrder(db, id);
+  if (!current) return null;
+  const next = !fromIpn && current.status === 'paid' ? 'paid' : (status || current.status);
+  db.prepare(`UPDATE orders SET status = ?, transaction_id = ?, error = ?, updated_at = datetime('now'),
+    paid_at = CASE WHEN ? = 'paid' AND paid_at IS NULL THEN datetime('now') ELSE paid_at END WHERE id = ?`)
+    .run(next, transactionId != null ? String(transactionId) : current.transactionId, error != null ? error : current.error, next, id);
+  return getOrder(db, id);
+}
+
+export function deleteOrder(db, id) {
+  return db.prepare('DELETE FROM orders WHERE id = ?').run(id).changes > 0;
+}
+
+// A SimplePay hozzáférés (kereskedői azonosító, titkos kulcs) az admin Beállítások oldalán adható meg.
+export function getPaymentSettings(db) {
+  return { merchant: '', secretKey: '', sandbox: true, ...getSetting(db, 'simplepay', {}) };
+}
+
+export function savePaymentSettings(db, settings) {
+  setSetting(db, 'simplepay', settings);
+  return getPaymentSettings(db);
 }

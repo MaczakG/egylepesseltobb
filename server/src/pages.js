@@ -117,7 +117,7 @@ const CONTENT_CSS = `
   /* Partnerlogók: fehér csempék, szürkéből színesbe. */
   .page-content .logos { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   @media (min-width: 768px) { .page-content .logos { gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); } }
-  .page-content .logos img { width: 100%; height: 120px; object-fit: contain; padding: 1.5rem; margin: 0; background: #fff; border: 1px solid #f0e4cb; border-radius: 1rem; filter: grayscale(1); opacity: 0.7; transition: filter 0.3s, opacity 0.3s, transform 0.3s, box-shadow 0.3s; }
+  .page-content .logos img { width: 100%; height: 120px; object-fit: contain; padding: 0.75rem; margin: 0; background: #fff; border: 1px solid #f0e4cb; border-radius: 1rem; filter: grayscale(1); opacity: 0.7; transition: filter 0.3s, opacity 0.3s, transform 0.3s, box-shadow 0.3s; }
   .page-content .logos img:hover { filter: none; opacity: 1; transform: translateY(-3px); box-shadow: 0 16px 30px -14px rgba(26, 37, 45, 0.25); }
 
   .page-content .gallery { margin-top: 0; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
@@ -1114,11 +1114,37 @@ function eventFeature(post, i) {
     </article>`;
 }
 
-export function renderPage(frame, { page, baseUrl, preview, families = [], posts = [], formHtml = '', form = {} }) {
+// A régi fizetési linkes kártyák helyére az adminban kezelt termékek kerülnek (ugyanabban a kártyás formában).
+// A gomb a saját fizetési oldalunkra visz (SimplePay API); amíg a SimplePay nincs beállítva, a régi link a tartalék.
+const fmtHuf = (n) => `${Number(n).toLocaleString('hu-HU').replace(/\u00a0/g, ' ')} Ft`;
+
+function productCardsHtml(products, payable) {
+  const card = (p) => {
+    const href = payable || !p.legacyUrl ? `/fizetes/${p.id}` : p.legacyUrl;
+    return `<div class="card"><h3>${escapeHtml(p.name)}:</h3><p class="price">${fmtHuf(p.price)}</p>${p.description ? `<p>${escapeHtml(p.description)}</p>` : ''}<p><a class="button" href="${escapeHtml(href)}">${escapeHtml(p.button)}</a></p></div>`;
+  };
+  return `<section><div class="cards">${products.map(card).join('')}</div></section>`;
+}
+
+export function withProducts(content, products, payable) {
+  if (!products.length) return content;
+  const cards = productCardsHtml(products, payable);
+  let placed = false;
+  const out = content.replace(/<section>(?:(?!<\/section>)[\s\S])*?checkout\.simplepay\.hu(?:(?!<\/section>)[\s\S])*<\/section>/g, () => {
+    if (placed) return '';
+    placed = true;
+    return cards;
+  });
+  return placed ? out : `${out}${cards}`;
+}
+
+export function renderPage(frame, {
+  page, baseUrl, preview, families = [], posts = [], formHtml = '', form = {}, products = [], payable = false,
+}) {
   const description = excerpt(page.content, 200) || page.title;
   const banner = preview ? previewBanner('Előnézet: ez az oldal még nem nyilvános, csak bejelentkezett adminisztrátor látja.') : '';
   const side = Boolean(formHtml) && SIDE_FORMS.includes(page.extras.form);
-  const sections = parseSections(page.content || '');
+  const sections = parseSections(withProducts(page.content || '', products, payable));
   const lead = side ? '' : takeIntro(sections);
   mergeHeadings(sections);
 
@@ -1213,3 +1239,95 @@ export function renderNotFound(frame) {
   });
   return layout(frame, { title: 'Az oldal nem található — Egy Lépéssel Több Alapítvány', description: 'Az oldal nem található.', main });
 }
+
+// --- Fizetés (SimplePay) ------------------------------------------------------
+
+const SIMPLEPAY_LOGO = `<a href="https://simplepartner.hu/PaymentService/Fizetesi_tajekoztato.pdf" target="_blank" rel="noopener" class="inline-block" title="SimplePay – Online bankkártyás fizetés"><img src="/assets/img/simplepay_logo.svg" alt="SimplePay vásárlói tájékoztató" class="h-8 bg-white rounded px-2 py-1 border border-navy-100"></a>`;
+
+// A SimplePay által előírt adattovábbítási nyilatkozat (dokumentáció, 8. fejezet).
+export const DATA_TRANSFER_TEXT = 'Tudomásul veszem, hogy az Egy Lépéssel Több Hajós István Alapítvány (1036 Budapest, Bécsi út 81.) adatkezelő által az egylepesseltobb.hu felhasználói adatbázisában tárolt alábbi személyes adataim átadásra kerülnek a SimplePay Zrt., mint adatfeldolgozó részére. Az adatkezelő által továbbított adatok köre az alábbi: név, e-mail cím, a fizetés összege és a támogatás megnevezése. Az adatfeldolgozó által végzett adatfeldolgozási tevékenység jellege és célja a SimplePay Adatkezelési tájékoztatóban, az alábbi linken tekinthető meg:';
+
+export function renderCheckout(frame, { product, page, values = {}, errors = {}, error = '', payable }) {
+  const err = (k) => (errors[k] ? `<p class="mt-1.5 ml-4 text-sm text-red-700">${escapeHtml(errors[k])}</p>` : '');
+  const input = (name, label, type, autocomplete) => `
+          <div>
+            <label for="pay-${name}" class="block text-sm text-navy-600 mb-1.5 ml-1"><span class="text-red-600">*</span> ${label}</label>
+            <input id="pay-${name}" name="${name}" type="${type}" autocomplete="${autocomplete}" required maxlength="${type === 'email' ? 200 : 120}" value="${escapeHtml(values[name] || '')}" class="w-full rounded-full border ${errors[name] ? 'border-red-400' : 'border-navy-200'} bg-white px-5 py-3 text-navy-800 outline-none transition focus:border-sand-600 focus:ring-2 focus:ring-sand-200">
+            ${err(name)}
+          </div>`;
+  const check = (name, html) => `
+          <div>
+            <label class="flex items-start gap-3 text-sm text-navy-600 ml-1">
+              <input type="checkbox" name="${name}" value="on" required${values[name] ? ' checked' : ''} class="mt-0.5 w-4 h-4 shrink-0 rounded border-navy-300 text-sand-700 focus:ring-sand-300">
+              <span><span class="text-red-600">*</span> ${html}</span>
+            </label>
+            ${err(name)}
+          </div>`;
+  const privacy = frame.privacyUrl
+    ? `<a href="${escapeHtml(frame.privacyUrl)}" target="_blank" rel="noopener" class="text-sand-800 underline underline-offset-2">adatkezelési tájékoztatót</a>`
+    : 'adatkezelési tájékoztatót';
+  const formHtml = payable ? `
+      <form method="post" action="/fizetes/${product.id}" class="mt-8 space-y-5">
+        ${input('name', 'Név:', 'text', 'name')}
+        ${input('email', 'E-mail:', 'email', 'email')}
+        <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+          <label for="pay-website">Weboldal (hagyd üresen)</label>
+          <input id="pay-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        ${check('consent', `Elolvastam és elfogadom az ${privacy}.`)}
+        ${check('transfer', `${escapeHtml(DATA_TRANSFER_TEXT)} <a href="https://simplepay.hu/adatkezelesi-tajekoztatok/" target="_blank" rel="noopener" class="text-sand-800 underline underline-offset-2">https://simplepay.hu/adatkezelesi-tajekoztatok/</a>`)}
+        <button type="submit" class="btn-primary w-full bg-sand-500 hover:bg-sand-600 text-navy-900 font-bold uppercase tracking-wide px-6 py-3.5 rounded-full">Tovább a fizetéshez</button>
+      </form>`
+    : `
+      <p class="mt-8 text-navy-700 bg-sand-50 border border-sand-200 rounded-xl px-5 py-4">Az online fizetés jelenleg nem érhető el. Kérjük, próbáld újra később, vagy írj nekünk${frame.email ? `: <a href="mailto:${escapeHtml(frame.email)}" class="underline">${escapeHtml(frame.email)}</a>` : '.'}</p>`;
+  const main = pageHero({
+    eyebrow: 'Online fizetés',
+    title: page ? page.title : product.name,
+    image: HERO_IMAGES.swing,
+    crumbs: page ? [{ label: page.title, href: `/${page.slug}` }, { label: 'Fizetés' }] : [{ label: 'Fizetés' }],
+  }) + band('sand', `
+    <div class="max-w-2xl mx-auto bg-white border border-navy-100 border-t-4 border-t-sand-500 rounded-2xl shadow-[0_24px_60px_-30px_rgba(26,37,45,0.35)] p-6 md:p-10">
+      <p class="${EYEBROW} text-sand-700 !text-xs">${escapeHtml(product.name)}</p>
+      <p class="font-display text-4xl font-semibold text-navy-800 mt-2">${fmtHuf(product.price)}</p>
+      ${product.description ? `<p class="mt-3 text-navy-600">${escapeHtml(product.description)}</p>` : ''}
+      ${error ? `<p class="mt-6 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3" role="alert">${escapeHtml(error)}</p>` : ''}
+      ${Object.keys(errors).length && !error ? '<p class="mt-6 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3" role="alert">Kérjük, javítsd a megjelölt mezőket.</p>' : ''}
+      ${formHtml}
+      <div class="mt-8 pt-6 border-t border-navy-100 flex flex-wrap items-center gap-3 text-sm text-navy-500">
+        <span>Biztonságos bankkártyás fizetés:</span>${SIMPLEPAY_LOGO}
+      </div>
+    </div>`);
+  return layout(frame, {
+    title: `Fizetés: ${product.name} — Egy Lépéssel Több Alapítvány`,
+    description: `${product.name}, ${fmtHuf(product.price)}`,
+    main,
+  });
+}
+
+// A fizetés eredménye. A szövegek a SimplePay dokumentáció (3.13) előírásait követik: sikeres és sikertelen
+// fizetésnél a SimplePay tranzakcióazonosító is megjelenik, megszakításnál és időtúllépésnél nem.
+const RESULT_TEXT = {
+  SUCCESS: ['Sikeres tranzakció', 'Köszönjük a támogatásodat! A fizetés visszaigazolását e-mailben is megkapod a SimplePay-től.', true],
+  FAIL: ['Sikertelen tranzakció', 'Kérjük, ellenőrizd, hogy a tranzakció során megadott adatok helyesek-e. Amennyiben minden adatot helyesen adtál meg, a visszautasítás okának kivizsgálása érdekében kérjük, lépj kapcsolatba a kártyakibocsátó bankoddal.', true],
+  CANCEL: ['Megszakított fizetés', 'Megszakítottad a fizetést, a kártyádról nem vontunk le összeget.', false],
+  TIMEOUT: ['Időtúllépés', 'Túllépted a tranzakció elindításának lehetséges maximális idejét, a kártyádról nem vontunk le összeget.', false],
+};
+
+export function renderPaymentResult(frame, { event, transactionId, order, page }) {
+  const [title, text, showId] = RESULT_TEXT[event] || ['Ismeretlen fizetési állapot', 'A fizetés állapotát nem tudtuk megállapítani. Ha kérdésed van, írj nekünk.', false];
+  const back = page ? `/${page.slug}` : '/';
+  const main = pageHero({ eyebrow: 'Online fizetés', title, image: HERO_IMAGES.swing, crumbs: [{ label: 'Fizetés' }] }) + band('sand', `
+    <div class="max-w-2xl mx-auto bg-white border border-navy-100 border-t-4 border-t-sand-500 rounded-2xl p-6 md:p-10" role="status">
+      <h2 class="font-display text-3xl font-semibold text-navy-800">${escapeHtml(title)}</h2>
+      ${showId && transactionId ? `<p class="mt-4 text-lg text-navy-800">SimplePay tranzakcióazonosító: <strong>${escapeHtml(String(transactionId))}</strong></p>` : ''}
+      ${order && event === 'SUCCESS' ? `<p class="mt-2 text-navy-600">${escapeHtml(order.productName)} · ${fmtHuf(order.amount)}</p>` : ''}
+      <p class="mt-4 text-navy-600 leading-relaxed">${escapeHtml(text)}</p>
+      <div class="flex flex-wrap gap-3 mt-8">
+        <a href="${escapeHtml(back)}" class="${BTN_PRIMARY}">Vissza</a>
+        <a href="/" class="${BTN_OUTLINE.replace('reveal ', '')}">Főoldal</a>
+      </div>
+      <div class="mt-8 pt-6 border-t border-navy-100">${SIMPLEPAY_LOGO}</div>
+    </div>`);
+  return layout(frame, { title: `${title} — Egy Lépéssel Több Alapítvány`, description: title, main });
+}
+

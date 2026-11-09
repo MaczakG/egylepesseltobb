@@ -118,6 +118,21 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 
 Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad tovább. A 2026. október 1. előtt telepített szerveren ez még nincs így beállítva, ott a `/blog` és a `/csaladok` oldalakhoz egyszer frissíteni kell az nginx konfigot (vagy újratelepíteni a szervert).
 
+## Termékek és SimplePay fizetés
+
+- Az adminban a **Termékek** menüpont alatt vannak az oldalakon fizethető tételek (pl. a gálaest támogatói jegyei, a Gyömrői Esték adományösszegei, az alapítvány működésének támogatása): oldal, név, leírás, ár, gombfelirat, sorrend, megjelenik-e. Az oldal fizetési kártyái ebből a listából készülnek.
+- Az első importkor a régi oldal SimplePay-fizetési linkjeiből (kártyáiból) oldalanként egyszer termékek lesznek; az adminban törölt terméket a későbbi import nem hozza vissza.
+- A fizetés az oldalon belül indul (`/fizetes/<termék>`): a támogató megadja a nevét és e-mail-címét, elfogadja az adatkezelési tájékoztatót és az adattovábbítási nyilatkozatot, majd a szerver a SimplePay v2 API-n (aláírt kéréssel) indítja a tranzakciót, és átirányít a SimplePay fizetőoldalára. A számlázási adatokat a SimplePay oldalán adja meg.
+- A visszatérő oldal (`/fizetes/vissza`) a SimplePay előírása szerint mutatja az eredményt (sikeres és sikertelen fizetésnél a SimplePay tranzakcióazonosítóval). A végleges állapotot a SimplePay értesítése (IPN, `/fizetes/ipn`) rögzíti.
+- A **Fizetések** menüpont listázza az indított fizetéseket (állapot, rendelés- és SimplePay-azonosító, teszt jelölés).
+- **Beállítás:** admin **Beállítások → SimplePay fizetés**: kereskedői azonosító (MERCHANT) és titkos kulcs (SECRET KEY) a SimplePay kereskedői felületéről. Előbb teszt (sandbox) módban próbáld ki, utána kapcsold ki a teszt módot. A kártyán látható **IPN címet** a SimplePay kereskedői felületén is meg kell adni.
+- Amíg nincs beállítva, a termékek gombjai a régi `checkout.simplepay.hu` fizetési linkekre mutatnak (ha volt ilyen), így a fizetés addig sem áll le.
+- A SimplePay logó (lábléc, fizetési oldal) a SimplePay fizetési tájékoztatójára mutat, ahogy az elfogadási feltételek előírják.
+
+## Partnerlogók
+
+- A partnerlogók (`assets/img/partner-*.png`, és az oldalak „logos” blokkjainak képei importkor) egységes méretűek: a szerver levágja a felesleges szélt, közel azonos felületűre méretezi, és átlátszó 640×320-as vászon közepére teszi (`server/src/logo.js`). Új logót így érdemes ugyanígy előkészíteni.
+
 ## Import a régi oldalról (egylepesseltobb.hu)
 
 - A régi WordPress-oldal tartalma (`server/import/wordpress-2026-11-09.json`) a szerver első indulásakor automatikusan bekerül:

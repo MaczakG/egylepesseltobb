@@ -146,7 +146,9 @@ describe('oldalak megjelenítése', () => {
     assert.match(ado, /id="gallery-lightbox"/);
     assert.match(ado, /<a class="button" href="\/uploads\/25EGYSZA-adoszammal\.pdf">/);
     const pay = (await page('/linkesfizetes')).html;
-    assert.equal((pay.match(/<a class="button" href="https:\/\/checkout\.simplepay\.hu\/trx\/[^"]+" rel="noopener noreferrer" target="_blank">Fizetés<\/a>/g) || []).length, 8);
+    // A fizetési kártyák termékekből jönnek; SimplePay-beállítás nélkül még a régi linkre mutatnak.
+    assert.equal(store.listPageProducts(db, 'linkesfizetes').length, 8);
+    assert.equal((pay.match(/<a class="button" href="https:\/\/checkout\.simplepay\.hu\/trx\/[^"]+">Fizetés<\/a>/g) || []).length, 8);
   });
 
   test('a régi oldal novemberi változásai: új bankszámla, 2025-ös beszámoló, gálaest és Gyömrői Esték', async () => {

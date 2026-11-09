@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import * as store from './db.js';
+import { normalizeLogo } from './logo.js';
 import {
   detectImageType, sanitizePage, sanitizePost, sanitizeStory,
 } from './validate.js';
@@ -200,13 +201,18 @@ export async function runPagesImport({ db, config, data, fetchImage = fetchFromW
   const exists = (url) => Boolean(url) && fs.existsSync(path.join(config.uploadsDir, path.basename(url)));
 
   // Kép: webre méretezve (WebP); PDF: változatlanul. Más fájltípust nem veszünk át.
-  async function file(url) {
-    if (exists(fileMap[url])) return fileMap[url];
+  // A partnerlogók (.logos) egységes méretet kapnak (lásd logo.js), ezért külön tároljuk őket.
+  async function file(url, asLogo = false) {
+    const key = asLogo ? `logo:${url}` : url;
+    if (exists(fileMap[key])) return fileMap[key];
     if (failed.has(url)) return null;
     try {
       const buffer = await fetchImage(url);
       let name;
-      if (detectImageType(buffer)) {
+      if (asLogo && detectImageType(buffer)) {
+        name = `${crypto.randomBytes(12).toString('hex')}.webp`;
+        fs.writeFileSync(path.join(config.uploadsDir, name), await normalizeLogo(buffer, 'webp'));
+      } else if (detectImageType(buffer)) {
         name = `${crypto.randomBytes(12).toString('hex')}.webp`;
         await sharp(buffer, { failOn: 'none' }).rotate().resize({ width: 1600, withoutEnlargement: true })
           .webp({ quality: 82 }).toFile(path.join(config.uploadsDir, name));
@@ -216,10 +222,10 @@ export async function runPagesImport({ db, config, data, fetchImage = fetchFromW
       } else {
         throw new Error('nem kép és nem PDF');
       }
-      fileMap[url] = `/uploads/${name}`;
+      fileMap[key] = `/uploads/${name}`;
       store.setSetting(db, FILES_KEY, fileMap);
       status.files += 1;
-      return fileMap[url];
+      return fileMap[key];
     } catch (err) {
       log(`Fájl kihagyva (${err.message}): ${url}`);
       failed.add(url);
@@ -236,10 +242,12 @@ export async function runPagesImport({ db, config, data, fetchImage = fetchFromW
         status.skipped += 1;
       } else {
         const urls = [...new Set(pg.content.match(UPLOAD_URL) || [])];
-        const local = await inChunks(urls, PARALLEL_DOWNLOADS, file);
+        const logos = new Set((pg.content.match(/<div class="logos">[\s\S]*?<\/div>/g) || []).join('').match(UPLOAD_URL) || []);
+        const local = await inChunks(urls, PARALLEL_DOWNLOADS, (url) => file(url, logos.has(url)));
         let content = pg.content;
         urls.forEach((url, i) => { if (local[i]) content = content.split(url).join(local[i]); });
         store.upsertImportedPage(db, pg.wpId, { slug: pg.slug, title: pg.title, content: sanitizePage(content), extras: pg.extras });
+        store.seedPageProducts(db, pg.slug, paymentCards(pg.content));
       }
       status.done += 1;
       save();
@@ -253,6 +261,17 @@ export async function runPagesImport({ db, config, data, fetchImage = fetchFromW
   status.finishedAt = new Date().toISOString();
   save();
   return status;
+}
+
+// A régi oldal fizetési kártyái (cím, ár, SimplePay fizetési link) → termékek az adminba.
+export function paymentCards(html) {
+  const cards = [];
+  const re = /<div class="card"><h3>([^<]*)<\/h3><p class="price">([^<]*)<\/p><p><a class="button" href="(https:\/\/checkout\.simplepay\.hu\/[^"]+)">([^<]*)<\/a><\/p><\/div>/g;
+  for (const m of html.matchAll(re)) {
+    const price = Number(m[2].replace(/\D/g, ''));
+    if (price > 0) cards.push({ name: m[1].trim().replace(/:$/, ''), price, button: m[4].trim() || 'Fizetés', legacyUrl: m[3] });
+  }
+  return cards;
 }
 
 // A régi oldal bejegyzéseinek webcíme → WordPress-azonosító (a régi linkek átirányításához).

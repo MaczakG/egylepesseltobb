@@ -156,6 +156,41 @@ export function validateFormSettings(body) {
   return { amounts: amounts.sort((a, b) => a - b), sources };
 }
 
+// Termék (admin): melyik oldalon, milyen néven és áron jelenik meg a fizetési kártya.
+const PAGE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export function validateProduct(body) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const name = text(body.name, 120);
+  if (!name) throw new ValidationError('Add meg a termék nevét.');
+  const price = Number(String(body.price ?? '').replace(/[\s.]|Ft$/gi, ''));
+  if (!Number.isInteger(price) || price < 100 || price > 10_000_000) {
+    throw new ValidationError('Az ár 100 és 10 000 000 Ft közötti egész szám legyen.');
+  }
+  const pageSlug = text(body.pageSlug, 80);
+  if (!PAGE_SLUG.test(pageSlug)) throw new ValidationError('Válaszd ki, melyik oldalon jelenjen meg.');
+  const sort = Number.parseInt(body.sort, 10);
+  return {
+    pageSlug,
+    name,
+    description: text(body.description, 500),
+    price,
+    button: text(body.button, 40) || 'Fizetés',
+    sort: Number.isInteger(sort) ? Math.max(0, Math.min(sort, 9999)) : 0,
+    active: body.active !== false,
+  };
+}
+
+// SimplePay hozzáférés (admin Beállítások). Üres titkos kulcsnál a régi marad.
+export function validatePaymentSettings(body, current) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const merchant = typeof body.merchant === 'string' ? body.merchant.trim() : '';
+  const secretKey = typeof body.secretKey === 'string' ? body.secretKey.trim() : '';
+  if (merchant && !/^[A-Za-z0-9_-]{2,64}$/.test(merchant)) throw new ValidationError('Érvénytelen kereskedői azonosító.');
+  if (secretKey && secretKey.length > 256) throw new ValidationError('Érvénytelen titkos kulcs.');
+  return { merchant, secretKey: secretKey || (merchant ? current.secretKey : ''), sandbox: body.sandbox !== false };
+}
+
 // A díjjelölés legördülő listái (Beállítások): soronként egy kategória, illetve egy nagykövet.
 export function validateNominationSettings(body) {
   if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');

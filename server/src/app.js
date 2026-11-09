@@ -9,14 +9,17 @@ import {
 } from './auth.js';
 import {
   applicationForm, renderBlogList, renderBlogPost, renderEvents, renderFamilyList, renderFamilyPage, renderHomePosts,
-  renderNotFound, renderPage, siteFrame,
+  renderCheckout, renderNotFound, renderPage, renderPaymentResult, siteFrame,
 } from './pages.js';
+import {
+  BACK_STATUS, IPN_STATUS, SimplePayError, handleIpn, parseBack, startPayment,
+} from './simplepay.js';
 import { IMPORT_FILE, legacyPostSlugs, loadImportData } from './wpimport.js';
 import { checkMessage, formSchema, messageForm, renderMessageForm } from './forms.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import {
   ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
-  validateMessageStatus, validateNominationSettings, validatePost, validateSettings,
+  validateMessageStatus, validateNominationSettings, validatePaymentSettings, validatePost, validateProduct, validateSettings,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -106,7 +109,7 @@ function postImages(post) {
   return post.coverImage ? [post.coverImage, ...urls] : urls;
 }
 
-export function createApp({ db, config }) {
+export function createApp({ db, config, fetchImpl = fetch }) {
   fs.mkdirSync(config.uploadsDir, { recursive: true });
   const messagesDir = path.join(config.privateDir || path.join(config.dataDir, 'private'), 'messages');
   fs.mkdirSync(messagesDir, { recursive: true, mode: 0o700 });
@@ -443,6 +446,49 @@ export function createApp({ db, config }) {
     res.json(store.saveNominationSettings(db, validateNominationSettings(req.body)));
   });
 
+  // --- Termékek, fizetések, SimplePay beállítás ---
+  admin.get('/products', (req, res) => res.json({
+    products: store.listProducts(db),
+    pages: store.listPages(db).map((pg) => ({ slug: pg.slug, title: pg.title })),
+  }));
+
+  admin.post('/products', (req, res) => res.status(201).json(store.createProduct(db, validateProduct(req.body))));
+
+  admin.put('/products/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.getProduct(db, id)) return res.status(404).json({ error: 'A termék nem található.' });
+    res.json(store.updateProduct(db, id, validateProduct(req.body)));
+  });
+
+  admin.delete('/products/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.deleteProduct(db, id)) return res.status(404).json({ error: 'A termék nem található.' });
+    res.json({ ok: true });
+  });
+
+  admin.get('/orders', (req, res) => res.json(store.listOrders(db)));
+
+  admin.delete('/orders/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.deleteOrder(db, id)) return res.status(404).json({ error: 'A fizetés nem található.' });
+    res.json({ ok: true });
+  });
+
+  // A titkos kulcsot sosem küldjük vissza, csak azt, hogy be van-e állítva.
+  const publicPaymentSettings = (req) => {
+    const s = store.getPaymentSettings(db);
+    return {
+      merchant: s.merchant, sandbox: s.sandbox, hasSecretKey: Boolean(s.secretKey),
+      configured: paymentsConfigured(), ipnUrl: `${baseUrl(req)}/fizetes/ipn`,
+    };
+  };
+  admin.get('/payment-settings', (req, res) => res.json(publicPaymentSettings(req)));
+
+  admin.put('/payment-settings', (req, res) => {
+    store.savePaymentSettings(db, validatePaymentSettings(req.body, store.getPaymentSettings(db)));
+    res.json(publicPaymentSettings(req));
+  });
+
   admin.get('/applications', (req, res) => res.json(store.listApplications(db)));
 
   admin.put('/applications/:id', (req, res) => {
@@ -483,6 +529,122 @@ export function createApp({ db, config }) {
     return page && (isPublic || req.user) ? { page, isPublic } : null;
   };
 
+  // --- Online fizetés (SimplePay v2 API) ----------------------------------------
+  const paymentSettings = () => store.getPaymentSettings(db);
+  const paymentsConfigured = () => {
+    const s = paymentSettings();
+    return Boolean(s.merchant && s.secretKey);
+  };
+  const productParam = (req) => {
+    const id = /^\d{1,9}$/.test(req.params.id) ? Number(req.params.id) : 0;
+    const product = id && store.getProduct(db, id);
+    return product && product.active ? product : null;
+  };
+  const productPage = (product) => {
+    const page = store.getPageBySlug(db, product.pageSlug);
+    return page && page.status === 'published' ? page : null;
+  };
+  const sendCheckout = (req, res, product, form = {}, status = 200) => {
+    res.set('X-Robots-Tag', 'noindex');
+    sendHtml(res, renderCheckout(siteFrame(readIndex()), {
+      product, page: productPage(product), payable: paymentsConfigured(), ...form,
+    }), status);
+  };
+
+  app.get('/fizetes/vissza', (req, res) => {
+    res.set('X-Robots-Tag', 'noindex');
+    const back = parseBack(paymentSettings(), req.query.r, req.query.s);
+    const order = back && store.getOrderByRef(db, back.orderRef);
+    if (!back || !order) {
+      return sendHtml(res, renderPaymentResult(siteFrame(readIndex()), { event: 'UNKNOWN' }), 400);
+    }
+    const updated = store.updateOrder(db, order.id, { status: BACK_STATUS[back.event], transactionId: back.transactionId });
+    const product = order.productId && store.getProduct(db, order.productId);
+    sendHtml(res, renderPaymentResult(siteFrame(readIndex()), {
+      event: back.event, transactionId: back.transactionId, order: updated, page: product ? productPage(product) : null,
+    }));
+  });
+
+  // IPN: a SimplePay a háttérben értesít a végleges állapotról; a válasz a kapott JSON receiveDate-tel, aláírva.
+  app.post('/fizetes/ipn', express.text({ type: '*/*', limit: '64kb' }), (req, res) => {
+    const result = handleIpn(paymentSettings(), typeof req.body === 'string' ? req.body : '', req.get('Signature'));
+    if (!result) return res.status(400).type('text').send('UNSUCCESSFUL VALIDATION');
+    const order = store.getOrderByRef(db, result.data.orderRef);
+    if (order && IPN_STATUS[result.data.status]) {
+      store.updateOrder(db, order.id, { status: IPN_STATUS[result.data.status], transactionId: result.data.transactionId, fromIpn: true });
+    } else if (!order) {
+      console.error(`SimplePay IPN ismeretlen rendeléshez: ${result.data.orderRef}`);
+    }
+    res.status(200).set({ 'Content-Type': 'application/json', Signature: result.replySignature }).send(result.reply);
+  });
+
+  app.get('/fizetes/:id', (req, res, next) => {
+    const product = productParam(req);
+    if (!product) return next();
+    sendCheckout(req, res, product);
+  });
+
+  const paymentsByIp = new Map();
+  app.post('/fizetes/:id', express.urlencoded({ extended: false, limit: '10kb' }), async (req, res, next) => {
+    const product = productParam(req);
+    if (!product) return next();
+    const body = req.body || {};
+    if (body.website) return res.redirect(303, `/fizetes/${product.id}`);
+    if (!paymentsConfigured()) return sendCheckout(req, res, product, {}, 503);
+    const values = {
+      name: typeof body.name === 'string' ? body.name.trim().slice(0, 120) : '',
+      email: typeof body.email === 'string' ? body.email.trim().slice(0, 200) : '',
+      consent: body.consent === 'on',
+      transfer: body.transfer === 'on',
+    };
+    const errors = {};
+    if (!values.name) errors.name = 'Add meg a neved.';
+    if (!/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/.test(values.email)) errors.email = 'Adj meg egy érvényes e-mail címet.';
+    if (!values.consent) errors.consent = 'A fizetéshez el kell fogadnod az adatkezelési tájékoztatót.';
+    if (!values.transfer) errors.transfer = 'A fizetéshez el kell fogadnod az adattovábbítási nyilatkozatot.';
+    if (Object.keys(errors).length) return sendCheckout(req, res, product, { values, errors }, 400);
+
+    const now = Date.now();
+    const recent = (paymentsByIp.get(req.ip) || []).filter((t) => t > now - APPLICATION_WINDOW_MS);
+    if (recent.length >= 10) {
+      return sendCheckout(req, res, product, { values, error: 'Túl sok fizetési kísérlet. Kérjük, próbáld újra később.' }, 429);
+    }
+    recent.push(now);
+    paymentsByIp.set(req.ip, recent);
+
+    const settings = paymentSettings();
+    const page = productPage(product);
+    const order = store.createOrder(db, {
+      orderRef: `ELT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomBytes(5).toString('hex')}`,
+      productId: product.id,
+      productName: page ? `${page.title} – ${product.name}` : product.name,
+      pageSlug: product.pageSlug,
+      amount: product.price,
+      name: values.name,
+      email: values.email,
+      sandbox: settings.sandbox,
+    });
+    try {
+      const started = await startPayment(settings, {
+        orderRef: order.orderRef,
+        total: order.amount,
+        customerEmail: order.email,
+        customerName: order.name,
+        backUrl: `${baseUrl(req)}/fizetes/vissza`,
+        items: [{ ref: product.id, title: order.productName.slice(0, 120), price: product.price }],
+        fetchImpl,
+      });
+      store.updateOrder(db, order.id, { transactionId: started.transactionId });
+      res.redirect(303, started.paymentUrl);
+    } catch (err) {
+      store.updateOrder(db, order.id, { status: 'error', error: err.message.slice(0, 500) });
+      console.error(`SimplePay start hiba (${order.orderRef}): ${err.message}`);
+      sendCheckout(req, res, product, {
+        values, error: err instanceof SimplePayError ? 'A fizetést most nem sikerült elindítani. Kérjük, próbáld újra később.' : 'Váratlan hiba történt.',
+      }, 502);
+    }
+  });
+
   const sendContentPage = (req, res, { page, isPublic }, form = {}, status = 200) => {
     const frame = siteFrame(readIndex());
     const families = page.extras.families ? store.listPublicFamilies(db, { status: 'adoptable' }).families : [];
@@ -498,6 +660,7 @@ export function createApp({ db, config }) {
     if (!isPublic) res.set('X-Robots-Tag', 'noindex');
     sendHtml(res, renderPage(frame, {
       page, baseUrl: baseUrl(req), preview: !isPublic, families, posts, formHtml, form,
+      products: store.listPageProducts(db, page.slug), payable: paymentsConfigured(),
     }), status);
   };
 
