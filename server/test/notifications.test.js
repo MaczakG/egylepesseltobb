@@ -49,7 +49,7 @@ before(async () => {
   });
   family = store.createFamily(db, { name: 'Levél Lili', subtitle: '', status: 'adoptable', amount: 0, applicants: 0, story: '', images: [] });
   store.savePaymentSettings(db, { merchant: 'PUBLICTESTHUF', secretKey: KEY, sandbox: true });
-  const mailer = createMailer(db, { transportFactory: fakeTransport });
+  const mailer = createMailer(db, { transportFactory: fakeTransport, retryDelays: [5, 5] });
   server = createApp({ db, config, mailer }).listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   base = `http://127.0.0.1:${server.address().port}`;
@@ -175,6 +175,36 @@ describe('értesítések a látogatók beküldéseiről', () => {
     assert.equal(res.status, 303);
     await settle();
     assert.match(store.getSmtpStatus(db).lastError, /ETIMEDOUT/);
+  });
+
+  test('átmeneti hibánál újrapróbálja, végleges hibánál nem', async () => {
+    let calls = 0;
+    const flaky = createMailer(db, {
+      retryDelays: [5, 5],
+      transportFactory: () => ({
+        sendMail: async (mail) => {
+          calls += 1;
+          if (calls === 1) throw Object.assign(new Error('421 4.7.0 Try again later'), { responseCode: 421 });
+          sent.push(mail);
+        },
+      }),
+    });
+    assert.equal(await flaky.notify({ subject: 'Próba', rows: [] }), true);
+    assert.equal(calls, 2);
+    assert.equal(sent.length, 1);
+
+    calls = 0;
+    const rejected = createMailer(db, {
+      retryDelays: [5, 5],
+      transportFactory: () => ({
+        sendMail: async () => {
+          calls += 1;
+          throw Object.assign(new Error('550 5.7.1 Relay denied'), { responseCode: 550 });
+        },
+      }),
+    });
+    assert.equal(await rejected.notify({ subject: 'Próba', rows: [] }), false);
+    assert.equal(calls, 1);
   });
 
   test('kikapcsolt értesítéseknél nem megy levél', async () => {

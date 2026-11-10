@@ -5,7 +5,13 @@
 import nodemailer from 'nodemailer';
 import * as store from './db.js';
 
-export function createMailer(db, { transportFactory = (opts) => nodemailer.createTransport(opts) } = {}) {
+// Átmeneti hibánál (pl. Google „421 Try again later”, időtúllépés) a levél később újra elindul.
+const RETRY_DELAYS = [30_000, 120_000, 600_000];
+const isTransient = (err) => !err.responseCode || (err.responseCode >= 400 && err.responseCode < 500);
+
+export function createMailer(db, {
+  transportFactory = (opts) => nodemailer.createTransport(opts), retryDelays = RETRY_DELAYS,
+} = {}) {
   const settings = () => store.getSmtpSettings(db);
   const configured = (s = settings()) => Boolean(s.host && s.from && s.to.length);
 
@@ -47,16 +53,20 @@ export function createMailer(db, { transportFactory = (opts) => nodemailer.creat
   function notify(mail) {
     const s = settings();
     if (!s.enabled || !configured(s)) return Promise.resolve(false);
-    return transport(s).sendMail(message(s, mail))
+    const msg = message(s, mail);
+    const attempt = (n) => transport(s).sendMail(msg)
       .then(() => {
         store.saveSmtpStatus(db, { lastSentAt: new Date().toISOString(), lastError: '' });
         return true;
       })
       .catch((err) => {
-        console.error(`E-mail értesítés hiba (${mail.subject}): ${err.message}`);
+        const retry = n < retryDelays.length && isTransient(err);
+        console.error(`E-mail értesítés hiba (${mail.subject}, ${n + 1}. próba${retry ? ', újrapróbálja' : ''}): ${err.message}`);
         store.saveSmtpStatus(db, { lastErrorAt: new Date().toISOString(), lastError: String(err.message).slice(0, 300) });
-        return false;
+        if (!retry) return false;
+        return new Promise((resolve) => { setTimeout(resolve, retryDelays[n]).unref(); }).then(() => attempt(n + 1));
       });
+    return attempt(0);
   }
 
   return { notify, sendTest, configured };
