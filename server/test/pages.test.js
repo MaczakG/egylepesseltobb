@@ -81,7 +81,7 @@ describe('a régi oldal aloldalainak importja', () => {
   test('újrafuttatva nem duplikál, csak a hiányzó fájlt kéri újra, az adminban módosított oldalhoz nem nyúl', async () => {
     const pg = store.getPageBySlug(db, 'kapcsolat');
     db.prepare("UPDATE pages SET updated_at = datetime('now', '-1 minute'), wp_synced_at = datetime('now', '-1 minute')").run();
-    store.updatePage(db, pg.id, { ...pg, title: 'Kapcsolat – átírva' });
+    db.prepare("UPDATE pages SET title = 'Kapcsolat – átírva', updated_at = datetime('now') WHERE id = ?").run(pg.id);
     const before = fetched.length;
     const again = await runPagesImport({ db, config, data: pagesData, fetchImage, log: () => {} });
     assert.equal(again.skipped, 1);

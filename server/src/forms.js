@@ -2,6 +2,7 @@
 // a beküldések az adminban az „Üzenetek” menüpontban jelennek meg.
 import { DEFAULT_NOMINATION_SETTINGS } from './db.js';
 import { escapeHtml } from './render.js';
+import { EMAIL as EMAIL_RE, PHONE as PHONE_RE } from './validate.js';
 
 const NAME = { name: 'name', label: 'Név', type: 'text', required: true, max: 120, autocomplete: 'name' };
 const EMAIL = { name: 'email', label: 'E-mail', type: 'email', required: true, max: 200, autocomplete: 'email' };
@@ -48,7 +49,6 @@ export const MESSAGE_FORMS = {
   },
 };
 
-export const MESSAGE_FORM_TYPES = Object.keys(MESSAGE_FORMS);
 
 // Az űrlap a mentett beállításokkal: a díjjelölés kategóriái és nagykövetei az adminban szerkeszthetők.
 // Üres nagykövetlistánál a (nem kötelező) mező el is marad.
@@ -76,8 +76,6 @@ export function formSchema() {
   }]));
 }
 
-const EMAIL_RE = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/;
-const PHONE_RE = /^[+()\-\s\d/]{6,30}$/;
 
 export function checkMessage(def, body) {
   const values = {};
@@ -99,7 +97,7 @@ export function checkMessage(def, body) {
   return { values, errors };
 }
 
-const INPUT = 'w-full rounded-full border bg-white px-5 py-3 text-navy-800 outline-none transition focus:border-sand-600 focus:ring-2 focus:ring-sand-200';
+export const INPUT = 'w-full rounded-full border bg-white px-5 py-3 text-navy-800 outline-none transition focus:border-sand-600 focus:ring-2 focus:ring-sand-200';
 const AREA = 'w-full rounded-2xl border bg-white px-5 py-3 text-navy-800 outline-none transition focus:border-sand-600 focus:ring-2 focus:ring-sand-200';
 
 // JavaScript nélkül is működő űrlap (sima POST; fájlfeltöltésnél multipart).

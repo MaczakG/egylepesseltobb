@@ -112,8 +112,8 @@ export function validateSettings(body) {
 }
 
 // A nyilvános jelentkezési űrlap: mezőnkénti hibaüzenetekkel, hogy az oldal a hibák mellé vissza tudja írni az értékeket.
-const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/;
-const PHONE = /^[+()\-\s\d/]{6,30}$/;
+export const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/;
+export const PHONE = /^[+()\-\s\d/]{6,30}$/;
 
 export function checkApplication(body, { amounts, sources }) {
   const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');

@@ -4,6 +4,8 @@ import { POST_CATEGORIES } from './db.js';
 import {
   FAMILY_BADGE, coverImage, escapeHtml, excerpt, familyCard, familyUrl, renderFamilyCards,
 } from './render.js';
+import { INPUT } from './forms.js';
+import { PAYMENT_INFO_URL, PRIVACY_URL } from './simplepay.js';
 
 const MONTHS = ['január', 'február', 'március', 'április', 'május', 'június', 'július', 'augusztus',
   'szeptember', 'október', 'november', 'december'];
@@ -894,7 +896,6 @@ function statusBox(family) {
   return '';
 }
 
-const INPUT = 'w-full rounded-full border bg-white px-5 py-3 text-navy-800 outline-none transition focus:border-sand-600 focus:ring-2 focus:ring-sand-200';
 
 // „Jelentkezem támogatónak” űrlap a család oldalán. JavaScript nélkül is működik (sima POST, a szerver
 // hiba esetén a hibaüzenetekkel és a beírt értékekkel adja vissza az oldalt).
@@ -1116,7 +1117,7 @@ function eventFeature(post, i) {
 
 // A régi fizetési linkes kártyák helyére az adminban kezelt termékek kerülnek (ugyanabban a kártyás formában).
 // A gomb a saját fizetési oldalunkra visz (SimplePay API); amíg a SimplePay nincs beállítva, a régi link a tartalék.
-const fmtHuf = (n) => `${Number(n).toLocaleString('hu-HU').replace(/\u00a0/g, ' ')} Ft`;
+export const fmtHuf = (n) => `${Number(n).toLocaleString('hu-HU').replace(/\u00a0/g, ' ')} Ft`;
 
 function productCardsHtml(products, payable) {
   const card = (p) => {
@@ -1242,7 +1243,7 @@ export function renderNotFound(frame) {
 
 // --- Fizetés (SimplePay) ------------------------------------------------------
 
-const SIMPLEPAY_LOGO = `<a href="https://simplepartner.hu/PaymentService/Fizetesi_tajekoztato.pdf" target="_blank" rel="noopener" class="inline-block" title="SimplePay – Online bankkártyás fizetés"><img src="/assets/img/simplepay_logo.svg" alt="SimplePay vásárlói tájékoztató" class="h-8 bg-white rounded px-2 py-1 border border-navy-100"></a>`;
+const SIMPLEPAY_LOGO = `<a href="${PAYMENT_INFO_URL}" target="_blank" rel="noopener" class="inline-block" title="SimplePay – Online bankkártyás fizetés"><img src="/assets/img/simplepay_logo.svg" alt="SimplePay vásárlói tájékoztató" class="h-8 bg-white rounded px-2 py-1 border border-navy-100"></a>`;
 
 // A SimplePay által előírt adattovábbítási nyilatkozat (dokumentáció, 8. fejezet).
 export const DATA_TRANSFER_TEXT = 'Tudomásul veszem, hogy az Egy Lépéssel Több Hajós István Alapítvány (1036 Budapest, Bécsi út 81.) adatkezelő által az egylepesseltobb.hu felhasználói adatbázisában tárolt alábbi személyes adataim átadásra kerülnek a SimplePay Zrt., mint adatfeldolgozó részére. Az adatkezelő által továbbított adatok köre az alábbi: név, e-mail cím, a fizetés összege és a támogatás megnevezése. Az adatfeldolgozó által végzett adatfeldolgozási tevékenység jellege és célja a SimplePay Adatkezelési tájékoztatóban, az alábbi linken tekinthető meg:';
@@ -1275,7 +1276,7 @@ export function renderCheckout(frame, { product, page, values = {}, errors = {},
           <input id="pay-website" name="website" type="text" tabindex="-1" autocomplete="off">
         </div>
         ${check('consent', `Elolvastam és elfogadom az ${privacy}.`)}
-        ${check('transfer', `${escapeHtml(DATA_TRANSFER_TEXT)} <a href="https://simplepay.hu/adatkezelesi-tajekoztatok/" target="_blank" rel="noopener" class="text-sand-800 underline underline-offset-2">https://simplepay.hu/adatkezelesi-tajekoztatok/</a>`)}
+        ${check('transfer', `${escapeHtml(DATA_TRANSFER_TEXT)} <a href="${PRIVACY_URL}" target="_blank" rel="noopener" class="text-sand-800 underline underline-offset-2">${PRIVACY_URL}</a>`)}
         <button type="submit" class="btn-primary w-full bg-sand-500 hover:bg-sand-600 text-navy-900 font-bold uppercase tracking-wide px-6 py-3.5 rounded-full">Tovább a fizetéshez</button>
       </form>`
     : `

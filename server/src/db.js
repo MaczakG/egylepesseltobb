@@ -541,13 +541,6 @@ export function createPage(db, pg) {
   return getPage(db, lastInsertRowid);
 }
 
-export function updatePage(db, id, pg) {
-  const { changes } = db.prepare(`UPDATE pages SET slug = ?, title = ?, content = ?, extras = ?, status = ?,
-    updated_at = datetime('now') WHERE id = ?`)
-    .run(uniquePageSlug(db, pg.slug, id), pg.title, pg.content, JSON.stringify(pg.extras), pg.status, id);
-  return changes ? getPage(db, id) : null;
-}
-
 export function upsertImportedPage(db, wpId, pg) {
   const existing = db.prepare('SELECT id, slug FROM pages WHERE wp_id = ?').get(wpId);
   if (existing) {
@@ -730,8 +723,6 @@ export function deleteMessage(db, id) {
 }
 
 // --- Termékek és fizetések (SimplePay) ------------------------------------------
-
-export const ORDER_STATUSES = ['started', 'authorized', 'paid', 'failed', 'cancelled', 'timeout', 'error'];
 
 function toProduct(row) {
   return {

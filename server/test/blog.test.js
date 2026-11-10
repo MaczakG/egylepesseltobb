@@ -116,9 +116,6 @@ describe('nyilvános oldalak', () => {
       assert.equal((await page(`/blog/${p.slug}`)).status, 404);
       assert.ok(!list.html.includes(p.title));
     }
-    const api = await (await fetch(`${base}/api/posts`)).json();
-    assert.ok(!api.some((p) => p.id === draft.id || p.id === future.id));
-    assert.ok(api.every((p) => !('content' in p)));
 
     const preview = await page(`/blog/${draft.slug}`, { auth: true });
     assert.equal(preview.status, 200);

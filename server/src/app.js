@@ -9,7 +9,7 @@ import {
 } from './auth.js';
 import {
   applicationForm, renderBlogList, renderBlogPost, renderEvents, renderFamilyList, renderFamilyPage, renderHomePosts,
-  renderCheckout, renderNotFound, renderPage, renderPaymentResult, siteFrame,
+  renderCheckout, renderNotFound, renderPage, renderPaymentResult, siteFrame, fmtHuf,
 } from './pages.js';
 import {
   BACK_STATUS, IPN_STATUS, SimplePayError, handleIpn, parseBack, startPayment,
@@ -19,7 +19,7 @@ import { checkMessage, formSchema, messageForm, renderMessageForm } from './form
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import { createMailer } from './mailer.js';
 import {
-  ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
+  EMAIL, ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
   validateMessageStatus, validateNominationSettings, validatePaymentSettings, validatePost, validateProduct, validateSettings, validateSmtpSettings,
 } from './validate.js';
 
@@ -28,9 +28,21 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_FAILURES = 10;
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const POSTS_PER_PAGE = 12;
-const APPLICATION_WINDOW_MS = 60 * 60 * 1000;
-const APPLICATION_MAX_PER_IP = 5;
+const SUBMIT_WINDOW_MS = 60 * 60 * 1000;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// Beküldések IP-címenként, óránként legfeljebb `max` (a ritkán ürülő listát időnként kitakarítja).
+function ipLimiter(max) {
+  const hits = new Map();
+  const recent = (ip) => (hits.get(ip) || []).filter((t) => t > Date.now() - SUBMIT_WINDOW_MS);
+  return {
+    full: (ip) => recent(ip).length >= max,
+    add(ip) {
+      hits.set(ip, [...recent(ip), Date.now()]);
+      if (hits.size > 5000) for (const key of hits.keys()) if (!recent(key).length) hits.delete(key);
+    },
+  };
+}
 
 const MAX_FILES = 5;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
@@ -84,14 +96,6 @@ function parseCookies(header = '') {
   return cookies;
 }
 
-function publicFamily({ amount, applicants, ...family }) {
-  return family;
-}
-
-function postSummary({ content, ...post }) {
-  return post;
-}
-
 // A régi oldal címei, amelyeket a mi oldalunk másként old meg (lista, főoldal).
 const LEGACY_REDIRECTS = {
   fooldal: '/',
@@ -137,7 +141,6 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
   );
   const baseUrl = (req) => `${req.protocol}://${req.get('host')}`;
   const adminLink = (req) => `${baseUrl(req)}/admin.html`;
-  const fmtFt = (n) => `${Number(n || 0).toLocaleString('hu-HU')} Ft`;
   const sendHtml = (res, html, status = 200) => res.status(status).set('Cache-Control', 'no-cache').type('html').send(html);
 
   app.get(['/', '/index.html'], (req, res) => {
@@ -207,15 +210,13 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
 
   // Támogatói jelentkezés. Sima űrlapküldés (JavaScript nélkül is megy); siker után átirányít (PRG),
   // hibánál a hibaüzenetekkel és a beírt adatokkal adja vissza az oldalt (családoldal vagy tartalmi oldal).
-  const applicationsByIp = new Map();
+  const applicationLimit = ipLimiter(5);
   const handleApplication = (req, res, { thanks, sendPage }) => {
     const body = req.body || {};
     // Rejtett mező: ember nem tölti ki, a spamrobotok igen. Nekik is „sikert” mutatunk, de nem mentjük.
     if (body.website) return res.redirect(303, thanks);
 
-    const now = Date.now();
-    const recent = (applicationsByIp.get(req.ip) || []).filter((t) => t > now - APPLICATION_WINDOW_MS);
-    if (recent.length >= APPLICATION_MAX_PER_IP) {
+    if (applicationLimit.full(req.ip)) {
       return sendPage({
         error: 'Erről a címről már túl sok jelentkezés érkezett. Kérjük, próbáld újra később, vagy írj nekünk e-mailt.',
       }, 429);
@@ -237,20 +238,14 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
         ['Név', `${saved.lastName} ${saved.firstName}`],
         ['E-mail', saved.email],
         ['Telefonszám', saved.phone],
-        ['Havi összeg', fmtFt(saved.amount)],
+        ['Havi összeg', fmtHuf(saved.amount)],
         ['Honnan hallott rólunk', saved.source],
         ...(saved.note ? [['Megjegyzés', saved.note]] : []),
       ],
       link: adminLink(req),
       replyTo: saved.email,
     });
-    recent.push(now);
-    applicationsByIp.set(req.ip, recent);
-    if (applicationsByIp.size > 5000) {
-      for (const [ip, times] of applicationsByIp) {
-        if (!times.some((t) => t > now - APPLICATION_WINDOW_MS)) applicationsByIp.delete(ip);
-      }
-    }
+    applicationLimit.add(req.ip);
     res.redirect(303, thanks);
   };
   const formBody = express.urlencoded({ extended: false, limit: '20kb' });
@@ -338,17 +333,6 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     const user = store.setPassword(db, req.user.id, hashPassword(newPassword));
     setSession(req, res, user);
     res.json({ ok: true });
-  });
-
-  api.get('/families', (req, res) => {
-    const status = store.STATUSES.includes(req.query.status) ? req.query.status : undefined;
-    res.json(store.listFamilies(db, { status }).map(publicFamily));
-  });
-
-  api.get('/posts', (req, res) => {
-    const category = store.POST_CATEGORIES.some((c) => c.key === req.query.kategoria) ? req.query.kategoria : '';
-    const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || POSTS_PER_PAGE));
-    res.json(store.listPublicPosts(db, { category, limit }).posts.map(postSummary));
   });
 
   // --- Admin API -----------------------------------------------------------
@@ -615,11 +599,11 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
       // Az IPN többször is megjöhet: csak az első „fizetve” állapotról megy levél.
       if (updated.status === 'paid' && order.status !== 'paid') {
         mailer.notify({
-          subject: `Sikeres fizetés: ${fmtFt(updated.amount)} – ${updated.name}`,
+          subject: `Sikeres fizetés: ${fmtHuf(updated.amount)} – ${updated.name}`,
           intro: `Sikeres SimplePay fizetés érkezett${updated.sandbox ? ' (teszt módban)' : ''}.`,
           rows: [
             ['Termék', updated.productName],
-            ['Összeg', fmtFt(updated.amount)],
+            ['Összeg', fmtHuf(updated.amount)],
             ['Név', updated.name],
             ['E-mail', updated.email],
             ['Rendelésazonosító', updated.orderRef],
@@ -641,7 +625,7 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     sendCheckout(req, res, product);
   });
 
-  const paymentsByIp = new Map();
+  const paymentLimit = ipLimiter(10);
   app.post('/fizetes/:id', express.urlencoded({ extended: false, limit: '10kb' }), async (req, res, next) => {
     const product = productParam(req);
     if (!product) return next();
@@ -656,18 +640,15 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     };
     const errors = {};
     if (!values.name) errors.name = 'Add meg a neved.';
-    if (!/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/.test(values.email)) errors.email = 'Adj meg egy érvényes e-mail címet.';
+    if (!EMAIL.test(values.email)) errors.email = 'Adj meg egy érvényes e-mail címet.';
     if (!values.consent) errors.consent = 'A fizetéshez el kell fogadnod az adatkezelési tájékoztatót.';
     if (!values.transfer) errors.transfer = 'A fizetéshez el kell fogadnod az adattovábbítási nyilatkozatot.';
     if (Object.keys(errors).length) return sendCheckout(req, res, product, { values, errors }, 400);
 
-    const now = Date.now();
-    const recent = (paymentsByIp.get(req.ip) || []).filter((t) => t > now - APPLICATION_WINDOW_MS);
-    if (recent.length >= 10) {
+    if (paymentLimit.full(req.ip)) {
       return sendCheckout(req, res, product, { values, error: 'Túl sok fizetési kísérlet. Kérjük, próbáld újra később.' }, 429);
     }
-    recent.push(now);
-    paymentsByIp.set(req.ip, recent);
+    paymentLimit.add(req.ip);
 
     const settings = paymentSettings();
     const page = productPage(product);
@@ -699,7 +680,7 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
       mailer.notify({
         subject: `Sikertelen fizetésindítás: ${order.productName}`,
         intro: 'Egy látogató fizetni szeretett volna, de a SimplePay-fizetést nem sikerült elindítani. Érdemes ellenőrizni a SimplePay beállításait.',
-        rows: [['Termék', order.productName], ['Összeg', fmtFt(order.amount)], ['Név', order.name], ['E-mail', order.email], ['Hiba', err.message]],
+        rows: [['Termék', order.productName], ['Összeg', fmtHuf(order.amount)], ['Név', order.name], ['E-mail', order.email], ['Hiba', err.message]],
         link: adminLink(req),
         replyTo: order.email,
       });
@@ -746,7 +727,7 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
 
   // Kapcsolati űrlap, programjelentkezés (orvosi dokumentumokkal), díjjelölés. A dokumentumok a nem nyilvános
   // mappába kerülnek, csak bejelentkezett admin töltheti le őket.
-  const messagesByIp = new Map();
+  const messageLimit = ipLimiter(5);
   app.post('/:slug/urlap', formBody, async (req, res, next) => {
     const found = contentPage(req);
     const def = found && messageForm(found.page.extras.form, store.getNominationSettings(db));
@@ -759,9 +740,7 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     if (req.is('multipart/form-data')) ({ fields: body, files, problem } = await parseMultipart(req));
     if (body.website) return res.redirect(303, thanks);
 
-    const now = Date.now();
-    const recent = (messagesByIp.get(req.ip) || []).filter((t) => t > now - APPLICATION_WINDOW_MS);
-    if (recent.length >= APPLICATION_MAX_PER_IP) {
+    if (messageLimit.full(req.ip)) {
       return send({ error: 'Erről a címről már túl sok üzenet érkezett. Kérjük, próbáld újra később, vagy írj nekünk e-mailt.' }, 429);
     }
     const { values, errors } = checkMessage(def, body);
@@ -796,8 +775,7 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
       link: adminLink(req),
       replyTo: data.email,
     });
-    recent.push(now);
-    messagesByIp.set(req.ip, recent);
+    messageLimit.add(req.ip);
     res.redirect(303, thanks);
   });
 

@@ -151,13 +151,10 @@ describe('családok', () => {
     assert.ok((await (await fetch(`${base}/`)).text()).includes('Biztonsági család'));
   });
 
-  test('örökbefogadott család nem jelenik meg a főoldalon, a nyilvános API nem ad ki belső adatot', async () => {
+  test('örökbefogadott család nem jelenik meg a főoldalon', async () => {
     const { cookie } = await login();
     await request('POST', '/api/admin/families', { cookie, body: family({ name: 'Örökbefogadott teszt', status: 'adopted' }) });
     assert.ok(!(await (await fetch(`${base}/`)).text()).includes('Örökbefogadott teszt'));
-    const list = await (await fetch(`${base}/api/families`)).json();
-    assert.ok(list.some((f) => f.name === 'Örökbefogadott teszt'));
-    assert.ok(list.every((f) => !('amount' in f) && !('applicants' in f)));
   });
 
   test('érvénytelen adatok 400-at adnak', async () => {
