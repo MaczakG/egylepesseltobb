@@ -259,7 +259,7 @@ export function createApp({
     });
   });
 
-  // Élesben az nginx szolgálja ki a statikus fájlokat; ez fejlesztéshez és tartaléknak kell.
+  // AWS-en a CloudFront az S3-ból adja a statikus fájlokat; ez helyi fejlesztéshez kell.
   app.get('/admin.html', (req, res) => {
     res.set('X-Robots-Tag', 'noindex, nofollow').sendFile(path.join(config.siteDir, 'admin.html'));
   });
