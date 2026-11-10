@@ -146,7 +146,7 @@ describe('értesítések a látogatók beküldéseiről', () => {
     assert.equal(mail.replyTo, 'bela@pelda.hu');
     assert.match(mail.text, /Üzenet: Szeretnék segíteni\./);
     assert.match(mail.text, /\/admin\.html/);
-    assert.match(mail.html, /Kiss &lt;b&gt;Béla&lt;\/b&gt;/, 'a HTML-ben escape-elve');
+    assert.equal(mail.html, undefined, 'csak szöveges levél');
   });
 
   test('támogatói jelentkezés', async () => {

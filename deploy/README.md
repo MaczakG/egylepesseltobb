@@ -131,7 +131,7 @@ Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad t
 
 ## E-mail értesítések
 
-- Minden látogatói beküldésről (támogatói jelentkezés, kapcsolati űrlap, programjelentkezés, díjjelölés), minden sikeres fizetésről és a sikertelen fizetésindításról levél megy az adminban megadott címzetteknek. A levélben a beküldött adatok és egy „Megnyitás az adminban” gomb van; a válaszcím a beküldő e-mail-címe. A programjelentkezés orvosi dokumentumai nem kerülnek a levélbe, csak az adminból tölthetők le.
+- Minden látogatói beküldésről (támogatói jelentkezés, kapcsolati űrlap, programjelentkezés, díjjelölés), minden sikeres fizetésről és a sikertelen fizetésindításról levél megy az adminban megadott címzetteknek. A levél egyszerű szöveges: a beküldött adatok és az admin linkje; a válaszcím a beküldő e-mail-címe. A programjelentkezés orvosi dokumentumai nem kerülnek a levélbe, csak az adminból tölthetők le.
 - **Beállítás:** admin **Beállítások → E-mail értesítések**: SMTP-szerver, port (587, vagy SSL-lel 465), felhasználónév, alkalmazásjelszó, feladó, címzettek. A „Tesztlevél küldése” előbb ment, aztán küld; hiba esetén a hibaüzenet ott látszik.
   - Google Workspace / Gmail: `smtp.gmail.com`, 587; a fiókon kétlépcsős azonosítás és alkalmazásjelszó kell.
   - Microsoft 365: `smtp.office365.com`, 587; a postafióknál az adminisztrátornak engedélyeznie kell az SMTP AUTH-ot.
