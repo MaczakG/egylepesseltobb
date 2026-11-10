@@ -856,6 +856,59 @@
 
           <div class="grid md:grid-cols-3 gap-6 p-5 sm:p-6">
             <div>
+              <h2 class="font-semibold text-slate-900">E-mail értesítések</h2>
+              <p class="text-slate-500 text-[13px] mt-1">Minden látogatói beküldésről (támogatói jelentkezés, kapcsolat, programjelentkezés, díjjelölés) és minden sikeres fizetésről levél megy a címzetteknek. A küldés SMTP-n történik, pl. Google Workspace (smtp.gmail.com) vagy Microsoft 365 (smtp.office365.com) fiókról, alkalmazásjelszóval.</p>
+            </div>
+            <div class="md:col-span-2 space-y-5">
+              <p id="smtp-status" class="text-[13px]"></p>
+              <div class="flex items-start gap-3">
+                <span id="smtp-enabled-toggle" class="toggle-track mt-0.5" onclick="toggleSmtpEnabled()"><span class="toggle-knob"></span></span>
+                <div>
+                  <p class="font-medium text-slate-900">Értesítések küldése</p>
+                  <p class="text-slate-500 text-[13px]">Kikapcsolva nem megy levél, a beküldések továbbra is az adminban látszanak.</p>
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-3 gap-5">
+                <div class="sm:col-span-2">
+                  <label class="label" for="smtp-host">SMTP-szerver</label>
+                  <input id="smtp-host" type="text" autocomplete="off" spellcheck="false" class="field" placeholder="smtp.gmail.com">
+                </div>
+                <div>
+                  <label class="label" for="smtp-port">Port</label>
+                  <input id="smtp-port" type="number" min="1" max="65535" class="field tabular" placeholder="587">
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="label" for="smtp-user">Felhasználónév</label>
+                  <input id="smtp-user" type="text" autocomplete="off" spellcheck="false" class="field" placeholder="info@egylepesseltobb.hu">
+                </div>
+                <div>
+                  <label class="label" for="smtp-pass">Alkalmazásjelszó</label>
+                  <input id="smtp-pass" type="password" autocomplete="new-password" spellcheck="false" class="field">
+                  <p id="smtp-pass-hint" class="text-slate-500 text-xs mt-1"></p>
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-5">
+                <div>
+                  <label class="label" for="smtp-from">Feladó</label>
+                  <input id="smtp-from" type="text" autocomplete="off" spellcheck="false" class="field" placeholder="Egy Lépéssel Több <info@egylepesseltobb.hu>">
+                  <p class="text-slate-500 text-xs mt-1">Általában a felhasználónévvel azonos cím.</p>
+                </div>
+                <div>
+                  <label class="label" for="smtp-to">Címzettek (soronként egy)</label>
+                  <textarea id="smtp-to" rows="3" spellcheck="false" class="field"></textarea>
+                </div>
+              </div>
+              <div class="flex flex-wrap justify-end gap-2">
+                <button onclick="sendSmtpTest()" class="btn btn-secondary">Tesztlevél küldése</button>
+                <button onclick="saveSmtpSettings()" class="btn btn-primary">Mentés</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6 p-5 sm:p-6">
+            <div>
               <h2 class="font-semibold text-slate-900">Jelszó módosítása</h2>
               <p class="text-slate-500 text-[13px] mt-1">Legalább 10 karakter. A módosítás után a többi eszközön újra be kell jelentkezni.</p>
             </div>
@@ -1018,6 +1071,7 @@
     orderFilter: 'all',
     payment: null,
     paymentSandbox: true,
+    smtpEnabled: true,
     appFilter: 'all',
     messages: [],
     messageForms: {},
@@ -1214,6 +1268,7 @@
       loadFormSettings();
       loadNominationSettings();
       loadPaymentSettings();
+      loadSmtpSettings();
     }
   };
 
@@ -2425,6 +2480,80 @@
     (navigator.clipboard ? navigator.clipboard.writeText(input.value) : Promise.reject())
       .then(function () { showToast('Az IPN cím a vágólapra került.'); })
       .catch(function () { input.select(); });
+  };
+
+  // ---------------------------------------------------------------
+  // E-mail értesítések (Beállítások)
+  // ---------------------------------------------------------------
+  function setSmtpEnabled(on) {
+    state.smtpEnabled = on;
+    document.getElementById('smtp-enabled-toggle').classList.toggle('on', on);
+  }
+  window.toggleSmtpEnabled = function () { setSmtpEnabled(!state.smtpEnabled); };
+
+  function fillSmtpSettings(s) {
+    setSmtpEnabled(s.enabled);
+    document.getElementById('smtp-host').value = s.host;
+    document.getElementById('smtp-port').value = s.port;
+    document.getElementById('smtp-user').value = s.user;
+    document.getElementById('smtp-pass').value = '';
+    document.getElementById('smtp-pass-hint').textContent = s.hasPassword
+      ? 'Már be van állítva. Csak akkor töltsd ki, ha cserélni szeretnéd.' : 'Még nincs megadva.';
+    document.getElementById('smtp-from').value = s.from;
+    document.getElementById('smtp-to').value = s.to.join('\n');
+    var el = document.getElementById('smtp-status');
+    var st = s.status || {};
+    var ok = s.configured && s.enabled && !(st.lastError && st.lastErrorAt > (st.lastSentAt || ''));
+    el.className = 'text-[13px] rounded-md px-3 py-2 ring-1 ring-inset ' + (ok
+      ? 'bg-emerald-50 text-emerald-800 ring-emerald-600/20' : 'bg-amber-50 text-amber-800 ring-amber-600/20');
+    if (!s.configured) el.textContent = 'Az értesítések még nincsenek beállítva: add meg az SMTP-szervert, a feladót és a címzetteket.';
+    else if (!s.enabled) el.textContent = 'Az értesítések ki vannak kapcsolva.';
+    else if (!ok) el.textContent = 'Az utolsó levél nem ment el (' + fmtIso(st.lastErrorAt) + '): ' + st.lastError;
+    else el.textContent = 'Az értesítések be vannak kapcsolva.' + (st.lastSentAt ? ' Utolsó elküldött levél: ' + fmtIso(st.lastSentAt) + '.' : '');
+  }
+
+  function fmtIso(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return d.toLocaleDateString('hu-HU') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  function smtpBody() {
+    return {
+      enabled: state.smtpEnabled,
+      host: document.getElementById('smtp-host').value,
+      port: document.getElementById('smtp-port').value,
+      user: document.getElementById('smtp-user').value,
+      pass: document.getElementById('smtp-pass').value,
+      from: document.getElementById('smtp-from').value,
+      to: document.getElementById('smtp-to').value
+    };
+  }
+
+  function loadSmtpSettings() {
+    return api('GET', '/api/admin/smtp-settings').then(fillSmtpSettings)
+      .catch(function (e) { showToast(e.message); });
+  }
+
+  window.saveSmtpSettings = function () {
+    return api('PUT', '/api/admin/smtp-settings', smtpBody()).then(function (s) {
+      fillSmtpSettings(s);
+      showToast('Az e-mail beállítások mentve lettek.');
+    }).catch(function (e) { showToast(e.message); throw e; });
+  };
+
+  // Előbb ment (hogy a beírt adatokkal menjen), aztán küld.
+  window.sendSmtpTest = function () {
+    window.saveSmtpSettings().then(function () {
+      showToast('Tesztlevél küldése…');
+      return api('POST', '/api/admin/smtp-test');
+    }).then(function (s) {
+      fillSmtpSettings(s);
+      showToast('A tesztlevél elment. Nézd meg a címzettek postafiókját.');
+    }).catch(function (e) {
+      loadSmtpSettings();
+      if (e && e.message) showToast(e.message);
+    });
   };
 
   // ---------------------------------------------------------------

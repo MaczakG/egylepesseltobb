@@ -257,3 +257,34 @@ export function validatePost(body) {
     publishedAt,
   };
 }
+
+// SMTP beállítás (admin Beállítások). Üres jelszónál a régi marad; a címzettek soronként vagy vesszővel.
+export function validateSmtpSettings(body, current) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const host = text(body.host, 253).toLowerCase();
+  if (host && !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(host)) {
+    throw new ValidationError('Érvénytelen SMTP-szerver (pl. smtp.gmail.com).');
+  }
+  const port = Number.parseInt(body.port, 10) || 587;
+  if (port < 1 || port > 65535) throw new ValidationError('Érvénytelen port (általában 587 vagy 465).');
+  const user = text(body.user, 200);
+  const pass = typeof body.pass === 'string' ? body.pass.replace(/\s+/g, '').slice(0, 256) : '';
+  const fromRaw = text(body.from, 200);
+  const fromEmail = (fromRaw.match(/<([^<>]+)>$/) || [null, fromRaw])[1].trim();
+  if (fromRaw && (!EMAIL.test(fromEmail) || /[\r\n]/.test(fromRaw))) {
+    throw new ValidationError('A feladó egy e-mail cím legyen (pl. Egy Lépéssel Több <info@egylepesseltobb.hu>).');
+  }
+  const to = [...new Set((Array.isArray(body.to) ? body.to : String(body.to || '').split(/[\n,;]/))
+    .map((v) => String(v).trim()).filter(Boolean))];
+  if (to.length > 10 || to.some((v) => !EMAIL.test(v))) throw new ValidationError('Adj meg 1–10 érvényes címzettet, soronként egyet.');
+  return {
+    enabled: body.enabled !== false,
+    host,
+    port,
+    user,
+    pass: pass || (host && user === current.user ? current.pass : ''),
+    from: fromRaw,
+    to,
+  };
+}

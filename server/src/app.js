@@ -17,9 +17,10 @@ import {
 import { IMPORT_FILE, legacyPostSlugs, loadImportData } from './wpimport.js';
 import { checkMessage, formSchema, messageForm, renderMessageForm } from './forms.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
+import { createMailer } from './mailer.js';
 import {
   ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
-  validateMessageStatus, validateNominationSettings, validatePaymentSettings, validatePost, validateProduct, validateSettings,
+  validateMessageStatus, validateNominationSettings, validatePaymentSettings, validatePost, validateProduct, validateSettings, validateSmtpSettings,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -109,7 +110,7 @@ function postImages(post) {
   return post.coverImage ? [post.coverImage, ...urls] : urls;
 }
 
-export function createApp({ db, config, fetchImpl = fetch }) {
+export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer(db) }) {
   fs.mkdirSync(config.uploadsDir, { recursive: true });
   const messagesDir = path.join(config.privateDir || path.join(config.dataDir, 'private'), 'messages');
   fs.mkdirSync(messagesDir, { recursive: true, mode: 0o700 });
@@ -135,6 +136,8 @@ export function createApp({ db, config, fetchImpl = fetch }) {
     renderEvents(store.listPublicPosts(db, { category: 'rendezvenyek', limit: 4 }).posts),
   );
   const baseUrl = (req) => `${req.protocol}://${req.get('host')}`;
+  const adminLink = (req) => `${baseUrl(req)}/admin.html`;
+  const fmtFt = (n) => `${Number(n || 0).toLocaleString('hu-HU')} Ft`;
   const sendHtml = (res, html, status = 200) => res.status(status).set('Cache-Control', 'no-cache').type('html').send(html);
 
   app.get(['/', '/index.html'], (req, res) => {
@@ -225,7 +228,22 @@ export function createApp({ db, config, fetchImpl = fetch }) {
     }
     if (Object.keys(errors).length) return sendPage({ values, errors }, 400);
 
-    store.createApplication(db, values);
+    const saved = store.createApplication(db, values);
+    mailer.notify({
+      subject: `Új támogatói jelentkezés: ${saved.familyName}`,
+      intro: 'Új támogatói jelentkezés érkezett a weboldalon.',
+      rows: [
+        ['Család', saved.familyName],
+        ['Név', `${saved.lastName} ${saved.firstName}`],
+        ['E-mail', saved.email],
+        ['Telefonszám', saved.phone],
+        ['Havi összeg', fmtFt(saved.amount)],
+        ['Honnan hallott rólunk', saved.source],
+        ...(saved.note ? [['Megjegyzés', saved.note]] : []),
+      ],
+      link: adminLink(req),
+      replyTo: saved.email,
+    });
     recent.push(now);
     applicationsByIp.set(req.ip, recent);
     if (applicationsByIp.size > 5000) {
@@ -489,6 +507,28 @@ export function createApp({ db, config, fetchImpl = fetch }) {
     res.json(publicPaymentSettings(req));
   });
 
+  // E-mail értesítések (SMTP). A jelszót sosem küldjük vissza.
+  const publicSmtpSettings = () => {
+    const { pass, ...rest } = store.getSmtpSettings(db);
+    return { ...rest, hasPassword: Boolean(pass), configured: mailer.configured(), status: store.getSmtpStatus(db) };
+  };
+  admin.get('/smtp-settings', (req, res) => res.json(publicSmtpSettings()));
+
+  admin.put('/smtp-settings', (req, res) => {
+    store.saveSmtpSettings(db, validateSmtpSettings(req.body, store.getSmtpSettings(db)));
+    res.json(publicSmtpSettings());
+  });
+
+  admin.post('/smtp-test', async (req, res) => {
+    try {
+      await mailer.sendTest(adminLink(req));
+      res.json(publicSmtpSettings());
+    } catch (err) {
+      store.saveSmtpStatus(db, { lastErrorAt: new Date().toISOString(), lastError: String(err.message).slice(0, 300) });
+      res.status(502).json({ error: `A tesztlevél nem ment el: ${err.message}` });
+    }
+  });
+
   admin.get('/applications', (req, res) => res.json(store.listApplications(db)));
 
   admin.put('/applications/:id', (req, res) => {
@@ -571,7 +611,24 @@ export function createApp({ db, config, fetchImpl = fetch }) {
     if (!result) return res.status(400).type('text').send('UNSUCCESSFUL VALIDATION');
     const order = store.getOrderByRef(db, result.data.orderRef);
     if (order && IPN_STATUS[result.data.status]) {
-      store.updateOrder(db, order.id, { status: IPN_STATUS[result.data.status], transactionId: result.data.transactionId, fromIpn: true });
+      const updated = store.updateOrder(db, order.id, { status: IPN_STATUS[result.data.status], transactionId: result.data.transactionId, fromIpn: true });
+      // Az IPN többször is megjöhet: csak az első „fizetve” állapotról megy levél.
+      if (updated.status === 'paid' && order.status !== 'paid') {
+        mailer.notify({
+          subject: `Sikeres fizetés: ${fmtFt(updated.amount)} – ${updated.name}`,
+          intro: `Sikeres SimplePay fizetés érkezett${updated.sandbox ? ' (teszt módban)' : ''}.`,
+          rows: [
+            ['Termék', updated.productName],
+            ['Összeg', fmtFt(updated.amount)],
+            ['Név', updated.name],
+            ['E-mail', updated.email],
+            ['Rendelésazonosító', updated.orderRef],
+            ['SimplePay tranzakció', updated.transactionId || ''],
+          ],
+          link: adminLink(req),
+          replyTo: updated.email,
+        });
+      }
     } else if (!order) {
       console.error(`SimplePay IPN ismeretlen rendeléshez: ${result.data.orderRef}`);
     }
@@ -639,6 +696,13 @@ export function createApp({ db, config, fetchImpl = fetch }) {
     } catch (err) {
       store.updateOrder(db, order.id, { status: 'error', error: err.message.slice(0, 500) });
       console.error(`SimplePay start hiba (${order.orderRef}): ${err.message}`);
+      mailer.notify({
+        subject: `Sikertelen fizetésindítás: ${order.productName}`,
+        intro: 'Egy látogató fizetni szeretett volna, de a SimplePay-fizetést nem sikerült elindítani. Érdemes ellenőrizni a SimplePay beállításait.',
+        rows: [['Termék', order.productName], ['Összeg', fmtFt(order.amount)], ['Név', order.name], ['E-mail', order.email], ['Hiba', err.message]],
+        link: adminLink(req),
+        replyTo: order.email,
+      });
       sendCheckout(req, res, product, {
         values, error: err instanceof SimplePayError ? 'A fizetést most nem sikerült elindítani. Kérjük, próbáld újra később.' : 'Váratlan hiba történt.',
       }, 502);
@@ -721,6 +785,17 @@ export function createApp({ db, config, fetchImpl = fetch }) {
       });
       store.setMessageFiles(db, message.id, saved);
     }
+    const fields = def.sections.flatMap((sec) => sec.fields);
+    mailer.notify({
+      subject: `Új üzenet (${def.label}): ${data.name || ''}`.trim(),
+      intro: `Új beküldés érkezett a(z) „${found.page.title}” oldal űrlapján.`,
+      rows: [
+        ...fields.filter((f) => f.type !== 'file' && data[f.name]).map((f) => [f.label, data[f.name]]),
+        ...(files.length ? [['Feltöltött dokumentumok', `${files.length} db (az adminban tölthetők le)`]] : []),
+      ],
+      link: adminLink(req),
+      replyTo: data.email,
+    });
     recent.push(now);
     messagesByIp.set(req.ip, recent);
     res.redirect(303, thanks);

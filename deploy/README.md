@@ -129,6 +129,14 @@ Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad t
 - Amíg nincs beállítva, a termékek gombjai a régi `checkout.simplepay.hu` fizetési linkekre mutatnak (ha volt ilyen), így a fizetés addig sem áll le.
 - A SimplePay logó (lábléc, fizetési oldal) a SimplePay fizetési tájékoztatójára mutat, ahogy az elfogadási feltételek előírják.
 
+## E-mail értesítések
+
+- Minden látogatói beküldésről (támogatói jelentkezés, kapcsolati űrlap, programjelentkezés, díjjelölés), minden sikeres fizetésről és a sikertelen fizetésindításról levél megy az adminban megadott címzetteknek. A levélben a beküldött adatok és egy „Megnyitás az adminban” gomb van; a válaszcím a beküldő e-mail-címe. A programjelentkezés orvosi dokumentumai nem kerülnek a levélbe, csak az adminból tölthetők le.
+- **Beállítás:** admin **Beállítások → E-mail értesítések**: SMTP-szerver, port (587, vagy SSL-lel 465), felhasználónév, alkalmazásjelszó, feladó, címzettek. A „Tesztlevél küldése” előbb ment, aztán küld; hiba esetén a hibaüzenet ott látszik.
+  - Google Workspace / Gmail: `smtp.gmail.com`, 587; a fiókon kétlépcsős azonosítás és alkalmazásjelszó kell.
+  - Microsoft 365: `smtp.office365.com`, 587; a postafióknál az adminisztrátornak engedélyeznie kell az SMTP AUTH-ot.
+- A küldés a háttérben fut: ha a levelezőszerver nem elérhető, a beküldés ettől még sikeres, és az adminban megmarad; az utolsó hiba a beállításoknál látszik.
+
 ## Partnerlogók
 
 - A partnerlogók (`assets/img/partner-*.png`, és az oldalak „logos” blokkjainak képei importkor) egységes méretűek: a szerver levágja a felesleges szélt, közel azonos felületűre méretezi, és átlátszó 640×320-as vászon közepére teszi (`server/src/logo.js`). Új logót így érdemes ugyanígy előkészíteni.

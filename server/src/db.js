@@ -855,3 +855,23 @@ export function savePaymentSettings(db, settings) {
   setSetting(db, 'simplepay', settings);
   return getPaymentSettings(db);
 }
+
+// SMTP az e-mail értesítésekhez (admin Beállítások). A jelszót az admin felület sosem kapja vissza.
+export function getSmtpSettings(db) {
+  return {
+    enabled: true, host: '', port: 587, user: '', pass: '', from: '', to: [], ...getSetting(db, 'smtp', {}),
+  };
+}
+
+export function saveSmtpSettings(db, settings) {
+  setSetting(db, 'smtp', settings);
+  return getSmtpSettings(db);
+}
+
+export function getSmtpStatus(db) {
+  return { lastSentAt: '', lastErrorAt: '', lastError: '', ...getSetting(db, 'smtp_status', {}) };
+}
+
+export function saveSmtpStatus(db, patch) {
+  setSetting(db, 'smtp_status', { ...getSmtpStatus(db), ...patch });
+}
