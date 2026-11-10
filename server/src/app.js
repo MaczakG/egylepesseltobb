@@ -18,6 +18,7 @@ import { IMPORT_FILE, legacyPostSlugs, loadImportData } from './wpimport.js';
 import { checkMessage, formSchema, messageForm, renderMessageForm } from './forms.js';
 import { injectFamilies, injectSection, renderFamilyCards } from './render.js';
 import { createMailer } from './mailer.js';
+import { createStorage } from './storage.js';
 import {
   EMAIL, ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
   validateMessageStatus, validateNominationSettings, validatePaymentSettings, validatePost, validateProduct, validateSettings, validateSmtpSettings,
@@ -114,10 +115,9 @@ function postImages(post) {
   return post.coverImage ? [post.coverImage, ...urls] : urls;
 }
 
-export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer(db) }) {
-  fs.mkdirSync(config.uploadsDir, { recursive: true });
-  const messagesDir = path.join(config.privateDir || path.join(config.dataDir, 'private'), 'messages');
-  fs.mkdirSync(messagesDir, { recursive: true, mode: 0o700 });
+export function createApp({
+  db, config, fetchImpl = fetch, mailer = createMailer(db), storage = createStorage(config),
+}) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 'loopback');
@@ -345,11 +345,9 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
   };
 
   // Csak a már sehol nem hivatkozott feltöltött képeket törli; az assets/ képekhez nem nyúl.
-  const removeUnusedUploads = (urls) => {
+  const removeUnusedUploads = async (urls) => {
     for (const url of urls) {
-      if (url.startsWith('/uploads/') && !store.isImageReferenced(db, url)) {
-        fs.rmSync(path.join(config.uploadsDir, path.basename(url)), { force: true });
-      }
+      if (url.startsWith('/uploads/') && !store.isImageReferenced(db, url)) await storage.remove(`uploads/${path.basename(url)}`);
     }
   };
 
@@ -359,21 +357,21 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     res.status(201).json(store.createFamily(db, validateFamily(req.body)));
   });
 
-  admin.put('/families/:id', (req, res) => {
+  admin.put('/families/:id', async (req, res) => {
     const id = idParam(req);
     const before = id && store.getFamily(db, id);
     if (!before) return res.status(404).json({ error: 'A család nem található.' });
     const updated = store.updateFamily(db, id, validateFamily(req.body));
-    removeUnusedUploads(before.images.map((im) => im.url));
+    await removeUnusedUploads(before.images.map((im) => im.url));
     res.json(updated);
   });
 
-  admin.delete('/families/:id', (req, res) => {
+  admin.delete('/families/:id', async (req, res) => {
     const id = idParam(req);
     const before = id && store.getFamily(db, id);
     if (!before) return res.status(404).json({ error: 'A család nem található.' });
     store.deleteFamily(db, id);
-    removeUnusedUploads(before.images.map((im) => im.url));
+    await removeUnusedUploads(before.images.map((im) => im.url));
     res.json({ ok: true });
   });
 
@@ -385,15 +383,15 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     res.json(store.updateMessageStatus(db, id, validateMessageStatus(req.body)));
   });
 
-  admin.delete('/messages/:id', (req, res) => {
+  admin.delete('/messages/:id', async (req, res) => {
     const id = idParam(req);
     if (!id || !store.deleteMessage(db, id)) return res.status(404).json({ error: 'Az üzenet nem található.' });
-    fs.rmSync(path.join(messagesDir, String(id)), { recursive: true, force: true });
+    await storage.remove(`private/messages/${id}`);
     res.json({ ok: true });
   });
 
   // A beküldött dokumentum letöltése (csak bejelentkezve; mindig letöltésként, sosem a böngészőben megnyitva).
-  admin.get('/messages/:id/files/:n', (req, res) => {
+  admin.get('/messages/:id/files/:n', async (req, res) => {
     const id = idParam(req);
     const message = id && store.getMessage(db, id);
     const file = message && message.files[Number(req.params.n)];
@@ -407,7 +405,7 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
       'Content-Disposition': `attachment; filename="${ascii}"; filename*=UTF-8''${utf8}`,
     });
     res.type(file.type === 'pdf' ? 'application/pdf' : file.type);
-    res.sendFile(path.join(messagesDir, String(id), path.basename(file.stored)));
+    await storage.send(res, `private/messages/${id}/${path.basename(file.stored)}`);
   });
 
   admin.get('/posts', (req, res) => res.json(store.listPosts(db)));
@@ -416,21 +414,21 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     res.status(201).json(store.createPost(db, validatePost(req.body)));
   });
 
-  admin.put('/posts/:id', (req, res) => {
+  admin.put('/posts/:id', async (req, res) => {
     const id = idParam(req);
     const before = id && store.getPost(db, id);
     if (!before) return res.status(404).json({ error: 'A bejegyzés nem található.' });
     const updated = store.updatePost(db, id, validatePost(req.body));
-    removeUnusedUploads(postImages(before));
+    await removeUnusedUploads(postImages(before));
     res.json(updated);
   });
 
-  admin.delete('/posts/:id', (req, res) => {
+  admin.delete('/posts/:id', async (req, res) => {
     const id = idParam(req);
     const before = id && store.getPost(db, id);
     if (!before) return res.status(404).json({ error: 'A bejegyzés nem található.' });
     store.deletePost(db, id);
-    removeUnusedUploads(postImages(before));
+    await removeUnusedUploads(postImages(before));
     res.json({ ok: true });
   });
 
@@ -531,11 +529,11 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     res.json(store.saveSettings(db, validateSettings(req.body)));
   });
 
-  admin.post('/uploads', express.raw({ type: 'image/*', limit: MAX_UPLOAD_BYTES }), (req, res) => {
+  admin.post('/uploads', express.raw({ type: 'image/*', limit: MAX_UPLOAD_BYTES }), async (req, res) => {
     const ext = Buffer.isBuffer(req.body) ? detectImageType(req.body) : null;
     if (!ext) return res.status(400).json({ error: 'Csak JPG, PNG, WEBP vagy GIF kép tölthető fel.' });
     const name = `${crypto.randomBytes(12).toString('hex')}.${ext}`;
-    fs.writeFileSync(path.join(config.uploadsDir, name), req.body);
+    await storage.put(`uploads/${name}`, req.body);
     let label = '';
     try { label = decodeURIComponent(req.get('X-Filename') || ''); } catch { /* marad üres */ }
     res.status(201).json({ url: `/uploads/${name}`, label: label.slice(0, 200) || name });
@@ -728,6 +726,23 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
   // Kapcsolati űrlap, programjelentkezés (orvosi dokumentumokkal), díjjelölés. A dokumentumok a nem nyilvános
   // mappába kerülnek, csak bejelentkezett admin töltheti le őket.
   const messageLimit = ipLimiter(5);
+
+  // Az űrlap dokumentumai a böngészőből egyenesen a tárhelyre kerülnek (AWS-en); itt csak aláírt linket adunk.
+  const UPLOAD_TYPES = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+  const INCOMING_KEY = /^incoming\/[0-9a-f]{24}\.(pdf|jpg|png|webp)$/;
+  const uploadLimit = ipLimiter(30);
+  app.post('/feltoltes', express.json({ limit: '2kb' }), async (req, res) => {
+    const { type, size } = req.body || {};
+    const ext = UPLOAD_TYPES[type];
+    if (!ext) return res.status(400).json({ error: 'Csak PDF vagy kép (JPG, PNG, WEBP) tölthető fel.' });
+    if (!Number.isInteger(size) || size < 1 || size > MAX_FILE_BYTES) return res.status(400).json({ error: 'Egy fájl legfeljebb 10 MB lehet.' });
+    if (uploadLimit.full(req.ip)) return res.status(429).json({ error: 'Túl sok feltöltés. Kérjük, próbáld újra később.' });
+    const key = `incoming/${crypto.randomBytes(12).toString('hex')}.${ext}`;
+    const url = await storage.presignPut(key, { type, size });
+    if (!url) return res.status(404).json({ error: 'Nincs közvetlen feltöltés.' });
+    uploadLimit.add(req.ip);
+    res.json({ key, url });
+  });
   app.post('/:slug/urlap', formBody, async (req, res, next) => {
     const found = contentPage(req);
     const def = found && messageForm(found.page.extras.form, store.getNominationSettings(db));
@@ -739,6 +754,20 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     let problem = '';
     if (req.is('multipart/form-data')) ({ fields: body, files, problem } = await parseMultipart(req));
     if (body.website) return res.redirect(303, thanks);
+    // A böngészőből már feltöltött dokumentumok (lásd /feltoltes).
+    let incoming = [];
+    if (!files.length && body.uploaded) {
+      try { incoming = JSON.parse(body.uploaded); } catch { incoming = null; }
+      if (!Array.isArray(incoming) || incoming.length > MAX_FILES || incoming.some((f) => !INCOMING_KEY.test(f?.key))) {
+        return send({ error: 'Hibás feltöltés. Kérjük, válaszd ki újra a fájlokat.' }, 400);
+      }
+      for (const f of incoming) {
+        const buffer = await storage.get(f.key);
+        if (!buffer) return send({ error: 'A feltöltött fájl nem található. Kérjük, válaszd ki újra a fájlokat.' }, 400);
+        files.push({ name: String(f.name || ''), buffer });
+      }
+      if (files.reduce((n, f) => n + f.buffer.length, 0) > MAX_TOTAL_BYTES) problem = 'A fájlok összesen legfeljebb 25 MB-osak lehetnek.';
+    }
 
     if (messageLimit.full(req.ip)) {
       return send({ error: 'Erről a címről már túl sok üzenet érkezett. Kérjük, próbáld újra később, vagy írj nekünk e-mailt.' }, 429);
@@ -754,15 +783,14 @@ export function createApp({ db, config, fetchImpl = fetch, mailer = createMailer
     const { consent, ...data } = values;
     const message = store.createMessage(db, { form: found.page.extras.form, pageSlug: found.page.slug, data });
     if (files.length) {
-      const dir = path.join(messagesDir, String(message.id));
-      fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
-      const saved = files.map((f, i) => {
+      const saved = await Promise.all(files.map(async (f, i) => {
         const display = path.basename(f.name).replace(/[\u0000-\u001f]/g, '').slice(0, 150) || `dokumentum-${i + 1}`;
         const stored = `${i + 1}.${kinds[i]}`;
-        fs.writeFileSync(path.join(dir, stored), f.buffer, { mode: 0o600 });
+        await storage.put(`private/messages/${message.id}/${stored}`, f.buffer);
         return { name: display, stored, size: f.buffer.length, type: kinds[i] };
-      });
+      }));
       store.setMessageFiles(db, message.id, saved);
+      for (const f of incoming) await storage.remove(f.key);
     }
     const fields = def.sections.flatMap((sec) => sec.fields);
     mailer.notify({

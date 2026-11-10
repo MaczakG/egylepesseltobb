@@ -58,7 +58,7 @@ const REASON = 'Évek óta önzetlenül segíti a beteg gyermekeket nevelő csal
 describe('űrlapok az oldalakon', () => {
   test('a régi oldal mezői: kapcsolat, programjelentkezés fájlfeltöltéssel, díjjelölés kategóriákkal', async () => {
     const contact = await (await fetch(`${base}/kapcsolat-urlap`)).text();
-    assert.match(contact, /<form method="post" action="\/kapcsolat-urlap\/urlap" class/);
+    assert.match(contact, /<form id="uzenet-urlap" method="post" action="\/kapcsolat-urlap\/urlap" class/);
     for (const n of ['name', 'email', 'message', 'consent', 'website']) assert.match(contact, new RegExp(`name="${n}"`));
     const program = await (await fetch(`${base}/programba`)).text();
     assert.match(program, /enctype="multipart\/form-data"/);
@@ -68,7 +68,7 @@ describe('űrlapok az oldalakon', () => {
     assert.match(nomination, />Jelölő adatai<\/h3>/);
     assert.match(nomination, /<option value="Az Év Gyermekorvosa">/);
     assert.match(nomination, /<option value="Kovács-Dobos Evelin">/);
-    assert.doesNotMatch(await (await fetch(`${base}/sima`)).text(), /<form method="post"/);
+    assert.doesNotMatch(await (await fetch(`${base}/sima`)).text(), /<form id="uzenet-urlap"/);
   });
 
   test('kapcsolati üzenet: mentés, köszönő üzenet', async () => {
@@ -109,6 +109,34 @@ describe('űrlapok az oldalakon', () => {
     assert.deepEqual(fs.readdirSync(dir).sort(), ['1.pdf', '2.png']);
     assert.equal(fs.statSync(path.join(dir, '1.pdf')).mode & 0o777, 0o600);
     assert.ok(!fs.existsSync(path.join(config.uploadsDir, '1.pdf')), 'nem a nyilvános feltöltések közé kerül');
+  });
+
+  test('programjelentkezés: a böngészőből előre feltöltött dokumentumok (AWS-en közvetlenül az S3-ba)', async () => {
+    // Helyben nincs aláírt feltöltési link: az űrlap ilyenkor a fájlokat magával küldi.
+    const presign = await fetch(`${base}/feltoltes`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'application/pdf', size: 1000 }),
+    });
+    assert.equal(presign.status, 404);
+    for (const bad of [{ type: 'text/html', size: 10 }, { type: 'application/pdf', size: 11 * 1024 * 1024 }]) {
+      const res = await fetch(`${base}/feltoltes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bad) });
+      assert.equal(res.status, 400);
+    }
+
+    const key = `incoming/${'a'.repeat(24)}.pdf`;
+    fs.mkdirSync(path.join(config.dataDir, 'incoming'), { recursive: true });
+    fs.writeFileSync(path.join(config.dataDir, key), PDF);
+    const fields = { name: 'Előre Feltöltő', email: 'elore@pelda.hu', phone: '+36 30 111 2222', story: 'Történet.', consent: 'on' };
+    const res = await post('programba', form({ ...fields, uploaded: JSON.stringify([{ key, name: 'lelet.pdf' }]) }), urlencoded);
+    assert.equal(res.status, 303);
+    const m = store.listMessages(db)[0];
+    assert.deepEqual(m.files.map((f) => [f.name, f.stored]), [['lelet.pdf', '1.pdf']]);
+    assert.ok(fs.existsSync(path.join(config.privateDir, 'messages', String(m.id), '1.pdf')));
+    assert.ok(!fs.existsSync(path.join(config.dataDir, key)), 'az ideiglenes fájl törlődik');
+
+    for (const uploaded of ['nem-json', JSON.stringify([{ key: '../db/egylepesseltobb.db', name: 'x' }]), JSON.stringify([{ key, name: 'eltűnt' }])]) {
+      const bad = await post('programba', form({ ...fields, uploaded }), urlencoded);
+      assert.equal(bad.status, 400, uploaded);
+    }
   });
 
   test('programjelentkezés: más fájltípus és hibás adat esetén nem ment', async () => {
@@ -177,7 +205,7 @@ describe('admin: üzenetek', () => {
     assert.equal((await fetch(`${base}/api/admin/messages`)).status, 401);
     const { forms, messages } = await (await admin('GET', '/api/admin/messages')).json();
     assert.deepEqual(forms.program.fields.map((f) => f.label), ['Név', 'E-mail', 'Telefonszám', 'Rövid történet a gyermek betegségéről, fejlesztésekről, célokról']);
-    const prog = messages.find((m) => m.form === 'program');
+    const prog = messages.find((m) => m.form === 'program' && m.data.name === 'Szülő Éva');
 
     assert.equal((await fetch(`${base}/api/admin/messages/${prog.id}/files/0`)).status, 401);
     const file = await admin('GET', `/api/admin/messages/${prog.id}/files/0`);

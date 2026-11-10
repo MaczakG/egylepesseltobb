@@ -97,6 +97,53 @@ export function checkMessage(def, body) {
   return { values, errors };
 }
 
+// A dokumentumok a böngészőből egyenesen a tárhelyre mennek (nagy fájl is, a szerver kérésmérete nem korlát);
+// ha ez nem elérhető (helyben, régi böngésző), az űrlap a fájlokat a megszokott módon magával küldi.
+const DIRECT_UPLOAD = `
+      <script>
+      (function () {
+        var form = document.getElementById('uzenet-urlap');
+        var input = form.querySelector('input[type=file]');
+        var btn = form.querySelector('button[type=submit]');
+        var busy = false;
+        form.addEventListener('submit', function (e) {
+          if (busy) { e.preventDefault(); return; }
+          if (!input.files.length || !window.fetch) return;
+          e.preventDefault();
+          busy = true;
+          btn.disabled = true;
+          btn.textContent = 'Fájlok feltöltése…';
+          Promise.all(Array.prototype.map.call(input.files, function (f) {
+            return fetch('/feltoltes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: f.type, size: f.size }) })
+              .then(function (r) {
+                if (r.status === 404) throw 'helyi';
+                return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; });
+              })
+              .then(function (j) {
+                return fetch(j.url, { method: 'PUT', headers: { 'Content-Type': f.type }, body: f }).then(function (r) {
+                  if (!r.ok) throw new Error('A(z) ' + f.name + ' feltöltése nem sikerült.');
+                  return { key: j.key, name: f.name };
+                });
+              });
+          })).then(function (list) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'uploaded';
+            hidden.value = JSON.stringify(list);
+            form.appendChild(hidden);
+            input.disabled = true;
+            form.submit();
+          }, function (err) {
+            if (err === 'helyi') { form.submit(); return; }
+            busy = false;
+            btn.disabled = false;
+            btn.textContent = 'Beküldés';
+            alert(err && err.message ? err.message : 'A fájlok feltöltése nem sikerült. Kérjük, próbáld újra.');
+          });
+        });
+      })();
+      </script>`;
+
 export const INPUT = 'w-full rounded-full border bg-white px-5 py-3 text-navy-800 outline-none transition focus:border-sand-600 focus:ring-2 focus:ring-sand-200';
 const AREA = 'w-full rounded-2xl border bg-white px-5 py-3 text-navy-800 outline-none transition focus:border-sand-600 focus:ring-2 focus:ring-sand-200';
 
@@ -151,7 +198,7 @@ export function renderMessageForm(def, { action, values = {}, errors = {}, error
       <h2 class="font-display text-2xl md:text-3xl font-semibold text-navy-800">${escapeHtml(def.title)}</h2>
       <p class="mt-2 text-sm text-navy-500">A <span class="text-red-600">*</span>-gal jelölt mezők kitöltése kötelező.</p>
       ${summary ? `<p class="mt-5 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3" role="alert">${escapeHtml(summary)}</p>` : ''}
-      <form method="post" action="${action}"${hasFile ? ' enctype="multipart/form-data"' : ''} class="mt-6 space-y-5">
+      <form id="uzenet-urlap" method="post" action="${action}"${hasFile ? ' enctype="multipart/form-data"' : ''} class="mt-6 space-y-5">
         ${sections}
         <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
           <label for="msg-website">Weboldal (hagyd üresen)</label>
@@ -165,6 +212,6 @@ export function renderMessageForm(def, { action, values = {}, errors = {}, error
           ${err('consent')}
         </div>
         <button type="submit" class="btn-primary w-full bg-sand-500 hover:bg-sand-600 text-navy-900 font-bold uppercase tracking-wide px-6 py-3.5 rounded-full">Beküldés</button>
-      </form>
+      </form>${hasFile ? DIRECT_UPLOAD : ''}
     </section>`;
 }

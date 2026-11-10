@@ -3,6 +3,7 @@
 // sikeres fizetés után levél megy az adminban megadott címekre. A küldés a háttérben fut: hiba esetén a
 // beküldés ettől még sikeres, a hibát a napló és az admin Beállítások oldala mutatja.
 import nodemailer from 'nodemailer';
+import { track } from './background.js';
 import * as store from './db.js';
 
 // Átmeneti hibánál (pl. Google „421 Try again later”, időtúllépés) a levél később újra elindul.
@@ -66,7 +67,7 @@ export function createMailer(db, {
         if (!retry) return false;
         return new Promise((resolve) => { setTimeout(resolve, retryDelays[n]).unref(); }).then(() => attempt(n + 1));
       });
-    return attempt(0);
+    return track(attempt(0));
   }
 
   return { notify, sendTest, configured };

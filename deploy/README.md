@@ -1,62 +1,47 @@
-# Telepítés AWS-re (EC2, Ubuntu 24.04 + nginx + Node.js)
+# Telepítés AWS-re (szerver nélkül: S3 + CloudFront + Lambda)
 
-A `deploy/aws/deploy.sh` feltesz egy Linux szervert az AWS-re, ami kiszolgálja az oldalt:
+Az oldal szerver nélkül fut: **forgalom nélkül nincs alapdíj**, csak a tényleges használatért (kérések, tárhely) kell fizetni, ami ennél a forgalomnál havi néhány cent.
 
-- EC2 példány (alapból `t3.micro`, Ubuntu 24.04), fix (Elastic) IP címmel
-- security group: csak a 80-as (HTTP) és 443-as (HTTPS) port nyitott
-- nginx + Node.js 24 backend (`server/`, systemd szolgáltatásként): a főoldal családjait és az admin felület API-ját a backend szolgálja ki, a többit az nginx (gzip, 30 napos cache az `assets/` és `uploads/` alatt, az `admin.html` nem indexelhető)
-- az adatbázis (SQLite) és a feltöltött képek helye: `/var/lib/egylepesseltobb`
-- **ideiglenes domain HTTPS-sel**: ha nincs saját domain, az oldal a `<ip-kötőjelekkel>.sslip.io` címen érhető el (pl. `https://3-120-1-2.sslip.io`), ingyenes Let's Encrypt tanúsítvánnyal
-- a szerver a GitHub repóból húzza le az oldalt, és **5 percenként automatikusan frissül** a repó alapértelmezett ágáról, így egy merge után pár percen belül élesben van
+- **CloudFront** (HTTPS, gyorsítótár): az `assets/` és `uploads/` alatti fájlokat közvetlenül az S3-ból adja, minden mást a Lambdának továbbít. Havonta 1 TB forgalom és 10 millió kérés ingyenes.
+- **Lambda** (`server/src/lambda.js`): ugyanaz az Express alkalmazás, mint helyben; csak kéréskor fut (havi 1 millió kérésig ingyenes). Nincs „ébredés”: a hidegindítás kb. 1 másodperc.
+- **S3** (verziózva): statikus fájlok, feltöltött képek, a beküldött dokumentumok (nem nyilvános `private/` rész) és az adatbázis. A felülírt vagy törölt fájl és adatbázis **35 napig visszaállítható**.
+- **Adatbázis:** az SQLite fájl az S3-ban van (`db/egylepesseltobb.db`). A Lambda letölti; íráskor egy **DynamoDB-zár** alatt frissít, ír és visszatölt, így két egyszerre érkező beküldés sem vész el. (A DynamoDB kérésenként fizetős, üresjáratban ingyenes.)
+- **Titkok:** a munkamenet-kulcs az SSM Parameter Store-ban (`/egylepesseltobb/<környezet>/session-secret`, titkosítva); a SimplePay- és SMTP-adatok az admin Beállításaiban.
+- **Két egyforma környezet**, saját adatokkal: `staging` és `prod` (CloudFormation stack: `egylepesseltobb-staging`, `egylepesseltobb-prod`).
+- **Dokumentumfeltöltés:** a programjelentkezés fájljai a böngészőből aláírt linkkel egyenesen az S3-ba mennek (a Lambda kérésmérete max. 6 MB); az admin a nagy fotókat feltöltés előtt kicsinyíti.
 
-## Telepítés GitHubról (ajánlott)
+Jelenlegi címek: staging `https://d2f30js17vewf2.cloudfront.net`, éles `https://d20v9tyarwaoj9.cloudfront.net`.
 
-1. A repó **Settings → Secrets and variables → Actions** oldalán add hozzá a secreteket:
-   - `AWS_ACCESS_KEY_ID` (az `AKIA…` kezdetű azonosító)
-   - `AWS_SECRET_ACCESS_KEY`
-   - `ADMIN_EMAIL`: ezzel az e-mail címmel lehet belépni az admin felületre (`/admin.html`)
-   - `ADMIN_PASSWORD`: legalább 10 karakter. A szerverre csak a hash-e kerül; belépés után a **Beállítások** oldalon meg is változtatható.
-   - `GDRIVE_TOKEN`, `GDRIVE_FOLDER_ID`: a napi Google Drive mentéshez (lásd lent)
+## Telepítés GitHubról
 
-   A régió alapból `eu-central-1` (Frankfurt); ha mást szeretnél, a **Variables** fülön add meg `AWS_REGION` néven.
-2. Merge-öld a `deploy/aws/` változásait az alapértelmezett ágra: a **Deploy AWS** workflow magától lefut, és létrehozza a szervert. Kézzel is indítható: **Actions → Deploy AWS → Run workflow**.
-3. A workflow összefoglalójában (a futás oldalán) megjelenik az oldal címe.
-
-Ha a szerver már létezik, a workflow nem hoz létre újat, csak kiírja a címét. Törléshez: **Run workflow**, a művelet legyen `destroy`.
+1. A repó **Settings → Secrets and variables → Actions** oldalán legyen meg az `AWS_ACCESS_KEY_ID` és az `AWS_SECRET_ACCESS_KEY` secret (a régió alapból `eu-central-1`, a **Variables** fülön `AWS_REGION` néven módosítható).
+2. A **Deploy (serverless)** workflow: a `staging` ágra pusholva a staging, a `main` ágra pusholva az éles környezetet frissíti (előtte lefutnak a tesztek). Kézzel is indítható: **Actions → Deploy (serverless) → Run workflow**.
 
 ## Telepítés a saját gépről
 
-Kell hozzá az [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), beállított hitelesítéssel (`aws configure`, vagy `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_DEFAULT_REGION`).
+Kell hozzá az AWS CLI (beállított hitelesítéssel), a Node.js 24 és a `zip`.
 
 ```bash
-ADMIN_EMAIL="info@pelda.hu" ADMIN_PASSWORD="…" deploy/aws/deploy.sh    # létrehozás
-deploy/aws/destroy.sh   # törlés (rákérdez; FORCE=1-gyel nem)
+deploy/serverless/deploy.sh staging          # létrehozás vagy frissítés (stack, kód, statikus fájlok)
+deploy/serverless/deploy.sh staging import   # első telepítéskor: a régi oldal tartalma (pár perc)
+ADMIN_EMAIL="info@pelda.hu" ADMIN_PASSWORD="…" deploy/serverless/deploy.sh staging create-admin
 ```
+
+Ugyanez `prod`-dal az éles környezetre. Az import és az admin létrehozása a saját gépen fut, közvetlenül az S3-ban lévő adatbázison (zár alatt).
 
 ## Saját domain
 
-Az ideiglenes `<ip>.sslip.io` cím mindig megmarad. Mellé saját (al)domain(eke)t a `DOMAIN` megadásával lehet adni (GitHubon a **Run workflow** `domain` mezőjében), például:
+1. Kérj tanúsítványt az **ACM**-ben, a **us-east-1** régióban (a CloudFront csak onnan használja), pl. `egylepesseltobb.hu` és `www.egylepesseltobb.hu` névre, DNS-ellenőrzéssel.
+2. Telepíts a domainnel: `DOMAIN_NAMES=egylepesseltobb.hu,www.egylepesseltobb.hu CERTIFICATE_ARN=arn:aws:acm:us-east-1:… deploy/serverless/deploy.sh prod` (GitHubról: `PROD_DOMAIN_NAMES` és `PROD_CERTIFICATE_ARN` változó a **Variables** fülön).
+3. A DNS-ben a domain CNAME (gyökérdomainnél ALIAS/ANAME) rekordja mutasson a CloudFront címére.
 
-```bash
-DOMAIN="teszt.egylepesseltobb.hu" EMAIL="info@pelda.hu" deploy/aws/deploy.sh
-```
+## E-mail küldés a Lambdáról
 
-Ezután a domain(ek)hez vegyél fel egy A rekordot a kiírt IP címre. A szerver 5 percenként ellenőrzi a DNS-t: amint egy domain ide mutat, a közös Let's Encrypt tanúsítványt kibővíti vele, és HTTP-ről HTTPS-re irányít. A megújítás automatikus.
+A Lambdának nincs fix IP-címe, ezért az SMTP-továbbítónál **felhasználónév + (alkalmazás)jelszó** azonosítás kell, IP-cím alapú nem működik. Google Workspace SMTP-továbbítónál (`smtp-relay.gmail.com`) a beállításoknál kapcsold be az „SMTP-hitelesítés megkövetelése” opciót, és az admin **Beállítások → E-mail értesítések** részében add meg a fiók címét és alkalmazásjelszavát.
 
-A domainnek csak ez az egy A rekordja legyen: ha a régi tárhely IP-je is megmaradt mellette, a Let's Encrypt azt is ellenőrzi, és nem ad tanúsítványt. Ilyenkor a szerver nem is próbálkozik, amíg a régi rekordot nem törlöd.
+## Régi, szerveres telepítés (EC2)
 
-A domainek listája a szerver létrehozásakor dől el. Új domain hozzáadásához a szervert újra kell telepíteni (`destroy`, majd `deploy`). Az IP cím ilyenkor megváltozik, és az adatbázis is törlődik (a napi mentésből visszaállítható).
-
-## További beállítások
-
-| Változó | Alapérték | Jelentés |
-| --- | --- | --- |
-| `BRANCH` | a repó alapértelmezett ága | melyik ágról frissüljön az oldal |
-| `INSTANCE_TYPE` | `t3.micro` | EC2 példánytípus |
-| `NAME` | `egylepesseltobb` | az AWS erőforrások neve (`Name` tag) |
-| `KEY_NAME` + `SSH_CIDR` | – | SSH-hozzáféréshez: meglévő EC2 key pair neve és az engedélyezett IP tartomány (pl. `1.2.3.4/32`) |
-
-Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), és a felhasználónak legyen EC2 jogosultsága (példány, security group, Elastic IP kezelése).
+A `deploy/aws/` alatti EC2-s telepítés (nginx + Node.js, 5 percenkénti frissítés a GitHubról) még megvan, de folyamatosan fizetős (kb. havi 12 USD). Törlése: `deploy/aws/destroy.sh`.
 
 ## Admin felület és adatok
 
@@ -106,7 +91,7 @@ Előfeltétel: a régióban legyen default VPC (új fiókoknál alapból van), �
 - A havi összegek és a „Honnan hallott rólunk?” válaszai a **Beállítások → Jelentkezési űrlap** kártyán módosíthatók.
 - Védelem a kéretlen beküldések ellen: egy rejtett mező (a robotok kitöltik, és akkor nem mentjük), valamint IP-címenként óránként legfeljebb 5 jelentkezés.
 - Az adatkezelési tájékoztató linkje a lábléc „Adatkezelési tájékoztató” linkjét követi; amíg az `#`, az űrlapon sima szöveg.
-- Az adatok a szerver lemezén vannak: a `destroy` velük együtt törli a szervert. Naponta mentés készül Google Drive-ra (lásd lent).
+- Az adatok (adatbázis, feltöltések) az S3-ban vannak, verziózva: a törölt vagy felülírt adat 35 napig visszaállítható.
 
 ## Blog
 
@@ -151,22 +136,6 @@ Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad t
 - Frissítés a régi oldal újabb állapotából: `cd server && node scripts/wp-export.mjs` új exportfájlt készít; az `IMPORT_FILE` útvonalát (`src/wpimport.js`) erre kell átírni. A szerver a következő induláskor újra lefuttatja az importot: felveszi az új családokat és bejegyzéseket, és frissíti a meglévők státuszát és szövegét, kivéve amit azóta az adminban módosítottak.
 - Ha nincs rá szükség: `WP_IMPORT=0` a `/etc/egylepesseltobb/app.env`-ben.
 
-## Napi mentés Google Drive-ra
-
-A szerver minden éjjel (03:15, magyar idő szerint) egy `egylepesseltobb-ÉÉÉÉ-HH-NN_ÓÓPP.tar.gz` fájlt tölt fel a megadott Google Drive mappába. A fájlban az adatbázis és a feltöltött képek vannak. A 30 napnál régebbi mentéseket a szerver törli a mappából (`BACKUP_KEEP_DAYS`).
-
-Beállítás (egyszer kell):
-
-1. A saját gépeden telepítsd az [rclone](https://rclone.org/install/)-t, és futtasd: `rclone authorize "drive"`. Megnyílik a böngésző: lépj be azzal a Google fiókkal, amelyiké a mappa, és engedélyezd a hozzáférést. A parancs végén kiír egy `{"access_token":...}` kezdetű sort.
-2. Vedd fel GitHubon a repó secretjei közé:
-   - `GDRIVE_TOKEN`: a kiírt `{...}` sor teljes egészében;
-   - `GDRIVE_FOLDER_ID`: a mappa linkjének vége, pl. a `https://drive.google.com/drive/folders/1AbC...` linkből az `1AbC...` rész.
-3. A beállítás a szerver létrehozásakor kerül fel. Ha a szerver már fut, előbb `destroy`, aztán újra `deploy` kell.
-
-A mentés jelszó-hasheket és a családok adatait tartalmazza: a Drive mappát ne oszd meg linkkel.
-
-Visszaállítás a szerveren: állítsd le a szolgáltatást (`systemctl stop egylepesseltobb-app`), csomagold ki a mentést, másold az `egylepesseltobb.db`-t és az `uploads/` mappát a `/var/lib/egylepesseltobb/` alá (tulajdonos: `egylepesseltobb`), majd indítsd újra a szolgáltatást.
-
 ## Helyi fejlesztés
 
 ```bash
@@ -181,4 +150,4 @@ Az adatok helyben a `server/data/` mappába kerülnek (nincs verziókezelve).
 
 ## Költség
 
-`t3.micro` + nyilvános IPv4 cím + 8 GB tárhely: nagyjából 13 USD/hó (Frankfurt régió), AWS Free Tier alatt kevesebb vagy ingyenes.
+Forgalom nélkül gyakorlatilag 0: nincs futó szerver, sem adatbázis-példány. Fizetni csak a használatért kell: a CloudFront (havi 1 TB és 10 millió kérés ingyenes), a Lambda (havi 1 millió kérés és 400 000 GB-másodperc ingyenes), a DynamoDB-zár kérései (fillérek), valamint az S3-tárhely (kb. 0,3 GB a képekkel és a régi verziókkal, havonta néhány cent). Az SSM paraméter ingyenes. Környezetenként (staging, éles) ugyanennyi.

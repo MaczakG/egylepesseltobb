@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import * as store from './db.js';
 import { normalizeLogo } from './logo.js';
+import { createStorage } from './storage.js';
 import {
   detectImageType, sanitizePage, sanitizePost, sanitizeStory,
 } from './validate.js';
@@ -57,7 +58,9 @@ async function inChunks(items, size, fn) {
   return results;
 }
 
-export async function runImport({ db, config, data, fetchImage = fetchFromWeb, log = console.log }) {
+export async function runImport({
+  db, config, data, fetchImage = fetchFromWeb, log = console.log, storage = createStorage(config),
+}) {
   const status = {
     state: 'running', startedAt: new Date().toISOString(), finishedAt: null, exportedAt: data.exportedAt || null,
     total: data.posts.length, done: 0, skipped: 0, images: 0, failedImages: [], error: null,
@@ -67,21 +70,22 @@ export async function runImport({ db, config, data, fetchImage = fetchFromWeb, l
 
   const imageMap = store.getSetting(db, IMAGES_KEY, {});
   const failed = new Set(); // egy futáson belül a hibás képet csak egyszer próbáljuk (több bejegyzésben is szerepelhet)
-  const exists = (url) => Boolean(url) && fs.existsSync(path.join(config.uploadsDir, path.basename(url)));
-  const variant = (buffer, width, quality, name) => sharp(buffer, { failOn: 'none' })
+  const exists = async (url) => Boolean(url) && storage.exists(`uploads/${path.basename(url)}`);
+  const variant = async (buffer, width, quality, name) => storage.put(`uploads/${name}`, await sharp(buffer, { failOn: 'none' })
     .rotate()
     .resize({ width, withoutEnlargement: true })
     .webp({ quality })
-    .toFile(path.join(config.uploadsDir, name));
+    .toBuffer());
 
   // Nagy méret (max. 1600 px) mindig, galériához bélyegkép is (480 px).
   async function image(url, withThumb) {
     const known = imageMap[url];
-    if (known && exists(known.large) && (!withThumb || exists(known.thumb))) return known;
-    if (known && exists(known.large)) {
+    const hasLarge = known && await exists(known.large);
+    if (hasLarge && (!withThumb || await exists(known.thumb))) return known;
+    if (hasLarge) {
       // Borítóként már megvan, most galériában is kell: a bélyegkép a meglévő nagy képből készül.
       const name = path.basename(known.large).replace(/\.webp$/, '-thumb.webp');
-      await variant(path.join(config.uploadsDir, path.basename(known.large)), 480, 72, name);
+      await variant(await storage.get(`uploads/${path.basename(known.large)}`), 480, 72, name);
       imageMap[url] = { ...known, thumb: `/uploads/${name}` };
       store.setSetting(db, IMAGES_KEY, imageMap);
       return imageMap[url];
@@ -110,7 +114,6 @@ export async function runImport({ db, config, data, fetchImage = fetchFromWeb, l
   }
 
   try {
-    fs.mkdirSync(config.uploadsDir, { recursive: true });
     if (data.posts.some((p) => FAMILY_STATUS[p.category])) store.removeSeedFamilies(db);
 
     for (const p of data.posts) {
@@ -181,15 +184,17 @@ export function pagesImportStatus(db) {
 }
 
 // A PDF a régi fájlnevén kerül a feltöltések közé, hogy a címe beszédes és állandó legyen (pl. /uploads/Prospektus.pdf).
-function pdfName(uploadsDir, url) {
+async function pdfName(storage, url) {
   let base = decodeURIComponent(path.basename(new URL(url).pathname)).normalize('NFD').replace(/[̀-ͯ]/g, '');
   base = base.replace(/\.pdf$/i, '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'dokumentum';
   let name = `${base}.pdf`;
-  for (let n = 2; fs.existsSync(path.join(uploadsDir, name)); n += 1) name = `${base}-${n}.pdf`;
+  for (let n = 2; await storage.exists(`uploads/${name}`); n += 1) name = `${base}-${n}.pdf`;
   return name;
 }
 
-export async function runPagesImport({ db, config, data, fetchImage = fetchFromWeb, log = console.log }) {
+export async function runPagesImport({
+  db, config, data, fetchImage = fetchFromWeb, log = console.log, storage = createStorage(config),
+}) {
   const status = {
     state: 'running', startedAt: new Date().toISOString(), finishedAt: null, exportedAt: data.exportedAt || null,
     total: data.pages.length, done: 0, skipped: 0, files: 0, failedFiles: [], error: null,
@@ -198,27 +203,27 @@ export async function runPagesImport({ db, config, data, fetchImage = fetchFromW
   save();
   const fileMap = store.getSetting(db, FILES_KEY, {});
   const failed = new Set();
-  const exists = (url) => Boolean(url) && fs.existsSync(path.join(config.uploadsDir, path.basename(url)));
+  const exists = async (url) => Boolean(url) && storage.exists(`uploads/${path.basename(url)}`);
 
   // Kép: webre méretezve (WebP); PDF: változatlanul. Más fájltípust nem veszünk át.
   // A partnerlogók (.logos) egységes méretet kapnak (lásd logo.js), ezért külön tároljuk őket.
   async function file(url, asLogo = false) {
     const key = asLogo ? `logo:${url}` : url;
-    if (exists(fileMap[key])) return fileMap[key];
+    if (await exists(fileMap[key])) return fileMap[key];
     if (failed.has(url)) return null;
     try {
       const buffer = await fetchImage(url);
       let name;
       if (asLogo && detectImageType(buffer)) {
         name = `${crypto.randomBytes(12).toString('hex')}.webp`;
-        fs.writeFileSync(path.join(config.uploadsDir, name), await normalizeLogo(buffer, 'webp'));
+        await storage.put(`uploads/${name}`, await normalizeLogo(buffer, 'webp'));
       } else if (detectImageType(buffer)) {
         name = `${crypto.randomBytes(12).toString('hex')}.webp`;
-        await sharp(buffer, { failOn: 'none' }).rotate().resize({ width: 1600, withoutEnlargement: true })
-          .webp({ quality: 82 }).toFile(path.join(config.uploadsDir, name));
+        await storage.put(`uploads/${name}`, await sharp(buffer, { failOn: 'none' }).rotate()
+          .resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer());
       } else if (buffer.subarray(0, 5).toString('latin1') === '%PDF-') {
-        name = pdfName(config.uploadsDir, url);
-        fs.writeFileSync(path.join(config.uploadsDir, name), buffer);
+        name = await pdfName(storage, url);
+        await storage.put(`uploads/${name}`, buffer);
       } else {
         throw new Error('nem kép és nem PDF');
       }
@@ -235,7 +240,6 @@ export async function runPagesImport({ db, config, data, fetchImage = fetchFromW
   }
 
   try {
-    fs.mkdirSync(config.uploadsDir, { recursive: true });
     for (const url of data.files || []) await file(url);
     for (const pg of data.pages) {
       if (store.importedRowEdited(db, 'pages', pg.wpId)) {
