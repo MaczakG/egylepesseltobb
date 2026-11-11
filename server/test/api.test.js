@@ -111,7 +111,7 @@ describe('hitelesítés', () => {
     assert.match(res.headers.get('set-cookie'), /HttpOnly/i);
     assert.match(res.headers.get('set-cookie'), /SameSite=Strict/i);
     const me = await request('GET', '/api/me', { cookie });
-    assert.deepEqual(await me.json(), { email: EMAIL });
+    assert.deepEqual(await me.json(), { email: EMAIL, role: 'admin' });
   });
 
   test('a Python (deploy.sh) által készített scrypt hash elfogadott', (t) => {

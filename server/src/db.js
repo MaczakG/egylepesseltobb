@@ -198,6 +198,13 @@ function migrate(db) {
     if (!cols.includes('wp_synced_at')) db.exec(`ALTER TABLE ${table} ADD COLUMN wp_synced_at TEXT`);
     db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${table}_wp_id ON ${table} (wp_id)`);
   }
+  // Szerepkör: admin (minden) vagy munkatárs (csak a tartalom: családok, jelentkezések, üzenetek, blog, termékek, fizetések).
+  if (!columns(db, 'users').includes('role')) db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'");
+  // Terméktípus: az az oldal, amelyen termékek fizethetők; a menü melyik lenyíló pontja alatt jelenik meg.
+  if (!columns(db, 'pages').includes('product_menu')) {
+    db.exec('ALTER TABLE pages ADD COLUMN product_menu TEXT');
+    db.exec("UPDATE pages SET product_menu = 'orokbefogadas' WHERE slug IN (SELECT DISTINCT page_slug FROM products)");
+  }
   // A családok aloldalának webcíme: a meglévő sorok a nevükből kapják meg.
   if (!columns(db, 'families').includes('slug')) db.exec('ALTER TABLE families ADD COLUMN slug TEXT');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS families_slug ON families (slug)');
@@ -361,6 +368,34 @@ export function upsertUser(db, email, passwordHash) {
   const { lastInsertRowid } = db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)')
     .run(email, passwordHash);
   return { user: getUserById(db, lastInsertRowid), created: true };
+}
+
+export const ROLES = { admin: 'Adminisztrátor', staff: 'Alapítványi munkatárs' };
+
+const toUser = (row) => ({ id: row.id, email: row.email, role: row.role, createdAt: row.created_at });
+
+export function listUsers(db) {
+  return db.prepare('SELECT * FROM users ORDER BY email COLLATE NOCASE').all().map(toUser);
+}
+
+export function createUser(db, { email, role, passwordHash }) {
+  const { lastInsertRowid } = db.prepare('INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)').run(email, passwordHash, role);
+  return toUser(getUserById(db, lastInsertRowid));
+}
+
+// Szerepkör- vagy jelszócserénél a felhasználó minden eszközön kijelentkezik.
+export function updateUser(db, id, { role, passwordHash }) {
+  db.prepare(`UPDATE users SET role = ?, password_hash = COALESCE(?, password_hash), session_version = session_version + 1
+    WHERE id = ?`).run(role, passwordHash || null, id);
+  return toUser(getUserById(db, id));
+}
+
+export function deleteUser(db, id) {
+  return db.prepare('DELETE FROM users WHERE id = ?').run(id).changes > 0;
+}
+
+export function countAdmins(db) {
+  return db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin'").get().n;
 }
 
 export function setPassword(db, userId, passwordHash) {
@@ -539,6 +574,54 @@ export function createPage(db, pg) {
   const { lastInsertRowid } = db.prepare(`INSERT INTO pages (slug, title, content, extras, status)
     VALUES (?, ?, ?, ?, ?)`).run(uniquePageSlug(db, pg.slug), pg.title, pg.content, JSON.stringify(pg.extras), pg.status);
   return getPage(db, lastInsertRowid);
+}
+
+// --- Terméktípusok: saját aloldal, a menü egy lenyíló pontja alatt ---------------
+
+export const PRODUCT_MENUS = {
+  alapitvany: 'Alapítvány', orokbefogadas: 'Fogadj örökbe egy családot', galeria: 'Galéria', varadi: 'Váradi Eszter díj',
+};
+
+const toProductType = (row) => ({
+  id: row.id, slug: row.slug, title: row.title, menu: row.product_menu, status: row.status,
+  // Az importált (régi oldalról jött) oldal szövegét nem írjuk felül, csak a címét és a menühelyét.
+  imported: row.wp_id != null,
+  intro: row.wp_id == null ? (row.content.match(/<p>([\s\S]*?)<\/p>/) || ['', ''])[1].replace(/<br>/g, '\n')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '',
+  products: row.products,
+});
+
+export function listProductTypes(db) {
+  return db.prepare(`SELECT pages.*, (SELECT COUNT(*) FROM products WHERE page_slug = pages.slug) AS products
+    FROM pages WHERE product_menu IS NOT NULL ORDER BY title COLLATE NOCASE`).all().map(toProductType);
+}
+
+export function getProductType(db, id) {
+  const row = db.prepare(`SELECT pages.*, (SELECT COUNT(*) FROM products WHERE page_slug = pages.slug) AS products
+    FROM pages WHERE id = ? AND product_menu IS NOT NULL`).get(id);
+  return row ? toProductType(row) : null;
+}
+
+const introHtml = (intro) => (intro
+  ? `<section><p>${intro.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p></section>` : '');
+
+export function createProductType(db, { title, intro, menu }) {
+  const { lastInsertRowid } = db.prepare(`INSERT INTO pages (slug, title, content, extras, status, product_menu)
+    VALUES (?, ?, ?, '{}', 'published', ?)`).run(uniquePageSlug(db, slugify(title) || 'termek'), title, introHtml(intro), menu);
+  return getProductType(db, lastInsertRowid);
+}
+
+export function updateProductType(db, id, { title, intro, menu }) {
+  const type = getProductType(db, id);
+  db.prepare(`UPDATE pages SET title = ?, product_menu = ?, content = CASE WHEN wp_id IS NULL THEN ? ELSE content END,
+    updated_at = datetime('now') WHERE id = ?`).run(title, menu, introHtml(intro), id);
+  return type && getProductType(db, id);
+}
+
+// Csak termék nélküli típus törölhető. Az importált oldal megmarad (csak kikerül a menüből).
+export function deleteProductType(db, id) {
+  db.prepare('DELETE FROM pages WHERE id = ? AND wp_id IS NULL').run(id);
+  db.prepare('UPDATE pages SET product_menu = NULL WHERE id = ?').run(id);
 }
 
 export function upsertImportedPage(db, wpId, pg) {
@@ -777,6 +860,7 @@ export function seedPageProducts(db, pageSlug, cards) {
   const seeded = getSetting(db, 'products_seeded_pages', []);
   if (seeded.includes(pageSlug) || !cards.length) return 0;
   cards.forEach((c, i) => createProduct(db, { ...c, pageSlug, sort: i + 1 }));
+  db.prepare("UPDATE pages SET product_menu = 'orokbefogadas' WHERE slug = ? AND product_menu IS NULL").run(pageSlug);
   setSetting(db, 'products_seeded_pages', [...seeded, pageSlug]);
   return cards.length;
 }

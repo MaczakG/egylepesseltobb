@@ -115,9 +115,45 @@ describe('admin: termékek és SimplePay beállítás', () => {
     assert.equal((await fetch(`${base}/fizetes/${created.id}`)).status, 404);
     assert.equal((await admin('POST', '/api/admin/products', { pageSlug: 'gala', name: 'X', price: 'sok' })).status, 400);
     assert.equal((await admin('DELETE', `/api/admin/products/${created.id}`)).status, 200);
-    const { products, pages } = await (await admin('GET', '/api/admin/products')).json();
+    const { products, types, menus } = await (await admin('GET', '/api/admin/products')).json();
     assert.equal(products.length, 2);
-    assert.ok(pages.some((pg) => pg.slug === 'gala'));
+    assert.deepEqual(types.map((t) => [t.slug, t.menu, t.products, t.imported]), [['gala', 'orokbefogadas', 2, false]]);
+    assert.equal(menus.orokbefogadas, 'Fogadj örökbe egy családot');
+  });
+
+  test('terméktípus: új aloldal a kiválasztott menüpont alatt; termék csak terméktípus alá kerülhet', async () => {
+    store.createPage(db, { slug: 'rolunk', title: 'Rólunk', content: '<p>x</p>', status: 'published', extras: {} });
+    assert.equal((await admin('POST', '/api/admin/products', { pageSlug: 'rolunk', name: 'X', price: 1000 })).status, 400,
+      'sima oldalhoz nem lehet terméket tenni');
+    assert.equal((await admin('POST', '/api/admin/product-types', { title: 'Rossz', menu: 'nincs-ilyen' })).status, 400);
+
+    const type = await (await admin('POST', '/api/admin/product-types', {
+      title: 'Adventi koncert', intro: 'Gyere el <b>velünk</b>!\nJó lesz.', menu: 'galeria',
+    })).json();
+    assert.deepEqual([type.slug, type.menu, type.intro], ['adventi-koncert', 'galeria', 'Gyere el <b>velünk</b>!\nJó lesz.']);
+    const product = await (await admin('POST', '/api/admin/products', { pageSlug: type.slug, name: 'Belépő', price: 3000 })).json();
+
+    let html = await (await fetch(`${base}/adventi-koncert`)).text();
+    assert.match(html, /<h1[^>]*>Adventi koncert<\/h1>/);
+    assert.match(html, /Gyere el &lt;b&gt;velünk&lt;\/b&gt;!<br>Jó lesz\./, 'a bevezető szövegként, sortöréssel');
+    assert.match(html, new RegExp(`href="/fizetes/${product.id}"`));
+    // A menüben a Galéria alatt (gépen és mobilon), más lenyíló alatt nem.
+    const home = await (await fetch(`${base}/`)).text();
+    assert.equal(home.match(/href="\/adventi-koncert"/g).length, 2);
+    const galeria = home.slice(home.indexOf('Galéria'), home.indexOf('Váradi Eszter díj'));
+    assert.match(galeria, /href="\/adventi-koncert"/);
+
+    // Áthelyezés másik menüpont alá, átnevezés.
+    await admin('PUT', `/api/admin/product-types/${type.id}`, { title: 'Adventi est', intro: '', menu: 'alapitvany' });
+    html = await (await fetch(`${base}/`)).text();
+    const alapitvany = html.slice(html.indexOf('href="/alapitonk"'), html.indexOf('href="/fogadj-orokbe-egy-csaladot"'));
+    assert.match(alapitvany, /href="\/adventi-koncert"[^>]*>Adventi est</);
+
+    assert.equal((await admin('DELETE', `/api/admin/product-types/${type.id}`)).status, 400, 'terméke van');
+    await admin('DELETE', `/api/admin/products/${product.id}`);
+    assert.equal((await admin('DELETE', `/api/admin/product-types/${type.id}`)).status, 200);
+    assert.equal((await fetch(`${base}/adventi-koncert`)).status, 404);
+    assert.doesNotMatch(await (await fetch(`${base}/`)).text(), /adventi-koncert/);
   });
 });
 

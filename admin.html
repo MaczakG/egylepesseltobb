@@ -153,9 +153,13 @@
           </button>
         </div>
       </div>
-      <div>
+      <div id="nav-system" class="hidden">
         <p class="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">Rendszer</p>
         <div class="space-y-0.5">
+          <button class="nav-item" data-view="users" onclick="goToView('users')">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+            Felhasználók
+          </button>
           <button class="nav-item" data-view="settings" onclick="goToView('settings')">
             <svg class="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg>
             Beállítások
@@ -173,8 +177,11 @@
         <div id="user-initial" class="w-8 h-8 rounded-full bg-white/10 text-white font-semibold text-xs flex items-center justify-center shrink-0">A</div>
         <div class="min-w-0 flex-1">
           <p id="user-email" class="text-xs font-medium text-white truncate"></p>
-          <p class="text-[11px] text-white/45">Adminisztrátor</p>
+          <p id="user-role" class="text-[11px] text-white/45 truncate"></p>
         </div>
+        <button onclick="openPasswordModal()" class="p-1.5 rounded-md text-white/60 hover:text-white hover:bg-white/10" title="Jelszó módosítása" aria-label="Jelszó módosítása">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+        </button>
         <button onclick="logout()" class="p-1.5 rounded-md text-white/60 hover:text-white hover:bg-white/10" title="Kijelentkezés" aria-label="Kijelentkezés">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
         </button>
@@ -676,18 +683,24 @@
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
           <div>
             <h1 class="text-xl font-semibold text-slate-900">Termékek</h1>
-            <p class="text-slate-500 mt-1">Az oldalakon SimplePay-jel fizethető tételek (jegyek, adományösszegek). Az oldal fizetési kártyái ebből a listából készülnek.</p>
+            <p class="text-slate-500 mt-1">Minden terméktípusnak saját aloldala van a menü kiválasztott pontja alatt; az aloldal fizetési kártyái a típus termékeiből készülnek (SimplePay).</p>
             <p id="products-payment-note" class="hidden mt-2 text-[13px] text-amber-800 bg-amber-50 ring-1 ring-inset ring-amber-600/20 rounded-md px-3 py-2">A SimplePay még nincs beállítva (Beállítások), ezért a gombok addig a régi fizetési linkekre mutatnak.</p>
           </div>
-          <button onclick="openProductModal()" class="btn btn-primary self-start sm:self-auto">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-            Új termék
-          </button>
+          <div class="flex flex-wrap sm:flex-nowrap gap-2 self-start sm:self-auto shrink-0">
+            <button onclick="openTypeModal()" class="btn btn-secondary">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Új terméktípus
+            </button>
+            <button onclick="openProductModal()" class="btn btn-primary">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Új termék
+            </button>
+          </div>
         </div>
         <div id="products-groups" class="space-y-6"></div>
         <div id="products-empty" class="hidden card text-center py-16">
-          <p class="font-medium text-slate-900">Nincs termék</p>
-          <p class="text-slate-500 mt-1">Az „Új termék” gombbal adhatsz hozzá fizethető tételt egy oldalhoz.</p>
+          <p class="font-medium text-slate-900">Nincs terméktípus</p>
+          <p class="text-slate-500 mt-1">Előbb hozz létre egy terméktípust (pl. jótékonysági est), utána adhatsz hozzá termékeket.</p>
         </div>
       </section>
 
@@ -729,6 +742,21 @@
             <p class="text-slate-500 mt-1">Az oldalakon indított SimplePay fizetések itt jelennek meg.</p>
           </div>
         </div>
+      </section>
+
+      <!-- ============ USERS VIEW ============ -->
+      <section id="view-users" class="hidden">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-xl font-semibold text-slate-900">Felhasználók</h1>
+            <p class="text-slate-500 mt-1">Az <strong class="font-medium text-slate-700">Alapítványi munkatárs</strong> a családokat, jelentkezéseket, üzeneteket, a blogot, a termékeket és a fizetéseket kezeli; a beállításokat és a felhasználókat csak az adminisztrátor.</p>
+          </div>
+          <button onclick="openUserModal()" class="btn btn-primary self-start sm:self-auto">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Új felhasználó
+          </button>
+        </div>
+        <div id="users-list" class="card divide-y divide-slate-100"></div>
       </section>
 
       <!-- ============ SETTINGS VIEW ============ -->
@@ -966,13 +994,91 @@
   </div>
 </div>
 
+<!-- ============ TYPE MODAL ============ -->
+<div id="type-modal" class="hidden fixed inset-0 z-50 items-center justify-center px-4 bg-slate-900/50">
+  <form class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="type-modal-title" onsubmit="return saveType(event)">
+    <h3 id="type-modal-title" class="font-semibold text-slate-900">Új terméktípus</h3>
+    <p class="text-slate-500 text-[13px] mt-1">A terméktípus saját aloldalt kap (pl. egy rendezvény vagy gyűjtés), a menü kiválasztott pontja alatt.</p>
+    <div class="space-y-4 mt-5">
+      <div>
+        <label class="label" for="type-title">Név (az aloldal címe) <span class="text-red-600">*</span></label>
+        <input id="type-title" type="text" maxlength="120" class="field" placeholder="pl. Adventi jótékonysági koncert">
+      </div>
+      <div>
+        <label class="label" for="type-menu">Menüpont <span class="text-red-600">*</span></label>
+        <select id="type-menu" class="field"></select>
+      </div>
+      <div>
+        <label class="label" for="type-intro">Bevezető szöveg</label>
+        <textarea id="type-intro" rows="4" maxlength="2000" class="field"></textarea>
+        <p id="type-intro-hint" class="text-slate-500 text-xs mt-1 hidden">A régi oldalról átvett aloldal szövege itt nem szerkeszthető, csak a neve és a menüpontja.</p>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-6">
+      <button type="button" onclick="closeModal('type-modal')" class="btn btn-secondary">Mégse</button>
+      <button type="submit" class="btn btn-primary">Mentés</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ USER MODAL ============ -->
+<div id="user-modal" class="hidden fixed inset-0 z-50 items-center justify-center px-4 bg-slate-900/50">
+  <form class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" role="dialog" aria-modal="true" aria-labelledby="user-modal-title" onsubmit="return saveUser(event)">
+    <h3 id="user-modal-title" class="font-semibold text-slate-900">Új felhasználó</h3>
+    <div class="space-y-4 mt-5">
+      <div>
+        <label class="label" for="user-email-field">E-mail cím <span class="text-red-600">*</span></label>
+        <input id="user-email-field" type="email" autocomplete="off" class="field">
+      </div>
+      <div>
+        <label class="label" for="user-role-field">Szerepkör</label>
+        <select id="user-role-field" class="field"></select>
+      </div>
+      <div>
+        <label class="label" for="user-password-field">Jelszó</label>
+        <input id="user-password-field" type="password" autocomplete="new-password" class="field">
+        <p id="user-password-hint" class="text-slate-500 text-xs mt-1">Legalább 10 karakter. Add át a munkatársnak; belépés után megváltoztathatja.</p>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-6">
+      <button type="button" onclick="closeModal('user-modal')" class="btn btn-secondary">Mégse</button>
+      <button type="submit" class="btn btn-primary">Mentés</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============ PASSWORD MODAL ============ -->
+<div id="password-modal" class="hidden fixed inset-0 z-50 items-center justify-center px-4 bg-slate-900/50">
+  <form class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" role="dialog" aria-modal="true" aria-labelledby="password-modal-title" onsubmit="return savePassword(event)">
+    <h3 id="password-modal-title" class="font-semibold text-slate-900">Jelszó módosítása</h3>
+    <div class="space-y-4 mt-5">
+      <div>
+        <label class="label" for="pm-current">Jelenlegi jelszó</label>
+        <input id="pm-current" type="password" autocomplete="current-password" class="field">
+      </div>
+      <div>
+        <label class="label" for="pm-new">Új jelszó (legalább 10 karakter)</label>
+        <input id="pm-new" type="password" autocomplete="new-password" class="field">
+      </div>
+      <div>
+        <label class="label" for="pm-confirm">Új jelszó megerősítése</label>
+        <input id="pm-confirm" type="password" autocomplete="new-password" class="field">
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-6">
+      <button type="button" onclick="closeModal('password-modal')" class="btn btn-secondary">Mégse</button>
+      <button type="submit" class="btn btn-primary">Mentés</button>
+    </div>
+  </form>
+</div>
+
 <!-- ============ PRODUCT MODAL ============ -->
 <div id="product-modal" class="hidden fixed inset-0 z-50 items-center justify-center px-4 bg-slate-900/50">
   <form class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" onsubmit="return saveProduct(event)">
     <h3 id="product-modal-title" class="font-semibold text-slate-900">Új termék</h3>
     <div class="space-y-4 mt-5">
       <div>
-        <label class="label" for="product-page">Oldal <span class="text-red-600">*</span></label>
+        <label class="label" for="product-page">Terméktípus <span class="text-red-600">*</span></label>
         <select id="product-page" class="field"></select>
       </div>
       <div>
@@ -1064,7 +1170,13 @@
     familySlugTouched: false,
     applications: [],
     products: [],
-    productPages: [],
+    productTypes: [],
+    productMenus: {},
+    paymentsConfigured: true,
+    editingTypeId: null,
+    users: [],
+    editingUserId: null,
+    role: 'admin',
     editingProductId: null,
     productActive: true,
     orders: [],
@@ -1144,8 +1256,14 @@
     state.searchQuery = '';
   }
 
-  function enterApp(email) {
+  var ROLE_LABEL = { admin: 'Adminisztrátor', staff: 'Alapítványi munkatárs' };
+  function enterApp(email, role) {
     resetSearch();
+    state.role = role || 'admin';
+    document.getElementById('user-role').textContent = ROLE_LABEL[state.role];
+    // A munkatárs csak a tartalmi menüpontokat látja (a szerver is csak ezeket engedi).
+    document.getElementById('nav-system').classList.toggle('hidden', state.role !== 'admin');
+    if (state.role !== 'admin' && ['settings', 'users'].indexOf(state.view) !== -1) goToView('list');
     document.getElementById('user-email').textContent = email;
     document.getElementById('user-initial').textContent = email.slice(0, 1).toUpperCase();
     document.getElementById('login-screen').classList.add('hidden');
@@ -1162,7 +1280,7 @@
       email: document.getElementById('login-email').value,
       password: document.getElementById('login-password').value
     }).then(function (me) {
-      return enterApp(me.email);
+      return enterApp(me.email, me.role);
     }).catch(function (e) {
       error.textContent = e.message;
       error.classList.remove('hidden');
@@ -1228,11 +1346,12 @@
   // ---------------------------------------------------------------
   // View switching
   // ---------------------------------------------------------------
-  var TITLES = { list: 'Családok', settings: 'Beállítások', posts: 'Blog', applications: 'Jelentkezések', messages: 'Üzenetek', products: 'Termékek', orders: 'Fizetések' };
+  var TITLES = { list: 'Családok', settings: 'Beállítások', posts: 'Blog', applications: 'Jelentkezések', messages: 'Üzenetek', products: 'Termékek', orders: 'Fizetések', users: 'Felhasználók' };
 
   window.goToView = function (view) {
+    if (state.role !== 'admin' && (view === 'settings' || view === 'users')) view = 'list';
     state.view = view;
-    ['list', 'form', 'settings', 'posts', 'post-form', 'applications', 'messages', 'products', 'orders'].forEach(function (v) {
+    ['list', 'form', 'settings', 'posts', 'post-form', 'applications', 'messages', 'products', 'orders', 'users'].forEach(function (v) {
       document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
     });
     // Család vagy bejegyzés szerkesztésekor (új létrehozásakor is) a lista menüpontja legyen kiemelve.
@@ -1259,9 +1378,14 @@
       renderProducts();
       loadProducts().catch(function (e) { showToast(e.message); });
     }
+    if (view === 'users') {
+      renderUsers();
+      loadUsers().catch(function (e) { showToast(e.message); });
+    }
     if (view === 'orders') {
       renderOrders();
-      loadOrders().catch(function (e) { showToast(e.message); });
+      // A rendelésekhez a terméktípusok neve is kell.
+      loadOrders().then(loadProducts).then(renderOrders).catch(function (e) { showToast(e.message); });
     }
     if (view === 'settings') {
       renderSettings();
@@ -1407,6 +1531,15 @@
       var msg = state.messages.find(function (x) { return x.id === id; });
       title.textContent = 'Üzenet törlése';
       text.textContent = 'Biztosan törölni szeretnéd ' + (msg && msg.data.name ? msg.data.name + ' üzenetét' : 'az üzenetet') + ' és a hozzá feltöltött dokumentumokat? Ez a művelet nem vonható vissza.';
+    } else if (type === 'ptype') {
+      var t = state.productTypes.find(function (x) { return x.id === id; });
+      title.textContent = 'Terméktípus törlése';
+      text.textContent = 'Biztosan törölni szeretnéd a(z) „' + (t ? t.title : '') + '” terméktípust? ' +
+        (t && t.imported ? 'Az aloldal megmarad, de kikerül a menüből és a terméktípusok közül.' : 'Az aloldala is törlődik.');
+    } else if (type === 'user') {
+      var u = state.users.find(function (x) { return x.id === id; });
+      title.textContent = 'Felhasználó törlése';
+      text.textContent = 'Biztosan törölni szeretnéd ' + (u ? u.email : '') + ' hozzáférését? Azonnal kijelentkezik.';
     } else if (type === 'product') {
       var pr = state.products.find(function (x) { return x.id === id; });
       title.textContent = 'Termék törlése';
@@ -1446,6 +1579,8 @@
       application: ['/api/admin/applications/', function () { return loadFamilies().then(loadApplications); }, 'A jelentkezés törölve lett.'],
       message: ['/api/admin/messages/', loadMessages, 'Az üzenet törölve lett.'],
       product: ['/api/admin/products/', loadProducts, 'A termék törölve lett.'],
+      ptype: ['/api/admin/product-types/', loadProducts, 'A terméktípus törölve lett.'],
+      user: ['/api/admin/users/', loadUsers, 'A felhasználó törölve lett.'],
       order: ['/api/admin/orders/', loadOrders, 'A fizetés törölve lett.']
     }[target.type];
     api('DELETE', cfg[0] + target.id)
@@ -2281,31 +2416,70 @@
   // Termékek
   // ---------------------------------------------------------------
   function loadProducts() {
-    return Promise.all([api('GET', '/api/admin/products'), api('GET', '/api/admin/payment-settings')]).then(function (r) {
-      state.products = r[0].products;
-      state.productPages = r[0].pages;
-      state.payment = r[1];
+    return api('GET', '/api/admin/products').then(function (r) {
+      state.products = r.products;
+      state.productTypes = r.types;
+      state.productMenus = r.menus;
+      state.paymentsConfigured = r.paymentsConfigured;
       if (state.view === 'products') renderProducts();
     });
   }
 
   function pageTitle(slug) {
-    var pg = state.productPages.find(function (x) { return x.slug === slug; });
-    return pg ? pg.title : slug;
+    var t = state.productTypes.find(function (x) { return x.slug === slug; });
+    return t ? t.title : slug;
   }
+
+  window.closeModal = function (id) {
+    var modal = document.getElementById(id);
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+  function showModal(id) {
+    var modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  window.openTypeModal = function (id) {
+    var t = id ? state.productTypes.find(function (x) { return x.id === id; }) : null;
+    state.editingTypeId = t ? t.id : null;
+    document.getElementById('type-modal-title').textContent = t ? 'Terméktípus szerkesztése' : 'Új terméktípus';
+    document.getElementById('type-title').value = t ? t.title : '';
+    document.getElementById('type-menu').innerHTML = Object.keys(state.productMenus).map(function (k) {
+      return '<option value="' + k + '">' + escapeHtml(state.productMenus[k]) + '</option>';
+    }).join('');
+    document.getElementById('type-menu').value = t ? t.menu : 'orokbefogadas';
+    var intro = document.getElementById('type-intro');
+    intro.value = t ? t.intro : '';
+    intro.disabled = Boolean(t && t.imported);
+    document.getElementById('type-intro-hint').classList.toggle('hidden', !(t && t.imported));
+    showModal('type-modal');
+    document.getElementById('type-title').focus();
+  };
+
+  window.saveType = function (event) {
+    event.preventDefault();
+    var id = state.editingTypeId;
+    api(id ? 'PUT' : 'POST', '/api/admin/product-types' + (id ? '/' + id : ''), {
+      title: document.getElementById('type-title').value,
+      menu: document.getElementById('type-menu').value,
+      intro: document.getElementById('type-intro').value
+    }).then(function (t) {
+      closeModal('type-modal');
+      showToast(id ? 'A terméktípus mentve lett.' : 'A terméktípus és az aloldala (/' + t.slug + ') létrejött.');
+      return loadProducts();
+    }).catch(function (e) { showToast(e.message); });
+    return false;
+  };
 
   function renderProducts() {
     var wrap = document.getElementById('products-groups');
-    document.getElementById('products-payment-note').classList.toggle('hidden', !state.payment || state.payment.configured);
-    document.getElementById('products-empty').classList.toggle('hidden', state.products.length !== 0);
-    var groups = {};
-    var order = [];
-    state.products.forEach(function (p) {
-      if (!groups[p.pageSlug]) { groups[p.pageSlug] = []; order.push(p.pageSlug); }
-      groups[p.pageSlug].push(p);
-    });
-    wrap.innerHTML = order.map(function (slug) {
-      var rows = groups[slug].map(function (p) {
+    document.getElementById('products-payment-note').classList.toggle('hidden', state.paymentsConfigured);
+    document.getElementById('products-empty').classList.toggle('hidden', state.productTypes.length !== 0);
+    wrap.innerHTML = state.productTypes.map(function (t) {
+      var slug = t.slug;
+      var rows = state.products.filter(function (p) { return p.pageSlug === slug; }).map(function (p) {
         return '<div class="flex items-center gap-4 px-4 py-3' + (p.active ? '' : ' opacity-60') + '">' +
           '<div class="min-w-0 flex-1">' +
             '<p class="font-medium text-slate-900">' + escapeHtml(p.name) + (p.active ? '' : ' <span class="text-xs font-normal text-slate-500">(rejtett)</span>') + '</p>' +
@@ -2318,10 +2492,17 @@
           '</div></div>';
       }).join('');
       return '<div class="card overflow-hidden">' +
-        '<div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 bg-slate-50">' +
-          '<h2 class="font-semibold text-slate-900">' + escapeHtml(pageTitle(slug)) + '</h2>' +
-          '<a href="/' + encodeURIComponent(slug) + '" target="_blank" rel="noopener" class="text-xs text-brand-700 hover:underline">Oldal megnyitása</a>' +
-        '</div><div class="divide-y divide-slate-100">' + rows + '</div></div>';
+        '<div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 bg-slate-50">' +
+          '<div class="min-w-0"><h2 class="font-semibold text-slate-900">' + escapeHtml(t.title) + '</h2>' +
+          '<p class="text-xs text-slate-500 mt-0.5">Menü: ' + escapeHtml(state.productMenus[t.menu] || t.menu) + ' · ' +
+          '<a href="/' + encodeURIComponent(slug) + '" target="_blank" rel="noopener" class="text-brand-700 hover:underline">/' + escapeHtml(slug) + ' ↗</a></p></div>' +
+          '<div class="flex gap-1">' +
+            '<button onclick="openTypeModal(' + t.id + ')" class="icon-btn" title="Terméktípus szerkesztése" aria-label="Terméktípus szerkesztése">' + ICON_EDIT + '</button>' +
+            '<button onclick="openDeleteModal(' + t.id + ', \'ptype\')" class="icon-btn danger" title="Terméktípus törlése" aria-label="Terméktípus törlése">' + ICON_DELETE + '</button>' +
+          '</div>' +
+        '</div><div class="divide-y divide-slate-100">' +
+        (rows || '<p class="px-4 py-4 text-sm text-slate-500">Még nincs terméke. <button onclick="openProductModal(null, \'' + escapeHtml(slug) + '\')" class="text-brand-700 hover:underline">Termék hozzáadása</button></p>') +
+        '</div></div>';
     }).join('');
   }
 
@@ -2331,15 +2512,16 @@
   }
   window.toggleProductActive = function () { setProductActive(!state.productActive); };
 
-  window.openProductModal = function (id) {
+  window.openProductModal = function (id, typeSlug) {
+    if (!state.productTypes.length) { showToast('Előbb hozz létre egy terméktípust.'); return; }
     var p = id ? state.products.find(function (x) { return x.id === id; }) : null;
     state.editingProductId = p ? p.id : null;
     document.getElementById('product-modal-title').textContent = p ? 'Termék szerkesztése' : 'Új termék';
     var select = document.getElementById('product-page');
-    select.innerHTML = state.productPages.map(function (pg) {
-      return '<option value="' + escapeHtml(pg.slug) + '">' + escapeHtml(pg.title) + '</option>';
+    select.innerHTML = state.productTypes.map(function (t) {
+      return '<option value="' + escapeHtml(t.slug) + '">' + escapeHtml(t.title) + '</option>';
     }).join('');
-    select.value = p ? p.pageSlug : (state.products[0] ? state.products[0].pageSlug : '');
+    select.value = p ? p.pageSlug : (typeSlug || state.productTypes[0].slug);
     document.getElementById('product-name').value = p ? p.name : '';
     document.getElementById('product-description').value = p ? p.description : '';
     document.getElementById('product-price').value = p ? p.price : '';
@@ -2577,6 +2759,84 @@
   };
 
   // ---------------------------------------------------------------
+  // Felhasználók (csak admin)
+  // ---------------------------------------------------------------
+  function loadUsers() {
+    return api('GET', '/api/admin/users').then(function (r) {
+      state.users = r.users;
+      state.userRoles = r.roles;
+      state.myUserId = r.me;
+      if (state.view === 'users') renderUsers();
+    });
+  }
+
+  function renderUsers() {
+    document.getElementById('users-list').innerHTML = state.users.map(function (u) {
+      var me = u.id === state.myUserId;
+      return '<div class="flex flex-wrap items-center gap-3 px-4 py-3">' +
+        '<div class="min-w-0 flex-1"><p class="font-medium text-slate-900 truncate">' + escapeHtml(u.email) + (me ? ' <span class="text-xs font-normal text-slate-500">(te)</span>' : '') + '</p>' +
+        '<p class="text-xs text-slate-500 mt-0.5">' + escapeHtml(ROLE_LABEL[u.role] || u.role) + ' · felvéve: ' + fmtDateTime(u.createdAt) + '</p></div>' +
+        '<div class="flex gap-1">' +
+          '<button onclick="openUserModal(' + u.id + ')" class="icon-btn" title="Szerkesztés" aria-label="Szerkesztés">' + ICON_EDIT + '</button>' +
+          (me ? '' : '<button onclick="openDeleteModal(' + u.id + ', \'user\')" class="icon-btn danger" title="Törlés" aria-label="Törlés">' + ICON_DELETE + '</button>') +
+        '</div></div>';
+    }).join('');
+  }
+
+  window.openUserModal = function (id) {
+    var u = id ? state.users.find(function (x) { return x.id === id; }) : null;
+    state.editingUserId = u ? u.id : null;
+    document.getElementById('user-modal-title').textContent = u ? 'Felhasználó szerkesztése' : 'Új felhasználó';
+    var email = document.getElementById('user-email-field');
+    email.value = u ? u.email : '';
+    email.disabled = Boolean(u);
+    document.getElementById('user-role-field').innerHTML = Object.keys(ROLE_LABEL).map(function (k) {
+      return '<option value="' + k + '">' + ROLE_LABEL[k] + '</option>';
+    }).join('');
+    document.getElementById('user-role-field').value = u ? u.role : 'staff';
+    document.getElementById('user-password-field').value = '';
+    document.getElementById('user-password-hint').textContent = u
+      ? 'Csak akkor töltsd ki, ha új jelszót adsz neki. Szerepkör- vagy jelszócserénél kijelentkezik.'
+      : 'Legalább 10 karakter. Add át a munkatársnak; belépés után megváltoztathatja.';
+    showModal('user-modal');
+    (u ? document.getElementById('user-role-field') : email).focus();
+  };
+
+  window.saveUser = function (event) {
+    event.preventDefault();
+    var id = state.editingUserId;
+    api(id ? 'PUT' : 'POST', '/api/admin/users' + (id ? '/' + id : ''), {
+      email: document.getElementById('user-email-field').value,
+      role: document.getElementById('user-role-field').value,
+      password: document.getElementById('user-password-field').value
+    }).then(function () {
+      closeModal('user-modal');
+      showToast(id ? 'A felhasználó mentve lett.' : 'A felhasználó létrejött.');
+      return loadUsers();
+    }).catch(function (e) { showToast(e.message); });
+    return false;
+  };
+
+  // Saját jelszó (a munkatárs is a bal alsó kulcs gombbal éri el).
+  window.openPasswordModal = function () {
+    ['pm-current', 'pm-new', 'pm-confirm'].forEach(function (id) { document.getElementById(id).value = ''; });
+    showModal('password-modal');
+    document.getElementById('pm-current').focus();
+  };
+
+  window.savePassword = function (event) {
+    event.preventDefault();
+    var next = document.getElementById('pm-new').value;
+    if (next !== document.getElementById('pm-confirm').value) { showToast('Az új jelszó és a megerősítése nem egyezik.'); return false; }
+    if (next.length < 10) { showToast('Az új jelszó legalább 10 karakter legyen.'); return false; }
+    api('POST', '/api/password', { currentPassword: document.getElementById('pm-current').value, newPassword: next }).then(function () {
+      closeModal('password-modal');
+      showToast('A jelszó módosítva lett.');
+    }).catch(function (e) { showToast(e.message); });
+    return false;
+  };
+
+  // ---------------------------------------------------------------
   // Toast
   // ---------------------------------------------------------------
   var toastTimer = null;
@@ -2599,7 +2859,7 @@
   // ---------------------------------------------------------------
   setStatusFilter('all');
   setFormStatus('adoptable');
-  api('GET', '/api/me').then(function (me) { return enterApp(me.email); }).catch(showLogin);
+  api('GET', '/api/me').then(function (me) { return enterApp(me.email, me.role); }).catch(showLogin);
 })();
 </script>
 

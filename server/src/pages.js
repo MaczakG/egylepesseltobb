@@ -1127,6 +1127,18 @@ function productCardsHtml(products, payable) {
   return `<section><div class="cards">${products.map(card).join('')}</div></section>`;
 }
 
+// A terméktípusok (saját aloldalak) a menü kiválasztott lenyíló pontja alá kerülnek, gépen és mobilon is.
+const MENU_LINK = {
+  desktop: 'block px-5 py-2.5 text-sm normal-case tracking-normal text-white/80 hover:text-sand-400 hover:bg-navy-700/60 transition-colors',
+  mobile: 'block py-2 hover:text-sand-400 transition-colors',
+};
+export function injectProductMenu(html, types) {
+  return html.replace(/<!-- menu:(\w+):(desktop|mobile) -->/g, (_, menu, kind) => types
+    .filter((t) => t.menu === menu && t.status === 'published')
+    .map((t) => `<a href="/${escapeHtml(t.slug)}" class="${MENU_LINK[kind]}">${escapeHtml(t.title)}</a>`)
+    .join('\n'));
+}
+
 export function withProducts(content, products, payable) {
   if (!products.length) return content;
   const cards = productCardsHtml(products, payable);

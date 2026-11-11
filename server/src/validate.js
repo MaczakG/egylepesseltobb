@@ -1,7 +1,8 @@
 import sanitizeHtml from 'sanitize-html';
 import {
-  APPLICATION_STATUSES, MESSAGE_STATUSES, POST_CATEGORIES, POST_STATUSES, STATUSES,
+  APPLICATION_STATUSES, MESSAGE_STATUSES, POST_CATEGORIES, POST_STATUSES, PRODUCT_MENUS, ROLES, STATUSES,
 } from './db.js';
+import { MIN_PASSWORD_LENGTH } from './auth.js';
 import { slugify } from './slug.js';
 
 export class ValidationError extends Error {}
@@ -287,4 +288,27 @@ export function validateSmtpSettings(body, current) {
     from: fromRaw,
     to,
   };
+}
+
+// Terméktípus (saját aloldal): név, rövid bevezető, és hogy a menü melyik pontja alatt jelenjen meg.
+export function validateProductType(body) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
+  if (!title) throw new ValidationError('Add meg a terméktípus nevét.');
+  if (!PRODUCT_MENUS[body.menu]) throw new ValidationError('Válaszd ki, melyik menüpont alá kerüljön.');
+  const intro = typeof body.intro === 'string' ? body.intro.trim().slice(0, 2000) : '';
+  return { title, intro, menu: body.menu };
+}
+
+// Felhasználó (csak admin kezelheti). Létrehozáskor kötelező a jelszó, módosításkor üresen a régi marad.
+export function validateUser(body, { creating }) {
+  if (!body || typeof body !== 'object') throw new ValidationError('Hiányzó adatok.');
+  const email = typeof body.email === 'string' ? body.email.trim().slice(0, 200) : '';
+  if (creating && !EMAIL.test(email)) throw new ValidationError('Adj meg egy érvényes e-mail címet.');
+  if (!ROLES[body.role]) throw new ValidationError('Válassz szerepkört.');
+  const password = typeof body.password === 'string' ? body.password : '';
+  if ((creating || password) && password.length < MIN_PASSWORD_LENGTH) {
+    throw new ValidationError(`A jelszó legalább ${MIN_PASSWORD_LENGTH} karakter legyen.`);
+  }
+  return { email, role: body.role, password };
 }

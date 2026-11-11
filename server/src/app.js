@@ -9,7 +9,7 @@ import {
 } from './auth.js';
 import {
   applicationForm, renderBlogList, renderBlogPost, renderEvents, renderFamilyList, renderFamilyPage, renderHomePosts,
-  renderCheckout, renderNotFound, renderPage, renderPaymentResult, siteFrame, fmtHuf,
+  renderCheckout, renderNotFound, renderPage, renderPaymentResult, siteFrame, fmtHuf, injectProductMenu,
 } from './pages.js';
 import {
   BACK_STATUS, IPN_STATUS, SimplePayError, handleIpn, parseBack, startPayment,
@@ -21,7 +21,7 @@ import { createMailer } from './mailer.js';
 import { createStorage } from './storage.js';
 import {
   EMAIL, ValidationError, checkApplication, detectImageType, validateApplicationStatus, validateFamily, validateFormSettings,
-  validateMessageStatus, validateNominationSettings, validatePaymentSettings, validatePost, validateProduct, validateSettings, validateSmtpSettings,
+  validateMessageStatus, validateNominationSettings, validatePaymentSettings, validatePost, validateProduct, validateProductType, validateSettings, validateSmtpSettings, validateUser,
 } from './validate.js';
 
 const COOKIE = 'elt_session';
@@ -135,7 +135,8 @@ export function createApp({
   // --- Oldalak -------------------------------------------------------------
   // A lábléc rendezvényei minden oldalon az adatbázisból jönnek, ezért már a beolvasáskor bekerülnek.
   const readIndex = () => injectSection(
-    fs.readFileSync(path.join(config.siteDir, 'index.html'), 'utf8'),
+    injectProductMenu(fs.readFileSync(path.join(config.siteDir, 'index.html'), 'utf8'),
+      store.listProductTypes(db).sort((a, b) => a.id - b.id)),
     'events',
     renderEvents(store.listPublicPosts(db, { category: 'rendezvenyek', limit: 4 }).posts),
   );
@@ -312,7 +313,7 @@ export function createApp({
     }
     failures.delete(req.ip);
     setSession(req, res, user);
-    res.json({ email: user.email });
+    res.json({ email: user.email, role: user.role });
   });
 
   api.post('/logout', (req, res) => {
@@ -320,7 +321,7 @@ export function createApp({
     res.json({ ok: true });
   });
 
-  api.get('/me', requireAuth, (req, res) => res.json({ email: req.user.email }));
+  api.get('/me', requireAuth, (req, res) => res.json({ email: req.user.email, role: req.user.role }));
 
   api.post('/password', requireAuth, (req, res) => {
     const { currentPassword, newPassword } = req.body || {};
@@ -338,6 +339,48 @@ export function createApp({
   // --- Admin API -----------------------------------------------------------
   const admin = express.Router();
   admin.use(requireAuth);
+  // A munkatárs csak a tartalmat kezeli (családok, jelentkezések, üzenetek, blog, termékek, fizetések);
+  // a beállítások és a felhasználók csak az adminé. Az automatizmus beállítását a családlista olvassa.
+  const ADMIN_ONLY = /^\/(settings|form-settings|nomination-settings|payment-settings|smtp-settings|smtp-test|users)(\/|$)/;
+  admin.use((req, res, next) => {
+    if (req.user.role !== 'admin' && ADMIN_ONLY.test(req.path) && !(req.method === 'GET' && req.path === '/settings')) {
+      return res.status(403).json({ error: 'Ehhez nincs jogosultságod.' });
+    }
+    next();
+  });
+
+  // --- Felhasználók (csak admin) ---
+  admin.get('/users', (req, res) => res.json({ users: store.listUsers(db), roles: store.ROLES, me: req.user.id }));
+
+  admin.post('/users', (req, res) => {
+    const { email, role, password } = validateUser(req.body, { creating: true });
+    if (store.getUserByEmail(db, email)) return res.status(400).json({ error: 'Ezzel az e-mail címmel már van felhasználó.' });
+    res.status(201).json(store.createUser(db, { email, role, passwordHash: hashPassword(password) }));
+  });
+
+  admin.put('/users/:id', (req, res) => {
+    const id = idParam(req);
+    const user = id && store.getUserById(db, id);
+    if (!user) return res.status(404).json({ error: 'A felhasználó nem található.' });
+    const { role, password } = validateUser(req.body, { creating: false });
+    if (user.role === 'admin' && role !== 'admin' && store.countAdmins(db) === 1) {
+      return res.status(400).json({ error: 'Legalább egy adminisztrátornak maradnia kell.' });
+    }
+    const updated = store.updateUser(db, id, { role, passwordHash: password ? hashPassword(password) : null });
+    // Saját magunk módosításakor ne jelentkeztessen ki.
+    if (id === req.user.id) setSession(req, res, store.getUserById(db, id));
+    res.json(updated);
+  });
+
+  admin.delete('/users/:id', (req, res) => {
+    const id = idParam(req);
+    if (id === req.user.id) return res.status(400).json({ error: 'Saját magadat nem törölheted.' });
+    const user = id && store.getUserById(db, id);
+    if (!user) return res.status(404).json({ error: 'A felhasználó nem található.' });
+    if (user.role === 'admin' && store.countAdmins(db) === 1) return res.status(400).json({ error: 'Legalább egy adminisztrátornak maradnia kell.' });
+    store.deleteUser(db, id);
+    res.json({ ok: true });
+  });
 
   const idParam = (req) => {
     const id = Number(req.params.id);
@@ -449,15 +492,41 @@ export function createApp({
   // --- Termékek, fizetések, SimplePay beállítás ---
   admin.get('/products', (req, res) => res.json({
     products: store.listProducts(db),
-    pages: store.listPages(db).map((pg) => ({ slug: pg.slug, title: pg.title })),
+    types: store.listProductTypes(db),
+    menus: store.PRODUCT_MENUS,
+    paymentsConfigured: paymentsConfigured(),
   }));
 
-  admin.post('/products', (req, res) => res.status(201).json(store.createProduct(db, validateProduct(req.body))));
+  // Termék csak terméktípus (saját aloldal) alá kerülhet, más oldalra nem.
+  const productData = (body) => {
+    const data = validateProduct(body);
+    if (!store.listProductTypes(db).some((t) => t.slug === data.pageSlug)) throw new ValidationError('Válassz terméktípust.');
+    return data;
+  };
+
+  admin.post('/products', (req, res) => res.status(201).json(store.createProduct(db, productData(req.body))));
 
   admin.put('/products/:id', (req, res) => {
     const id = idParam(req);
     if (!id || !store.getProduct(db, id)) return res.status(404).json({ error: 'A termék nem található.' });
-    res.json(store.updateProduct(db, id, validateProduct(req.body)));
+    res.json(store.updateProduct(db, id, productData(req.body)));
+  });
+
+  admin.post('/product-types', (req, res) => res.status(201).json(store.createProductType(db, validateProductType(req.body))));
+
+  admin.put('/product-types/:id', (req, res) => {
+    const id = idParam(req);
+    if (!id || !store.getProductType(db, id)) return res.status(404).json({ error: 'A terméktípus nem található.' });
+    res.json(store.updateProductType(db, id, validateProductType(req.body)));
+  });
+
+  admin.delete('/product-types/:id', (req, res) => {
+    const id = idParam(req);
+    const type = id && store.getProductType(db, id);
+    if (!type) return res.status(404).json({ error: 'A terméktípus nem található.' });
+    if (type.products) return res.status(400).json({ error: 'Előbb töröld a terméktípus termékeit.' });
+    store.deleteProductType(db, id);
+    res.json({ ok: true });
   });
 
   admin.delete('/products/:id', (req, res) => {

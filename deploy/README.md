@@ -54,6 +54,12 @@ A `deploy/aws/` alatti EC2-s telepítés (nginx + Node.js, 5 percenkénti friss�
 - Aloldala az örökbefogadható és az örökbefogadott családoknak van. Az archivált és a feltöltés alatti családot csak bejelentkezett adminisztrátor látja, előnézetként.
 - Családlista lapozás nélkül, minden család egy oldalon: `/csaladok` (az összes nyilvános család, elöl az örökbefogadhatók), `/csaladok?statusz=orokbefogadhato` és `/csaladok?statusz=orokbefogadott`. A menü „Örökbefogadható / Örökbefogadott családok” pontja ide mutat.
 
+## Felhasználók és szerepkörök
+
+- **Adminisztrátor:** mindent elér, a **Felhasználók** menüpontban új felhasználót vehet fel (e-mail, szerepkör, kezdő jelszó), szerepkört és jelszót módosíthat, hozzáférést törölhet.
+- **Alapítványi munkatárs:** csak a tartalmat kezeli: Családok, Jelentkezések, Üzenetek, Blog, Termékek, Fizetések. A beállításokat és a felhasználókat nem látja (a szerver is tiltja).
+- Mindenki a bal alsó kulcs gombbal módosíthatja a saját jelszavát. Szerepkör- vagy jelszócserénél a felhasználó minden eszközön kijelentkezik. Legalább egy adminisztrátornak mindig maradnia kell.
+
 ## Oldalak (a régi oldal aloldalai)
 
 - A régi egylepesseltobb.hu aloldalai a mostani dizájnnal, ugyanazzal a szöveggel és képekkel, a régi címükön érhetők el (pl. `/alapitonk`, `/kuratorium`, `/dokumentumok`, `/1-ado`, `/linkesfizetes`, `/adatkezelesi-tajekoztato`).
@@ -105,7 +111,8 @@ Az nginx minden olyan útvonalat, amihez nincs statikus fájl, a backendnek ad t
 
 ## Termékek és SimplePay fizetés
 
-- Az adminban a **Termékek** menüpont alatt vannak az oldalakon fizethető tételek (pl. a gálaest támogatói jegyei, a Gyömrői Esték adományösszegei, az alapítvány működésének támogatása): oldal, név, leírás, ár, gombfelirat, sorrend, megjelenik-e. Az oldal fizetési kártyái ebből a listából készülnek.
+- Az adminban a **Termékek** menüpont alatt vannak a **terméktípusok** és a termékeik. Minden terméktípus saját aloldal (pl. `/jotekonysagi-galaest`), amely a menü kiválasztott lenyíló pontja alatt jelenik meg (Alapítvány, Fogadj örökbe egy családot, Galéria, Váradi Eszter díj). Új terméktípusnál új aloldal jön létre (név, bevezető szöveg, menüpont); a régi oldalról átvett típusoknál csak a név és a menüpont módosítható. Termék csak terméktípus alá kerülhet, más oldalra nem; terméktípus csak akkor törölhető, ha már nincs terméke.
+- Egy termék adatai: terméktípus, név, leírás, ár, gombfelirat, sorrend, megjelenik-e. Az aloldal fizetési kártyái ebből a listából készülnek.
 - Az első importkor a régi oldal SimplePay-fizetési linkjeiből (kártyáiból) oldalanként egyszer termékek lesznek; az adminban törölt terméket a későbbi import nem hozza vissza.
 - A fizetés az oldalon belül indul (`/fizetes/<termék>`): a támogató megadja a nevét és e-mail-címét, elfogadja az adatkezelési tájékoztatót és az adattovábbítási nyilatkozatot, majd a szerver a SimplePay v2 API-n (aláírt kéréssel) indítja a tranzakciót, és átirányít a SimplePay fizetőoldalára. A számlázási adatokat a SimplePay oldalán adja meg.
 - A visszatérő oldal (`/fizetes/vissza`) a SimplePay előírása szerint mutatja az eredményt (sikeres és sikertelen fizetésnél a SimplePay tranzakcióazonosítóval). A végleges állapotot a SimplePay értesítése (IPN, `/fizetes/ipn`) rögzíti.
