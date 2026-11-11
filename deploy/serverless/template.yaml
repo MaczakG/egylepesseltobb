@@ -1,0 +1,243 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Egy Lépéssel Több – szerver nélküli (S3 + CloudFront + Lambda + DynamoDB-zár). Forgalom nélkül nincs alapdíj.
+
+Parameters:
+  Stage:
+    Type: String
+    AllowedValues: [staging, prod]
+  SessionSecretParam:
+    Type: String
+    Description: SSM SecureString paraméter neve (a deploy.sh hozza létre).
+  DomainNames:
+    Type: CommaDelimitedList
+    Default: ''
+    Description: Saját domain(ek), pl. egylepesseltobb.hu,www.egylepesseltobb.hu (üresen a …cloudfront.net cím marad).
+  CertificateArn:
+    Type: String
+    Default: ''
+    Description: ACM tanúsítvány a us-east-1 régióban a saját domainhez.
+
+Conditions:
+  HasDomain: !Not [!Equals [!Join ['', !Ref DomainNames], '']]
+
+Resources:
+  # Statikus fájlok (assets/), feltöltött képek (uploads/), beküldött dokumentumok (private/), adatbázis (db/).
+  # Verziózva: a törölt vagy felülírt fájl (és adatbázis) 35 napig visszaállítható.
+  Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      VersioningConfiguration: { Status: Enabled }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules: [{ ObjectOwnership: BucketOwnerEnforced }]
+      # Az űrlap dokumentumai a böngészőből, aláírt linkkel érkeznek (incoming/), beküldéskor a privát részbe kerülnek.
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [PUT]
+            AllowedOrigins: ['*']
+            AllowedHeaders: ['*']
+            MaxAge: 3600
+      LifecycleConfiguration:
+        Rules:
+          - Id: be-nem-kuldott-feltoltesek
+            Status: Enabled
+            Prefix: incoming/
+            ExpirationInDays: 1
+            NoncurrentVersionExpiration: { NoncurrentDays: 1 }
+          - Id: regi-verziok-35-nap
+            Status: Enabled
+            NoncurrentVersionExpiration: { NoncurrentDays: 35 }
+            AbortIncompleteMultipartUpload: { DaysAfterInitiation: 2 }
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          # A CloudFront csak a nyilvános részt (assets/, uploads/) olvashatja.
+          - Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: s3:GetObject
+            Resource:
+              - !Sub '${Bucket.Arn}/assets/*'
+              - !Sub '${Bucket.Arn}/uploads/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}'
+          - Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource: [!GetAtt Bucket.Arn, !Sub '${Bucket.Arn}/*']
+            Condition: { Bool: { 'aws:SecureTransport': 'false' } }
+
+  # Íráskor az adatbázis-fájlt egyszerre csak egy kérés módosíthatja (lásd server/src/dbsync.js).
+  LockTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{ AttributeName: pk, AttributeType: S }]
+      KeySchema: [{ AttributeName: pk, KeyType: HASH }]
+
+  FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]
+      Policies:
+        - PolicyName: app
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:DeleteObject]
+                Resource: !Sub '${Bucket.Arn}/*'
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt Bucket.Arn
+              - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:DeleteItem]
+                Resource: !GetAtt LockTable.Arn
+              - Effect: Allow
+                Action: ssm:GetParameter
+                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SessionSecretParam}'
+
+  # A kódot a deploy.sh tölti fel (update-function-code); ez csak helyfoglaló az első létrehozáshoz.
+  Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'egylepesseltobb-${Stage}'
+      Runtime: nodejs24.x
+      Architectures: [x86_64]
+      Handler: server/src/lambda.handler
+      MemorySize: 1024
+      Timeout: 30
+      Role: !GetAtt FunctionRole.Arn
+      Code:
+        ZipFile: "exports.handler = async () => ({ statusCode: 503, body: 'Telepítés folyamatban' });"
+      Environment:
+        Variables:
+          BUCKET: !Ref Bucket
+          LOCK_TABLE: !Ref LockTable
+          SESSION_SECRET_PARAM: !Ref SessionSecretParam
+          WP_IMPORT: '0'
+          NODE_OPTIONS: --experimental-require-module --disable-warning=ExperimentalWarning
+
+  FunctionLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/egylepesseltobb-${Stage}'
+      RetentionInDays: 30
+
+  FunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !Ref Function
+      AuthType: NONE
+
+  FunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Function
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
+  FunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Function
+      Action: lambda:InvokeFunction
+      Principal: '*'
+      InvokedViaFunctionUrl: true
+
+  # A függvény-URL a saját Host fejlécét várja: a látogató eredeti címe és IP-je külön fejlécben megy tovább.
+  ViewerRequestFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub 'egylepesseltobb-${Stage}-viewer'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Pass viewer host and IP to Lambda
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var r = event.request;
+          r.headers['x-forwarded-host'] = { value: r.headers.host.value };
+          r.headers['x-viewer-ip'] = { value: event.viewer.ip };
+          return r;
+        }
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub 'egylepesseltobb-${Stage}'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub 'egylepesseltobb (${Stage})'
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+        Aliases: !If [HasDomain, !Ref DomainNames, !Ref AWS::NoValue]
+        ViewerCertificate: !If
+          - HasDomain
+          - { AcmCertificateArn: !Ref CertificateArn, SslSupportMethod: sni-only, MinimumProtocolVersion: TLSv1.2_2021 }
+          - { CloudFrontDefaultCertificate: true }
+        Origins:
+          - Id: app
+            DomainName: !Select [2, !Split ['/', !GetAtt FunctionUrl.FunctionUrl]]
+            CustomOriginConfig: { OriginProtocolPolicy: https-only, OriginSSLProtocols: [TLSv1.2] }
+          - Id: files
+            DomainName: !GetAtt Bucket.RegionalDomainName
+            OriginAccessControlId: !Ref OriginAccessControl
+            S3OriginConfig: { OriginAccessIdentity: '' }
+        DefaultCacheBehavior:
+          TargetOriginId: app
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
+          OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # AllViewerExceptHostHeader
+          Compress: true
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt ViewerRequestFunction.FunctionMetadata.FunctionARN
+        CacheBehaviors:
+          - PathPattern: /assets/*
+            TargetOriginId: files
+            ViewerProtocolPolicy: redirect-to-https
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+            Compress: true
+          - PathPattern: /uploads/*
+            TargetOriginId: files
+            ViewerProtocolPolicy: redirect-to-https
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+            Compress: true
+
+Outputs:
+  Url:
+    Value: !Sub 'https://${Distribution.DomainName}'
+  DistributionId:
+    Value: !Ref Distribution
+  Bucket:
+    Value: !Ref Bucket
+  LockTable:
+    Value: !Ref LockTable
+  FunctionName:
+    Value: !Ref Function

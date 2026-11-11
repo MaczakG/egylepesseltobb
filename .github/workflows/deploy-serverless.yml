@@ -1,0 +1,44 @@
+name: Deploy (serverless)
+
+# `staging` ág → staging környezet, `main` ág → éles. Kézzel is indítható bármelyik ágról.
+on:
+  push:
+    branches: [staging, main]
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Környezet
+        type: choice
+        options: [staging, prod]
+        default: staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-serverless-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      STAGE: ${{ inputs.stage || (github.ref_name == 'main' && 'prod' || 'staging') }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION || 'eu-central-1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Tesztek
+        working-directory: server
+        run: npm ci && npm test
+      - name: Telepítés
+        env:
+          DOMAIN_NAMES: ${{ env.STAGE == 'prod' && vars.PROD_DOMAIN_NAMES || vars.STAGING_DOMAIN_NAMES }}
+          CERTIFICATE_ARN: ${{ env.STAGE == 'prod' && vars.PROD_CERTIFICATE_ARN || vars.STAGING_CERTIFICATE_ARN }}
+        run: deploy/serverless/deploy.sh "$STAGE"
