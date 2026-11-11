@@ -122,6 +122,16 @@ const CONTENT_CSS = `
   .page-content .logos img { width: 100%; height: 120px; object-fit: contain; padding: 0.75rem; margin: 0; background: #fff; border: 1px solid #f0e4cb; border-radius: 1rem; filter: grayscale(1); opacity: 0.7; transition: filter 0.3s, opacity 0.3s, transform 0.3s, box-shadow 0.3s; }
   .page-content .logos img:hover { filter: none; opacity: 1; transform: translateY(-3px); box-shadow: 0 16px 30px -14px rgba(26, 37, 45, 0.25); }
 
+  /* Lépésenkénti képernyőképek (pl. az 1%-os útmutató): mindig a teljes kép, vágás nélkül. */
+  .steps-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); list-style: none; margin: 0; padding: 0; }
+  @media (min-width: 768px) { .steps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 1024px) { .steps-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  .steps-grid li { margin: 0; text-align: center; }
+  .steps-grid a { display: block; background: #fff; border: 1px solid #f0e4cb; border-radius: 1rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; }
+  .steps-grid a:hover { transform: translateY(-3px); box-shadow: 0 16px 30px -14px rgba(26, 37, 45, 0.25); }
+  .steps-grid img { display: block; width: 100%; aspect-ratio: 4 / 9; object-fit: contain; margin: 0; border-radius: 0; }
+  .steps-grid .step-num { display: inline-flex; align-items: center; justify-content: center; margin-top: 0.75rem; font-weight: 600; color: #263640; }
+
   .page-content .gallery { margin-top: 0; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
   .page-content .gallery a { border-radius: 1rem; }
   .blog-content.page-content .gallery { margin-top: 2em; }
@@ -504,7 +514,7 @@ function kindOf(blocks) {
   if (blocks.length === 1 && blocks[0].tag === 'div') {
     const { cls, html } = blocks[0];
     if (cls === 'cards') return html.includes('<img ') ? 'people' : 'cards';
-    if (['logos', 'media', 'split', 'gallery'].includes(cls)) return cls;
+    if (['logos', 'media', 'split', 'gallery', 'steps'].includes(cls)) return cls;
   }
   return blocks.every((b) => b.tag === 'p' && !b.cls) ? 'para' : 'text';
 }
@@ -601,6 +611,17 @@ function columnHtml(sec) {
   return `${sec.header ? `<div class="mb-8">${headerTitle(sec.header, 'text-3xl md:text-4xl')}</div>` : ''}${body ? `<div class="blog-content page-content${sec.blocks[0]?.tag === 'p' && !sec.header ? ' has-lead' : ''}">${sec.kind === 'cards' ? liftCards(body) : body}</div>` : ''}`;
 }
 
+// Számozott lépések a galéria képeiből (nagyítóval).
+function stepsGrid(html) {
+  const shots = [...html.matchAll(/<a href="([^"]+)"[^>]*>\s*<img src="([^"]+)"/g)];
+  return `<ol class="steps-grid">${shots.map(([, href, src], i) => `
+        <li><a href="${href}" data-lightbox aria-label="${i + 1}. lépés nagyítása"><img src="${src}" loading="lazy" alt="${i + 1}. lépés"></a><span class="step-num">${i + 1}. lépés</span></li>`).join('')}
+      </ol>`;
+}
+
+// Ezeken az oldalakon a galéria valójában lépésenkénti útmutató (telefonos képernyőképek).
+const STEP_PAGES = new Set(['1-ado']);
+
 function renderSection(sec, bg, mediaIndex) {
   const dark = bg === 'dark';
   const body = joinBlocks(sec.blocks);
@@ -610,6 +631,8 @@ function renderSection(sec, bg, mediaIndex) {
       return band(bg, `${head}${mediaBlock(body, mediaIndex % 2 === 1)}`);
     case 'people':
       return band(bg, `${head}<div class="page-content">${peopleCards(body)}</div>`);
+    case 'steps':
+      return band(bg, `${head}<div class="page-content">${stepsGrid(body)}</div>`);
     case 'cards':
     case 'logos':
     case 'gallery':
@@ -1157,7 +1180,8 @@ export function renderPage(frame, {
   const description = excerpt(page.content, 200) || page.title;
   const banner = preview ? previewBanner('Előnézet: ez az oldal még nem nyilvános, csak bejelentkezett adminisztrátor látja.') : '';
   const side = Boolean(formHtml) && SIDE_FORMS.includes(page.extras.form);
-  const sections = parseSections(withProducts(page.content || '', products, payable));
+  const content = STEP_PAGES.has(page.slug) ? (page.content || '').replace(/<div class="gallery">/g, '<div class="steps">') : page.content || '';
+  const sections = parseSections(withProducts(content, products, payable));
   const lead = side ? '' : takeIntro(sections);
   mergeHeadings(sections);
 

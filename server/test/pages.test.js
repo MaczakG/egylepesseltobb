@@ -142,7 +142,8 @@ describe('oldalak megjelenítése', () => {
   test('/partnereink logórács, /1-ado galéria a nagyítóval, /linkesfizetes fizetési gombok', async () => {
     assert.match((await page('/partnereink')).html, /<div class="logos"><img src="\/uploads\//);
     const ado = (await page('/1-ado')).html;
-    assert.match(ado, /<div class="gallery"><a href="\/uploads\/[^"]+"><img/);
+    assert.match(ado, /<ol class="steps-grid">\s*<li><a href="\/uploads\/[^"]+" data-lightbox[^>]*><img[^>]*alt="1\. lépés"><\/a><span class="step-num">1\. lépés<\/span>/);
+    assert.equal(ado.match(/class="step-num"/g).length, 5);
     assert.match(ado, /id="gallery-lightbox"/);
     assert.match(ado, /<a class="button" href="\/uploads\/25EGYSZA-adoszammal\.pdf">/);
     const pay = (await page('/linkesfizetes')).html;
