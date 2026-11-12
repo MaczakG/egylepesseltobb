@@ -66,7 +66,7 @@ def con(*children, root=False, title=None, **s):
     settings.update(s)
     if title:
         settings["_title"] = title
-    return {"id": eid(), "elType": "container", "isInner": not root, "settings": settings, "elements": list(children)}
+    return {"id": eid(), "elType": "container", "isInner": not root, "settings": settings, "elements": [c for c in children if c]}
 
 
 def grid(*children, cols=3, cols_t=None, cols_m=None, cols_l=None, g=24, g_m=None, title=None, **s):
@@ -84,7 +84,7 @@ def grid(*children, cols=3, cols_t=None, cols_m=None, cols_l=None, g=24, g_m=Non
     settings.update(s)
     if title:
         settings["_title"] = title
-    return {"id": eid(), "elType": "container", "isInner": True, "settings": settings, "elements": list(children)}
+    return {"id": eid(), "elType": "container", "isInner": True, "settings": settings, "elements": [c for c in children if c]}
 
 
 def w(widget_type, title=None, **s):

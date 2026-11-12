@@ -94,6 +94,14 @@ body.elt-csalad-orokbefogadott .elt-status-badge .elementor-heading-title { back
 .elt-info p { margin: 0; }
 .elt-info .elt-info-sub { display: block; color: rgba(255, 255, 255, .5); font-size: 12px; margin-top: 4px; }
 
+/* Szövegblokkok (elt-prose): listák, linkek, alcímek */
+.elt-prose ul, .elt-prose ol { padding-left: 1.3em; margin: 0 0 1em; }
+.elt-prose li { margin-bottom: .4em; }
+.elt-prose a { color: #a68c5c; text-decoration: underline; text-underline-offset: 3px; }
+.elt-prose a:hover { color: #263640; }
+.elt-prose h2, .elt-prose h3, .elt-prose h4 { font-family: "Baloo 2", sans-serif; color: #263640; margin: 1.2em 0 .4em; line-height: 1.3; }
+.elt-prose p:last-child { margin-bottom: 0; }
+
 /* Űrlapok */
 .elt-form .elementor-field-group > label { font-weight: 600; margin-bottom: 6px; }
 .elt-form .elementor-field-textual { border-radius: 12px; padding: 12px 16px; }

@@ -170,44 +170,54 @@ def step_kit():
 # =========================================================================== menu
 MENU = [
     ("Főoldal", HOME, []),
-    ("Alapítvány", "#", [("Alapítónk", HOME + "#founder"), ("Nagyköveteink", HOME + "#ambassadors"),
-                         ("Kuratórium", "#"), ("Dokumentumok", "#")]),
+    ("Alapítvány", "#", [("Alapítónk", HOME + "alapitonk/"), ("Nagyköveteink", HOME + "nagykoveteink/"),
+                         ("Kuratórium", HOME + "kuratorium/"), ("Dokumentumok", HOME + "dokumentumok/")]),
     ("Fogadj örökbe egy családot", "#", [
-        ("Család örökbefogadás", HOME + "#families"),
+        ("Család örökbefogadás", HOME + "fogadj-orokbe-egy-csaladot/"),
         ("Örökbefogadható családok", HOME + "orokbefogadhato-csaladok/"),
         ("Örökbefogadott családok", HOME + "orokbefogadott-csaladok/"),
-        ("Az Alapítvány működésének támogatása", HOME + "tamogatas/"),
-        ("Jótékonysági meccs", "#events")]),
-    ("Galéria", "#", [("Közös élményeink", "#"), ("Családi napok", "#events"), ("Aláírási ceremónia", "#"),
-                      ("Gálaest", "#events"), ("Média megjelenések", "#"), ("Prospektus", "#")]),
-    ("Váradi Eszter díj", "#", [("Váradi Eszter-díja jelölés", "#")]),
+        ("Az Alapítvány működésének támogatása", HOME + "linkesfizetes/"),
+        ("Jótékonysági gálaest", HOME + "jotekonysagi-galaest/"),
+        ("Gyömrői Esték #2 – Nápolyi pizza egy jó ügyért", HOME + "gyomroi-estek-2/")]),
+    ("Galéria", "#", [("Közös élményeink", HOME + "kozos-elmenyeink/"), ("Családi napok", HOME + "csaladi-napok/"),
+                      ("Aláírási ceremónia", HOME + "alairasi-ceremonia/"), ("Gálaest", HOME + "galaest/"),
+                      ("Média megjelenések", HOME + "media-megjelenesek/"), ("Prospektus", "PROSPEKTUS")]),
+    ("Váradi Eszter díj", "https://hu.wikipedia.org/wiki/V%C3%A1radi_Eszter-d%C3%ADj",
+     [("Váradi Eszter-díjra jelölés", HOME + "varadi-eszter-dijra-jeloles/")]),
 ]
+CTA_ADO = HOME + "1-ado/"
+CTA_MAIN = HOME + "orokbefogadhato-csaladok/"
 
 
 def step_menu():
-    if STATE.get("menu_id"):
-        print("menu exists", STATE["menu_id"])
-        return
-    menu = rest("POST", "wp/v2/menus", {"name": "Egy Lépéssel Több – főmenü"})
-    mid = menu["id"]
+    """(Re)build the main menu with the real site structure."""
+    mid = STATE.get("menu_id") or rest("POST", "wp/v2/menus", {"name": "Egy Lépéssel Több – főmenü"})["id"]
+    STATE["menu_id"] = mid
+    save_state()
+    for item in rest("GET", f"wp/v2/menu-items?menus={mid}&per_page=100&_fields=id"):
+        rest("DELETE", f"wp/v2/menu-items/{item['id']}?force=true")
+    prospektus = "#"
+    try:
+        from pages import migrate_file
+        prospektus = migrate_file("https://egylepesseltobb.hu/wp-content/uploads/2025/10/Prospektus.pdf")
+    except Exception as e:  # noqa: BLE001
+        print("prospektus", e)
     order = 1
     for label, url, children in MENU:
         parent = rest("POST", "wp/v2/menu-items", {"title": label, "url": url, "menus": mid, "type": "custom",
                                                     "status": "publish", "menu_order": order})
         order += 1
         for clabel, curl in children:
-            rest("POST", "wp/v2/menu-items", {"title": clabel, "url": curl, "menus": mid, "type": "custom",
-                                              "status": "publish", "menu_order": order, "parent": parent["id"]})
+            rest("POST", "wp/v2/menu-items", {"title": clabel, "url": prospektus if curl == "PROSPEKTUS" else curl, "menus": mid,
+                                              "type": "custom", "status": "publish", "menu_order": order, "parent": parent["id"],
+                                              "target": "_blank" if curl == "PROSPEKTUS" else ""})
             order += 1
-    # Buttons that only show inside the mobile menu (hidden in the desktop bar by CSS).
-    rest("POST", "wp/v2/menu-items", {"title": "Adó 1%", "url": "#contact", "menus": mid, "type": "custom",
+    rest("POST", "wp/v2/menu-items", {"title": "Adó 1%", "url": CTA_ADO, "menus": mid, "type": "custom",
                                       "status": "publish", "menu_order": order, "classes": ["elt-menu-cta"]})
-    rest("POST", "wp/v2/menu-items", {"title": "Fogadj örökbe egy családot", "url": HOME + "#families", "menus": mid,
+    rest("POST", "wp/v2/menu-items", {"title": "Fogadj örökbe egy családot", "url": CTA_MAIN, "menus": mid,
                                       "type": "custom", "status": "publish", "menu_order": order + 1,
                                       "classes": ["elt-menu-cta", "elt-menu-cta--primary"]})
-    STATE["menu_id"] = mid
-    save_state()
-    print("menu", mid)
+    print("menu", mid, order + 1, "items")
 
 
 # =========================================================================== header
@@ -231,8 +241,8 @@ def header_elements():
             dropdown_top_distance=S(12), dropdown_top_distance_tablet_extra=S(19),
             toggle_color="#FFFFFF", toggle_color_hover=SAND[400], toggle_background_color="rgba(0,0,0,0)", toggle_size=S(28))
     buttons = con(
-        button("Adó 1%", "#contact", primary=False, title="Adó 1% gomb", text_padding=box(12, 20, 12, 20), **T(BODY, 14, 600, 1.2)),
-        button("Fogadj örökbe egy családot", HOME + "#families", title="Fő gomb", text_padding=box(12, 20, 12, 20), **T(BODY, 14, 600, 1.2)),
+        button("Adó 1%", CTA_ADO, primary=False, title="Adó 1% gomb", text_padding=box(12, 20, 12, 20), **T(BODY, 14, 600, 1.2)),
+        button("Fogadj örökbe egy családot", CTA_MAIN, title="Fő gomb", text_padding=box(12, 20, 12, 20), **T(BODY, 14, 600, 1.2)),
         title="Gombok", flex_direction="row", flex_gap=gap(12), flex_align_items="center", _flex_size="none",
         hide_tablet_extra="hidden-tablet_extra", hide_tablet="hidden-tablet", hide_mobile="hidden-mobile")
     script = w("html", title="Görgetés-effekt (fejléc kicsinyítés)", html=(
@@ -353,14 +363,19 @@ def footer_elements():
                text("<p>Most Te is tehetsz egy lépéssel többet!</p>", title="Szlogen", text_color="rgba(255,255,255,0.6)",
                     **T(BODY, 14, 400, 1.6), _margin=box(0, 0, 24, 0)),
                social, title="Logó és közösségi")
-    col2 = con(footer_heading("Rólunk"), link_list([("Az alapító", HOME + "#founder"), ("Nagyköveteink", HOME + "#ambassadors"),
-                                                     ("Támogatott területek", HOME + "#areas")], "Rólunk linkek"), title="Rólunk")
-    col3 = con(footer_heading("Támogatás"), link_list([("Fogadj örökbe egy családot", HOME + "#families"), ("Rendezvények", "#events"),
-                                                        ("Online adomány", HOME + "tamogatas/"),
+    col2 = con(footer_heading("Rólunk"), link_list([("Alapítónk", HOME + "alapitonk/"), ("Küldetésünk", HOME + "kuldetesunk/"),
+                                                     ("Nagyköveteink", HOME + "nagykoveteink/"), ("Kuratórium", HOME + "kuratorium/"),
+                                                     ("Támogatott területek", HOME + "tamogatott-teruletek/"), ("Partnereink", HOME + "partnereink/"),
+                                                     ("Dokumentumok", HOME + "dokumentumok/")], "Rólunk linkek"), title="Rólunk")
+    col3 = con(footer_heading("Támogatás"), link_list([("Fogadj örökbe egy családot", HOME + "fogadj-orokbe-egy-csaladot/"),
+                                                        ("Jelentkezz támogatónak", HOME + "jelntkezz-tamogatonak/"),
+                                                        ("Kerülj be programunkba", HOME + "kerulj-be-programunkba/"),
+                                                        ("Online adomány", HOME + "linkesfizetes/"), ("Adó 1%", HOME + "1-ado/"),
                                                         ("Adatkezelési tájékoztató", HOME + "adatkezelesi-tajekoztato/")], "Támogatás linkek"),
                title="Támogatás")
-    col4 = con(footer_heading("Kapcsolat"), link_list([("1131 Budapest, Rokolya utca 1-13. 5. emelet", ""), ("+36 30 123 4567", "tel:+36301234567"),
-                                                        ("info@egylepesseltobb.hu", "mailto:info@egylepesseltobb.hu")], "Kapcsolat adatok"),
+    col4 = con(footer_heading("Kapcsolat"), link_list([("1131 Budapest, Rokolya utca 1-13. 5. emelet", ""), ("+36 70 789 23 40", "tel:+36707892340"),
+                                                        ("info@egylepesseltobb.hu", "mailto:info@egylepesseltobb.hu"),
+                                                        ("Kapcsolat oldal →", HOME + "kapcsolat/")], "Kapcsolat adatok"),
                title="Kapcsolat")
     top = grid(col1, col2, col3, col4, cols=4, cols_t=2, cols_m=1, g=48, title="Lábléc oszlopok", margin=box(0, 0, 56, 0))
 

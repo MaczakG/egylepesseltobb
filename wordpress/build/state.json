@@ -18,5 +18,20 @@
  "single_id": 1112,
  "home_loop": true,
  "adoptable_id": 1116,
- "adopted_id": 1119
+ "adopted_id": 1119,
+ "page_kuratorium": 1198,
+ "page_dokumentumok": 1213,
+ "page_gyomroi-estek-2": 1227,
+ "page_jotekonysagi-galaest": 1232,
+ "page_nagykoveteink": 1237,
+ "page_tamogatott-teruletek": 1242,
+ "page_partnereink": 1300,
+ "page_media-megjelenesek": 1305,
+ "page_kapcsolat": 1309,
+ "page_jelntkezz-tamogatonak": 1314,
+ "page_kerulj-be-programunkba": 1319,
+ "page_varadi-eszter-dijra-jeloles": 1324,
+ "page_1-ado": 1340,
+ "page_fogadj-orokbe-egy-csaladot": 1345,
+ "page_kuldetesunk": 1350
 }
