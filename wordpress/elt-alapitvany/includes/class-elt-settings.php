@@ -153,7 +153,7 @@ class ELT_Settings {
 									)
 								);
 								?>
-								<p class="description">Erre az oldalra tér vissza az adományozó. Az oldalon legyen ott a <code>[elt_fizetes_eredmeny]</code> rövidkód (a SimplePay által előírt üzenetekkel).</p>
+								<p class="description">Ha nincs kiválasztva, a „fizetes-eredmenye” című (slug) oldalt használja. Erre az oldalra tér vissza az adományozó. Az oldalon legyen ott a <code>[elt_fizetes_eredmeny]</code> rövidkód (a SimplePay által előírt üzenetekkel).</p>
 							</td>
 						</tr>
 						<tr>

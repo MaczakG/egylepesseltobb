@@ -1,6 +1,6 @@
 """Builds the Egy Lépéssel Több site in WordPress/Elementor.
 
-Usage:  WP_AUTH='user:app password' python3 site.py <step> [<step> ...]
+Usage:  WP_AUTH='user:app password' python3 elt_site.py <step> [<step> ...]
 Steps:  backup kit menu header footer home pages front
 State (created post/menu IDs) is kept in state.json so steps can be re-run safely.
 """
@@ -257,7 +257,10 @@ def header_elements():
 def ensure_site_part(key, type_, title, conditions):
     if STATE.get(key):
         return STATE[key]
-    res = mcp("elementor-manage-site-parts", {"operations": [{"action": "create", "type": type_, "title": title, "conditions": conditions}]})
+    op = {"action": "create", "type": type_, "title": title}
+    if conditions is not None:
+        op["conditions"] = conditions
+    res = mcp("elementor-manage-site-parts", {"operations": [op]})
     pid = res["results"][0]["id"]
     STATE[key] = pid
     save_state()
@@ -558,7 +561,8 @@ def step_home():
 def step_front():
     rest("POST", "wp/v2/settings", {"show_on_front": "page", "page_on_front": STATE["home_id"],
                                     "title": "Egy Lépéssel Több Alapítvány",
-                                    "description": "Fogadj örökbe egy családot, és válj havonta a történetük részévé."})
+                                    "description": "Fogadj örökbe egy családot, és válj havonta a történetük részévé.",
+                                    "site_icon": m("favicon.png")["id"], "site_logo": m("logo-full.png")["id"]})
     print("front page set")
 
 

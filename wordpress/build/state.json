@@ -2,5 +2,7 @@
  "menu_id": 11,
  "header_id": 1081,
  "footer_id": 1083,
- "home_id": 1085
+ "home_id": 1085,
+ "support_id": 1092,
+ "result_id": 1095
 }

@@ -39,7 +39,12 @@ class ELT_Donations {
 
 	public static function result_url() {
 		$page = (int) elt_setting( 'sp_result_page' );
-		$url  = $page && 'publish' === get_post_status( $page ) ? get_permalink( $page ) : '';
+		if ( ! $page || 'publish' !== get_post_status( $page ) ) {
+			// Default: the page with the slug "fizetes-eredmenye".
+			$found = get_page_by_path( 'fizetes-eredmenye' );
+			$page  = $found ? (int) $found->ID : 0;
+		}
+		$url = $page && 'publish' === get_post_status( $page ) ? get_permalink( $page ) : '';
 		return $url ? $url : home_url( '/' );
 	}
 
