@@ -22,6 +22,36 @@ class ELT_Elementor {
 		add_action( 'elementor_pro/forms/actions/register', array( __CLASS__, 'register_actions' ) );
 		add_filter( 'elementor_pro/forms/render/item/select', array( __CLASS__, 'populate_family_select' ), 10, 3 );
 		add_action( 'elementor_pro/forms/validation', array( __CLASS__, 'validate' ), 10, 2 );
+
+		// Loop Grid → Lekérdezés → Lekérdezés azonosító (Query ID): elt_orokbefogadhato / elt_orokbefogadott.
+		foreach ( array_keys( elt_statuses() ) as $status ) {
+			add_action(
+				'elementor/query/elt_' . $status,
+				function ( $query ) use ( $status ) {
+					self::filter_status_query( $query, $status );
+				}
+			);
+		}
+	}
+
+	/**
+	 * Restrict a Loop Grid / Posts query to families of one status.
+	 *
+	 * @param WP_Query $query  Query.
+	 * @param string   $status Status slug.
+	 */
+	public static function filter_status_query( $query, $status ) {
+		$query->set( 'post_type', ELT_CPT );
+		$query->set(
+			'tax_query',
+			array(
+				array(
+					'taxonomy' => ELT_TAX,
+					'field'    => 'slug',
+					'terms'    => $status,
+				),
+			)
+		);
 	}
 
 	/**

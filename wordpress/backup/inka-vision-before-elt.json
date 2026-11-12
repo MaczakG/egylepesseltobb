@@ -1,0 +1,1199 @@
+{
+ "kit_82_page_settings": {
+  "system_colors": [
+   {
+    "_id": "primary",
+    "title": "Primary",
+    "color": "#301E0E"
+   },
+   {
+    "_id": "secondary",
+    "title": "Secondary",
+    "color": "#1E1309"
+   },
+   {
+    "_id": "text",
+    "title": "Text",
+    "color": "#56524E"
+   },
+   {
+    "_id": "accent",
+    "title": "Accent",
+    "color": "#FFFCF4"
+   }
+  ],
+  "custom_colors": [
+   {
+    "_id": "30b3a6b",
+    "title": "Border",
+    "color": "#301E0EA3"
+   },
+   {
+    "_id": "ff51908",
+    "title": "Border 2",
+    "color": "#301E0E3B"
+   },
+   {
+    "_id": "72a1efc",
+    "title": "Background Booking",
+    "color": "#3B2716"
+   },
+   {
+    "_id": "7f84229",
+    "title": "Border Light",
+    "color": "#FFFCF424"
+   },
+   {
+    "_id": "df4ad1a",
+    "title": "Text Light",
+    "color": "#BBB8B0"
+   }
+  ],
+  "system_typography": [
+   {
+    "_id": "primary",
+    "title": "Primary",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_weight": "200",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "123",
+     "sizes": []
+    },
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "70",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "45",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "secondary",
+    "title": "Secondary",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_weight": "200",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "60",
+     "sizes": []
+    },
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "45",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "35",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "text",
+    "title": "Text",
+    "typography_typography": "custom",
+    "typography_font_family": "Poppins",
+    "typography_font_weight": "300",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "15",
+     "sizes": []
+    },
+    "typography_text_transform": "none",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "16",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "16",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "accent",
+    "title": "Accent",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_weight": "200",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "26",
+     "sizes": []
+    },
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "24",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "23",
+     "sizes": []
+    }
+   }
+  ],
+  "custom_typography": [
+   {
+    "_id": "830730e",
+    "title": "Antic Didone 15/400",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "15",
+     "sizes": []
+    },
+    "typography_font_weight": "400",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "15",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "15",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "4377f36",
+    "title": "Poppins 13/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Poppins",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "13",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "6",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "13",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "13",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "34526c4",
+    "title": "Antic Didone 14/400",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_weight": "500",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "965e916",
+    "title": "Antic Didone 23/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "23",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "none",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "22",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "21",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "09ddc5c",
+    "title": "Poppins 16/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Poppins",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "16",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "none",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "16",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "16",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "7a0833d",
+    "title": "Antic Didone 24/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "24",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "23",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "22",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "ac714bc",
+    "title": "Antic Didone 14/400",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_weight": "400",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "a34cdc8",
+    "title": "Antic Didone 29/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "29",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "none",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "27",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "25",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "fecea9a",
+    "title": "Antic Didone 19/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "19",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "19",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "19",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "ad84eac",
+    "title": "Antic Didone 21/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "21",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "20",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "20",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "e4619ff",
+    "title": "Antic Didone 40/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "40",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "35",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "30",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "a91a3ec",
+    "title": "Antic Didone 165/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Antic Didone",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "165",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "0.9",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "100",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "80",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "e14c81d",
+    "title": "Új tétel #13",
+    "typography_typography": "custom",
+    "typography_font_family": "Baskervville",
+    "typography_font_size": {
+     "unit": "px",
+     "size": 22,
+     "sizes": []
+    },
+    "typography_font_weight": "300"
+   },
+   {
+    "_id": "primary",
+    "title": "Primary",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_weight": "200",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "123",
+     "sizes": []
+    },
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "70",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "45",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "secondary",
+    "title": "Secondary",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_weight": "200",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "60",
+     "sizes": []
+    },
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "45",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "35",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "accent",
+    "title": "Accent",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_weight": "200",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "26",
+     "sizes": []
+    },
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "24",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "23",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "830730e",
+    "title": "Cormorant Garamond 15/400",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "15",
+     "sizes": []
+    },
+    "typography_font_weight": "400",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "15",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "15",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "34526c4",
+    "title": "Cormorant Garamond 14/400",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_weight": "500",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.1",
+     "sizes": []
+    },
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "1",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "965e916",
+    "title": "Cormorant Garamond 23/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "23",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "none",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "22",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "21",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "7a0833d",
+    "title": "Cormorant Garamond 24/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "24",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "23",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "22",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "ac714bc",
+    "title": "Cormorant Garamond 14/400",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_weight": "400",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "14",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "a34cdc8",
+    "title": "Cormorant Garamond 29/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "29",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "none",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.5",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "27",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "25",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "fecea9a",
+    "title": "Cormorant Garamond 19/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "19",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "19",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "19",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "ad84eac",
+    "title": "Cormorant Garamond 21/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "21",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "20",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "20",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "e4619ff",
+    "title": "Cormorant Garamond 40/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "40",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "1.2",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "35",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "30",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   },
+   {
+    "_id": "a91a3ec",
+    "title": "Cormorant Garamond 165/300",
+    "typography_typography": "custom",
+    "typography_font_family": "Cormorant Garamond",
+    "typography_font_size": {
+     "unit": "px",
+     "size": "165",
+     "sizes": []
+    },
+    "typography_font_weight": "300",
+    "typography_text_transform": "uppercase",
+    "typography_text_decoration": "none",
+    "typography_line_height": {
+     "unit": "em",
+     "size": "0.9",
+     "sizes": []
+    },
+    "typography_font_size_tablet": {
+     "unit": "px",
+     "size": "100",
+     "sizes": []
+    },
+    "typography_font_size_mobile": {
+     "unit": "px",
+     "size": "80",
+     "sizes": []
+    },
+    "typography_font_style": "",
+    "typography_letter_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    },
+    "typography_word_spacing": {
+     "unit": "px",
+     "size": "",
+     "sizes": []
+    }
+   }
+  ],
+  "default_generic_fonts": "Sans-serif",
+  "body_background_background": "classic",
+  "page_title_selector": "h1.entry-title",
+  "hello_footer_copyright_text": "All rights reserved",
+  "activeItemIndex": 13,
+  "__globals__": {
+   "body_background_color": "globals/colors?id=accent",
+   "button_typography_typography": "globals/typography?id=34526c4",
+   "button_text_color": "globals/colors?id=accent",
+   "button_background_color": "globals/colors?id=primary",
+   "button_hover_text_color": "globals/colors?id=primary",
+   "button_hover_border_color": "globals/colors?id=primary",
+   "body_typography_typography": "globals/typography?id=text",
+   "body_color": "globals/colors?id=text",
+   "link_normal_color": "globals/colors?id=primary",
+   "h1_typography_typography": "globals/typography?id=secondary",
+   "h1_color": "globals/colors?id=primary",
+   "h2_typography_typography": "globals/typography?id=e4619ff",
+   "h2_color": "globals/colors?id=primary",
+   "h3_typography_typography": "globals/typography?id=accent",
+   "h3_color": "globals/colors?id=primary",
+   "h4_typography_typography": "globals/typography?id=7a0833d",
+   "h4_color": "globals/colors?id=primary",
+   "h5_typography_typography": "globals/typography?id=fecea9a",
+   "h5_color": "globals/colors?id=primary",
+   "h6_typography_typography": "globals/typography?id=text",
+   "h6_color": "globals/colors?id=primary",
+   "form_label_typography_typography": "globals/typography?id=text",
+   "form_label_color": "globals/colors?id=text",
+   "form_field_text_color": "globals/colors?id=primary",
+   "form_field_typography_typography": "globals/typography?id=text",
+   "form_field_border_color": "globals/colors?id=ff51908"
+  },
+  "viewport_md": 768,
+  "viewport_lg": 1025,
+  "button_border_border": "solid",
+  "button_border_width": {
+   "unit": "px",
+   "top": "1",
+   "right": "1",
+   "bottom": "1",
+   "left": "1",
+   "isLinked": "1"
+  },
+  "button_border_color": "#02010100",
+  "button_border_radius": {
+   "unit": "px",
+   "top": "1",
+   "right": "1",
+   "bottom": "1",
+   "left": "1",
+   "isLinked": "1"
+  },
+  "button_hover_background_color": "#02010100",
+  "button_hover_border_border": "solid",
+  "button_hover_border_width": {
+   "unit": "px",
+   "top": "1",
+   "right": "1",
+   "bottom": "1",
+   "left": "1",
+   "isLinked": "1"
+  },
+  "button_hover_border_radius": {
+   "unit": "px",
+   "top": "0",
+   "right": "0",
+   "bottom": "0",
+   "left": "0",
+   "isLinked": "1"
+  },
+  "button_padding": {
+   "unit": "px",
+   "top": "20",
+   "right": "30",
+   "bottom": "20",
+   "left": "30",
+   "isLinked": ""
+  },
+  "form_field_background_color": "#02010100",
+  "form_field_border_border": "solid",
+  "form_field_border_width": {
+   "unit": "px",
+   "top": "1",
+   "right": "1",
+   "bottom": "1",
+   "left": "1",
+   "isLinked": "1"
+  },
+  "form_field_border_radius": {
+   "unit": "px",
+   "top": "0",
+   "right": "0",
+   "bottom": "0",
+   "left": "0",
+   "isLinked": "1"
+  },
+  "typography_enable_styleguide_preview": "yes",
+  "site_name": "INKA VISION",
+  "site_description": "Brand &amp; gasztró, kutyás, portré és esküvői fotózás",
+  "lightbox_enable_counter": "",
+  "lightbox_enable_zoom": "",
+  "lightbox_enable_share": "",
+  "lightbox_title_src": "",
+  "lightbox_description_src": "",
+  "lightbox_slider_icons_size": {
+   "unit": "px",
+   "size": 0,
+   "sizes": []
+  }
+ },
+ "front_page": {
+  "show_on_front": "page",
+  "page_on_front": 66,
+  "title": "INKA VISION",
+  "description": "Brand &amp; gasztró, kutyás, portré és esküvői fotózás"
+ },
+ "site_parts": {
+  "result": [
+   {
+    "id": 80,
+    "type": "footer",
+    "title": "Elementor Footer #80",
+    "edit_url": "https://bographic.hu/fejlesztes_2/wp-admin/post.php?post=80&action=elementor",
+    "post_status": "publish",
+    "has_conditions": true,
+    "is_active": true,
+    "conditions": [
+     "include/general"
+    ]
+   },
+   {
+    "id": 77,
+    "type": "header",
+    "title": "Elementor Header #77",
+    "edit_url": "https://bographic.hu/fejlesztes_2/wp-admin/post.php?post=77&action=elementor",
+    "post_status": "publish",
+    "has_conditions": true,
+    "is_active": true,
+    "conditions": [
+     "include/general"
+    ]
+   },
+   {
+    "id": 16,
+    "type": "section",
+    "title": "Header",
+    "edit_url": "https://bographic.hu/fejlesztes_2/wp-admin/post.php?post=16&action=elementor",
+    "post_status": "publish",
+    "has_conditions": false,
+    "is_active": false,
+    "conditions": []
+   },
+   {
+    "id": 13,
+    "type": "section",
+    "title": "Footer",
+    "edit_url": "https://bographic.hu/fejlesztes_2/wp-admin/post.php?post=13&action=elementor",
+    "post_status": "publish",
+    "has_conditions": false,
+    "is_active": false,
+    "conditions": []
+   }
+  ]
+ }
+}

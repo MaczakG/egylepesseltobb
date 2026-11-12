@@ -28,6 +28,7 @@ License: GPLv2 or later
   - „SimplePay adomány (ELT)” – mezők: osszeg, egyedi_osszeg, nev, email
 * A „csalad” azonosítójú legördülő listát a bővítmény tölti fel az örökbefogadható családokkal,
   a család oldalán (vagy ?csalad=ID paraméterrel) előre kiválasztva.
+* Loop Grid szűrés: Lekérdezés → Lekérdezés azonosító (Query ID) = elt_orokbefogadhato vagy elt_orokbefogadott
 * Dinamikus címkék („Egy Lépéssel Több” csoport): Család adat, Család galéria, Jelentkezés link.
 * Rövidkódok: [elt_csalad mezo="alcim"], [elt_fizetes_eredmeny]
 * CSS osztályok a család oldalán: elt-csak-orokbefogadhato, elt-csak-orokbefogadott
