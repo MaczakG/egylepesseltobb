@@ -13,7 +13,9 @@ defined( 'ABSPATH' ) || exit;
 function elt_settings_defaults() {
 	return array(
 		'automation_enabled' => 1,
+		'rule_basis'         => 'count',
 		'threshold'          => 6,
+		'default_target'     => 50000,
 		'auto_status'        => 'orokbefogadott',
 		'notify_email'       => get_option( 'admin_email' ),
 		'sp_sandbox'         => 1,
@@ -125,6 +127,35 @@ function elt_get_applicants( $post_id ) {
  */
 function elt_set_applicants( $post_id, $count ) {
 	update_post_meta( $post_id, 'elt_jelentkezok', max( 0, (int) $count ) );
+}
+
+/**
+ * Sum of the monthly amounts pledged in applications for a family.
+ *
+ * @param int $post_id Family ID.
+ */
+function elt_get_pledged( $post_id ) {
+	return max( 0, (int) get_post_meta( $post_id, 'elt_felajanlott', true ) );
+}
+
+/**
+ * Store the pledged sum.
+ *
+ * @param int $post_id Family ID.
+ * @param int $amount  New sum.
+ */
+function elt_set_pledged( $post_id, $amount ) {
+	update_post_meta( $post_id, 'elt_felajanlott', max( 0, (int) $amount ) );
+}
+
+/**
+ * Monthly target of a family: its own "havi támogatási összeg", or the default target.
+ *
+ * @param int $post_id Family ID.
+ */
+function elt_family_target( $post_id ) {
+	$own = (int) get_post_meta( $post_id, 'elt_havi_osszeg', true );
+	return $own > 0 ? $own : max( 1, (int) elt_setting( 'default_target' ) );
 }
 
 /**
@@ -262,6 +293,12 @@ function elt_family_field( $post_id, $field ) {
 			return (string) $threshold;
 		case 'hianyzo':
 			return (string) max( 0, $threshold - elt_get_applicants( $post_id ) );
+		case 'felajanlott':
+			return elt_format_ft( elt_get_pledged( $post_id ) );
+		case 'cel':
+			return elt_format_ft( elt_family_target( $post_id ) );
+		case 'hianyzo_osszeg':
+			return elt_format_ft( max( 0, elt_family_target( $post_id ) - elt_get_pledged( $post_id ) ) );
 		case 'gomb_felirat':
 			return elt_button_label( $post_id );
 	}
@@ -280,6 +317,9 @@ function elt_family_field_choices() {
 		'jelentkezok'      => 'Jelentkezők száma',
 		'kuszob'           => 'Jelentkezési küszöb',
 		'hianyzo'          => 'Hiányzó jelentkezők száma',
+		'felajanlott'      => 'Felajánlott havi összeg (összesen)',
+		'cel'              => 'Havi cél (támogatási összeg)',
+		'hianyzo_osszeg'   => 'Hiányzó havi összeg',
 		'gomb_felirat'     => 'Gomb felirat (pl. Segítek Noelnek)',
 	);
 }

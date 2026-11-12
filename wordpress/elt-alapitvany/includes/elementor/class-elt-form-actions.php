@@ -37,7 +37,7 @@ class ELT_Action_Application extends Action_Base {
 			'elt_jelentkezes_info',
 			array(
 				'type'            => Controls_Manager::RAW_HTML,
-				'raw'             => 'A beküldött jelentkezés az <b>Alapítvány → Jelentkezések</b> menübe kerül, a kiválasztott család jelentkezőszáma eggyel nő, és lefut az automatikus státuszváltás.<br><br>Mezőazonosítók (Haladó → ID): <b>csalad</b> (legördülő lista – a plugin tölti fel), <b>nev</b>, <b>email</b>, <b>telefon</b>, <b>uzenet</b>.',
+				'raw'             => 'A beküldött jelentkezés az <b>Alapítvány → Jelentkezések</b> menübe kerül, a kiválasztott család jelentkezőszáma eggyel nő, és lefut az automatikus státuszváltás.<br><br>Mezőazonosítók (Haladó → ID): <b>csalad</b> (legördülő lista – a plugin tölti fel), <b>nev</b> (vagy <b>vezeteknev</b> + <b>keresztnev</b>), <b>email</b>, <b>telefon</b>, <b>osszeg</b> (vállalt havi összeg), <b>uzenet</b>.',
 				'content_classes' => 'elementor-descriptor',
 			)
 		);
@@ -49,10 +49,11 @@ class ELT_Action_Application extends Action_Base {
 		$result = ELT_Applications::create(
 			array(
 				'csalad_id' => ELT_Elementor::field( $fields, ELT_Elementor::FAMILY_FIELD ),
-				'nev'       => ELT_Elementor::field( $fields, 'nev', 'text' ),
+				'nev'       => ELT_Elementor::applicant_name( $fields ),
 				'email'     => ELT_Elementor::field( $fields, 'email', 'email' ),
 				'telefon'   => ELT_Elementor::field( $fields, 'telefon', 'tel' ),
 				'uzenet'    => ELT_Elementor::field( $fields, 'uzenet', 'textarea' ),
+				'osszeg'    => (int) preg_replace( '/\D/', '', ELT_Elementor::field( $fields, 'osszeg' ) ),
 				'mezok'     => ELT_Elementor::labelled_fields( $fields ),
 			)
 		);

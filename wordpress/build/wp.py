@@ -47,12 +47,16 @@ def mcp(tool, args):
     url = WP_URL + "/wp-json/elementor/mcp/"
 
     def post(payload):
-        h = {"Authorization": _AUTH, "Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+        h = {"Authorization": _AUTH, "Content-Type": "application/json", "Accept": "application/json, text/event-stream",
+             "MCP-Protocol-Version": "2025-06-18"}
         if _SID:
             h["Mcp-Session-Id"] = _SID
         req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=h, method="POST")
-        with urllib.request.urlopen(req, context=_CTX, timeout=300) as r:
-            return r.headers.get("mcp-session-id"), r.read().decode()
+        try:
+            with urllib.request.urlopen(req, context=_CTX, timeout=300) as r:
+                return r.headers.get("mcp-session-id"), r.read().decode()
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"MCP HTTP {e.code}: {e.read().decode()[:1500]}")
 
     if not _SID:
         _SID, _ = post({"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "elt-build", "version": "1"}}})

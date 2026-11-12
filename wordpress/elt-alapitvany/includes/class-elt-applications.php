@@ -112,8 +112,11 @@ class ELT_Applications {
 		update_post_meta( $app_id, 'elt_uzenet', sanitize_textarea_field( $data['uzenet'] ?? '' ) );
 		update_post_meta( $app_id, 'elt_mezok', $fields );
 		update_post_meta( $app_id, 'elt_szamolva', 1 );
+		$pledge = absint( $data['osszeg'] ?? 0 );
+		update_post_meta( $app_id, 'elt_osszeg', $pledge );
 
 		elt_set_applicants( $family_id, elt_get_applicants( $family_id ) + 1 );
+		elt_set_pledged( $family_id, elt_get_pledged( $family_id ) + $pledge );
 		do_action( 'elt_applicants_changed', $family_id );
 		do_action( 'elt_application_created', $app_id, $family_id );
 
@@ -133,6 +136,7 @@ class ELT_Applications {
 		update_post_meta( $post_id, 'elt_szamolva', 0 );
 		if ( $family_id && ELT_CPT === get_post_type( $family_id ) ) {
 			elt_set_applicants( $family_id, elt_get_applicants( $family_id ) - 1 );
+			elt_set_pledged( $family_id, elt_get_pledged( $family_id ) - (int) get_post_meta( $post_id, 'elt_osszeg', true ) );
 		}
 	}
 
@@ -149,6 +153,7 @@ class ELT_Applications {
 		if ( $family_id && ELT_CPT === get_post_type( $family_id ) ) {
 			update_post_meta( $post_id, 'elt_szamolva', 1 );
 			elt_set_applicants( $family_id, elt_get_applicants( $family_id ) + 1 );
+			elt_set_pledged( $family_id, elt_get_pledged( $family_id ) + (int) get_post_meta( $post_id, 'elt_osszeg', true ) );
 			do_action( 'elt_applicants_changed', $family_id );
 		}
 	}
@@ -164,6 +169,7 @@ class ELT_Applications {
 		return array(
 			'cb'          => $columns['cb'] ?? '',
 			'title'       => 'Jelentkező',
+			'elt_osszeg'  => 'Havi felajánlás',
 			'elt_email'   => 'E-mail',
 			'elt_telefon' => 'Telefon',
 			'elt_csalad'  => 'Család',
@@ -179,6 +185,10 @@ class ELT_Applications {
 				break;
 			case 'elt_telefon':
 				echo esc_html( get_post_meta( $post_id, 'elt_telefon', true ) ?: '—' );
+				break;
+			case 'elt_osszeg':
+				$pledge = (int) get_post_meta( $post_id, 'elt_osszeg', true );
+				echo $pledge ? esc_html( elt_format_ft( $pledge ) . ' / hó' ) : '—';
 				break;
 			case 'elt_csalad':
 				$family_id = (int) get_post_meta( $post_id, 'elt_csalad_id', true );
@@ -231,6 +241,7 @@ class ELT_Applications {
 			'Név'     => esc_html( get_post_meta( $post->ID, 'elt_nev', true ) ),
 			'E-mail'  => esc_html( get_post_meta( $post->ID, 'elt_email', true ) ),
 			'Telefon' => esc_html( get_post_meta( $post->ID, 'elt_telefon', true ) ),
+			'Havi felajánlás' => (int) get_post_meta( $post->ID, 'elt_osszeg', true ) ? esc_html( elt_format_ft( get_post_meta( $post->ID, 'elt_osszeg', true ) ) ) : '',
 			'Üzenet'  => nl2br( esc_html( get_post_meta( $post->ID, 'elt_uzenet', true ) ) ),
 		);
 		echo '<table class="form-table elt-details"><tbody>';

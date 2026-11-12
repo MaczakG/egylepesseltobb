@@ -22,6 +22,7 @@ class ELT_Elementor {
 		add_action( 'elementor_pro/forms/actions/register', array( __CLASS__, 'register_actions' ) );
 		add_filter( 'elementor_pro/forms/render/item/select', array( __CLASS__, 'populate_family_select' ), 10, 3 );
 		add_action( 'elementor_pro/forms/validation', array( __CLASS__, 'validate' ), 10, 2 );
+		add_filter( 'elementor/element/is_dynamic_content', array( __CLASS__, 'form_is_dynamic' ), 10, 2 );
 
 		// Loop Grid → Lekérdezés → Lekérdezés azonosító (Query ID): elt_orokbefogadhato / elt_orokbefogadott.
 		foreach ( array_keys( elt_statuses() ) as $status ) {
@@ -32,6 +33,38 @@ class ELT_Elementor {
 				}
 			);
 		}
+	}
+
+	/**
+	 * Forms with a "csalad" field depend on the page and on the current family list, so
+	 * Elementor must not serve them from its element cache.
+	 *
+	 * @param bool  $is_dynamic Current value.
+	 * @param array $raw        Raw element data.
+	 */
+	public static function form_is_dynamic( $is_dynamic, $raw = array() ) {
+		if ( $is_dynamic || ! is_array( $raw ) || 'form' !== ( $raw['widgetType'] ?? '' ) ) {
+			return $is_dynamic;
+		}
+		foreach ( (array) ( $raw['settings']['form_fields'] ?? array() ) as $field ) {
+			if ( self::FAMILY_FIELD === ( $field['custom_id'] ?? '' ) ) {
+				return true;
+			}
+		}
+		return $is_dynamic;
+	}
+
+	/**
+	 * Applicant name: "nev" field, or "vezeteknev" + "keresztnev".
+	 *
+	 * @param array $fields Record fields.
+	 */
+	public static function applicant_name( array $fields ) {
+		$name = self::field( $fields, 'nev' );
+		if ( '' === $name ) {
+			$name = trim( self::field( $fields, 'vezeteknev' ) . ' ' . self::field( $fields, 'keresztnev' ) );
+		}
+		return '' !== $name ? $name : self::field( $fields, 'nev', 'text' );
 	}
 
 	/**

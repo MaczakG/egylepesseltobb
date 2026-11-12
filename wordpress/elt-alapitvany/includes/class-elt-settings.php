@@ -42,6 +42,8 @@ class ELT_Settings {
 		$new                       = $old;
 		$new['automation_enabled'] = empty( $in['automation_enabled'] ) ? 0 : 1;
 		$new['threshold']          = max( 1, absint( $in['threshold'] ?? 6 ) );
+		$new['rule_basis']         = ( $in['rule_basis'] ?? 'count' ) === 'amount' ? 'amount' : 'count';
+		$new['default_target']     = max( 1000, absint( $in['default_target'] ?? 50000 ) );
 		$new['auto_status']        = isset( elt_statuses()[ $in['auto_status'] ?? '' ] ) ? $in['auto_status'] : 'orokbefogadott';
 		$new['notify_email']       = sanitize_email( $in['notify_email'] ?? '' );
 		$new['sp_sandbox']         = empty( $in['sp_sandbox'] ) ? 0 : 1;
@@ -105,8 +107,14 @@ class ELT_Settings {
 						<span><strong>Automatizmus engedélyezése</strong><br><small>Ha ki van kapcsolva, a státuszt csak kézzel lehet módosítani.</small></span>
 					</label>
 
+					<p><strong>A szabály alapja</strong></p>
+					<p>
+						<label><input type="radio" name="rule_basis" value="count" <?php checked( $s['rule_basis'], 'count' ); ?>> Jelentkezők száma</label><br>
+						<label><input type="radio" name="rule_basis" value="amount" <?php checked( $s['rule_basis'], 'amount' ); ?>> Felajánlott havi összeg – a család akkor örökbefogadott, ha a jelentkezésekben vállalt havi összegek elérik a havi célt</label>
+					</p>
+
 					<p class="elt-rule">
-						Ha egy család jelentkezőinek száma eléri a
+						<strong>Jelentkezők száma szerint:</strong> ha egy család jelentkezőinek száma eléri a
 						<input type="number" min="1" step="1" name="threshold" value="<?php echo esc_attr( $s['threshold'] ); ?>" class="small-text">
 						főt, a státusza automatikusan
 						<select name="auto_status">
@@ -115,6 +123,11 @@ class ELT_Settings {
 							<?php endforeach; ?>
 						</select>
 						legyen.
+					</p>
+					<p class="elt-rule">
+						<strong>Összeg szerint:</strong> a havi cél a családnál megadott „Havi támogatási összeg”, ha az üres, akkor
+						<input type="number" min="1000" step="1000" name="default_target" value="<?php echo esc_attr( $s['default_target'] ); ?>" class="small-text" style="width:110px">
+						Ft. A felajánlott összeget a jelentkezési űrlap <code>osszeg</code> azonosítójú mezője adja.
 					</p>
 				</div>
 

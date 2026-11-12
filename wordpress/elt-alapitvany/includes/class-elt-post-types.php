@@ -13,6 +13,14 @@ class ELT_Post_Types {
 		add_action( 'init', array( __CLASS__, 'register' ) );
 		add_action( 'init', array( __CLASS__, 'ensure_terms' ), 20 );
 		add_filter( 'use_block_editor_for_post_type', array( __CLASS__, 'classic_editor' ), 10, 2 );
+		add_action( 'add_meta_boxes_' . ELT_CPT, array( __CLASS__, 'hide_custom_fields_box' ), 99 );
+	}
+
+	/**
+	 * "custom-fields" support is only needed for the REST API; the fields have their own box.
+	 */
+	public static function hide_custom_fields_box() {
+		remove_meta_box( 'postcustom', ELT_CPT, 'normal' );
 	}
 
 	/**
@@ -54,7 +62,7 @@ class ELT_Post_Types {
 				'show_in_rest'  => true,
 				'menu_icon'     => 'dashicons-groups',
 				'menu_position' => 21,
-				'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions' ),
+				'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'custom-fields' ),
 				'has_archive'   => false,
 				'rewrite'       => array(
 					'slug'       => 'csalad',
@@ -99,6 +107,7 @@ class ELT_Post_Types {
 			'elt_alcim'        => array( 'string', 'sanitize_text_field' ),
 			'elt_havi_osszeg'  => array( 'integer', 'absint' ),
 			'elt_jelentkezok'  => array( 'integer', 'absint' ),
+			'elt_felajanlott'  => array( 'integer', 'absint' ),
 			'elt_galeria'      => array( 'string', array( __CLASS__, 'sanitize_ids' ) ),
 			'elt_gomb_felirat' => array( 'string', 'sanitize_text_field' ),
 		);

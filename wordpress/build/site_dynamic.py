@@ -93,8 +93,17 @@ def family_card():
 
 def step_loopitem():
     pid = ensure_site_part("loop_item_id", "loop-item", "ELT – Családkártya (Loop elem)", None)
-    rest("POST", f"wp/v2/elementor_library/{pid}", {"meta": {"_elementor_page_settings": {"preview_type": "single/elt_csalad"}}})
-    publish(pid, "elementor_library", family_card(), {"preview_type": "single/elt_csalad"})
+    import json as _json
+    first = next(iter(STATE.get("families", {}).values()), None)
+    settings = {"preview_type": "single/elt_csalad"}
+    if first:
+        settings["preview_id"] = first
+    # Elementor's MCP cannot save loop-item documents, so write + publish through REST and
+    # let a kit save (step "kit" of elt_site.py) clear Elementor's CSS cache afterwards.
+    rest("POST", f"wp/v2/elementor_library/{pid}", {"status": "publish", "meta": {
+        "_elementor_edit_mode": "builder", "_elementor_page_settings": settings,
+        "_elementor_data": _json.dumps(family_card(), ensure_ascii=False)}})
+    base.step_kit()
     print("loop item", pid)
 
 
@@ -102,9 +111,9 @@ def loop_grid(query_id, per_page, pagination=False, nothing=""):
     status = query_id.replace("elt_", "")
     s = dict(template_id=STATE["loop_item_id"], columns=3, columns_tablet=2, columns_mobile=1, posts_per_page=per_page,
              column_gap=S(40), column_gap_tablet=S(32), column_gap_mobile=S(24), row_gap=S(40), row_gap_mobile=S(24),
-             equal_height="yes", post_query_post_type="elt_csalad", post_query_query_id=query_id,
+             equal_height="yes", post_query_post_type="elt_csalad", post_query_query_id=query_id, nothing_found_message_text=nothing,
              post_query_include=["terms"], post_query_include_term_ids=[str(terms()[status])],
-             post_query_orderby="date", post_query_order="desc", nothing_found_message=nothing, **wanim())
+             post_query_orderby="date", post_query_order="asc", nothing_found_message=nothing, **wanim())
     if pagination:
         s["pagination_type"] = "numbers"
     return w("loop-grid", title="Családok listája (Loop Grid – Query ID: " + query_id + ")", **s)
@@ -130,6 +139,7 @@ def form_style():
         button_hover_color=NAVY[900], button_border_radius=box(999), button_text_padding=box(16, 32, 16, 32),
         **T(BODY, 16, 600, 1.2, prefix="button_typography"),
         _css_classes="elt-form elt-btn-primary",
+        _element_cache="yes",  # "yes" = cache inactive: the family list / preselection must be rendered on every request
     )
 
 

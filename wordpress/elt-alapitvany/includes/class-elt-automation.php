@@ -29,11 +29,25 @@ class ELT_Automation {
 		if ( empty( $settings['automation_enabled'] ) || ELT_CPT !== get_post_type( $post_id ) ) {
 			return false;
 		}
-		$threshold = max( 1, (int) $settings['threshold'] );
-		if ( elt_get_applicants( $post_id ) >= $threshold ) {
+		if ( self::rule_met( $post_id, $settings ) ) {
 			return elt_set_family_status( $post_id, $settings['auto_status'] );
 		}
 		return false;
+	}
+
+	/**
+	 * Whether the family reached the threshold: applicant count (default) or pledged
+	 * monthly sum ≥ the family's monthly target.
+	 *
+	 * @param int   $post_id  Family ID.
+	 * @param array $settings Settings.
+	 */
+	public static function rule_met( $post_id, $settings = null ) {
+		$settings = $settings ? $settings : elt_settings();
+		if ( 'amount' === $settings['rule_basis'] ) {
+			return elt_get_pledged( $post_id ) >= elt_family_target( $post_id );
+		}
+		return elt_get_applicants( $post_id ) >= max( 1, (int) $settings['threshold'] );
 	}
 
 	/**

@@ -96,17 +96,32 @@ class ELT_Family_Admin {
 				<p class="elt-hint" id="elt-auto-hint" hidden>Automatikus szabály alapján javasolt státusz frissült.</p>
 				<p class="description">
 					<?php
-					if ( $settings['automation_enabled'] ) {
+					if ( ! $settings['automation_enabled'] ) {
+						echo 'Az automatikus státuszváltás ki van kapcsolva.';
+					} elseif ( 'amount' === $settings['rule_basis'] ) {
+						printf(
+							'Automatikus státuszváltás: ha a felajánlások elérik a havi célt (%1$s) → %2$s.',
+							esc_html( elt_format_ft( elt_family_target( $post->ID ) ) ),
+							esc_html( elt_statuses()[ $settings['auto_status'] ] )
+						);
+					} else {
 						printf(
 							'Automatikus státuszváltás: %1$d főnél → %2$s. Új jelentkezéskor a szám magától nő.',
 							(int) $threshold,
 							esc_html( elt_statuses()[ $settings['auto_status'] ] )
 						);
-					} else {
-						echo 'Az automatikus státuszváltás ki van kapcsolva.';
 					}
 					?>
 				</p>
+			</div>
+
+			<div class="elt-field">
+				<label for="elt_felajanlott">Felajánlott havi összeg (összesen)</label>
+				<div class="elt-suffix">
+					<input type="number" min="0" step="1000" id="elt_felajanlott" name="elt_felajanlott" value="<?php echo esc_attr( elt_get_pledged( $post->ID ) ); ?>">
+					<span>Ft</span>
+				</div>
+				<p class="description">A jelentkezésekben vállalt havi összegek. Új jelentkezéskor magától nő.</p>
 			</div>
 
 			<div class="elt-field elt-field--wide">
@@ -194,7 +209,9 @@ class ELT_Family_Admin {
 			return;
 		}
 
-		$old_count = elt_get_applicants( $post_id );
+		$old_count  = elt_get_applicants( $post_id );
+		$old_pledge = elt_get_pledged( $post_id );
+		$old_amount = (int) get_post_meta( $post_id, 'elt_havi_osszeg', true );
 
 		update_post_meta( $post_id, 'elt_alcim', sanitize_text_field( wp_unslash( $_POST['elt_alcim'] ?? '' ) ) );
 		update_post_meta( $post_id, 'elt_havi_osszeg', absint( $_POST['elt_havi_osszeg'] ?? 0 ) );
@@ -203,11 +220,14 @@ class ELT_Family_Admin {
 
 		$new_count = absint( $_POST['elt_jelentkezok'] ?? $old_count );
 		elt_set_applicants( $post_id, $new_count );
+		$new_pledge = absint( $_POST['elt_felajanlott'] ?? $old_pledge );
+		elt_set_pledged( $post_id, $new_pledge );
 
 		$status = sanitize_key( wp_unslash( $_POST['elt_statusz'] ?? 'orokbefogadhato' ) );
 		elt_set_family_status( $post_id, isset( elt_statuses()[ $status ] ) ? $status : 'orokbefogadhato' );
 
-		if ( $new_count !== $old_count ) {
+		$new_amount = (int) get_post_meta( $post_id, 'elt_havi_osszeg', true );
+		if ( $new_count !== $old_count || $new_pledge !== $old_pledge || $new_amount !== $old_amount ) {
 			do_action( 'elt_applicants_changed', $post_id );
 		}
 	}
@@ -224,7 +244,7 @@ class ELT_Family_Admin {
 			elt_set_family_status( $post->ID, 'orokbefogadhato' );
 		}
 		$meta = $request->get_param( 'meta' );
-		if ( is_array( $meta ) && array_key_exists( 'elt_jelentkezok', $meta ) ) {
+		if ( is_array( $meta ) && array_intersect( array( 'elt_jelentkezok', 'elt_felajanlott', 'elt_havi_osszeg' ), array_keys( $meta ) ) ) {
 			do_action( 'elt_applicants_changed', $post->ID );
 		}
 	}
@@ -269,8 +289,21 @@ class ELT_Family_Admin {
 				printf( '<span class="elt-badge elt-badge--%1$s">%2$s</span>', esc_attr( $status ), esc_html( elt_statuses()[ $status ] ) );
 				break;
 			case 'elt_jelentkezok':
+				$count = elt_get_applicants( $post_id );
+				if ( 'amount' === elt_setting( 'rule_basis' ) ) {
+					$target = elt_family_target( $post_id );
+					$pledge = elt_get_pledged( $post_id );
+					$pct    = min( 100, (int) round( $pledge / $target * 100 ) );
+					printf(
+						'<div class="elt-progress"><strong>%1$d</strong><div><div class="elt-progress__bar"><span style="width:%2$d%%"></span></div><small>%3$s / %4$s havi cél</small></div></div>',
+						(int) $count,
+						(int) $pct,
+						esc_html( elt_format_ft( $pledge ) ),
+						esc_html( elt_format_ft( $target ) )
+					);
+					break;
+				}
 				$threshold = max( 1, (int) elt_setting( 'threshold' ) );
-				$count     = elt_get_applicants( $post_id );
 				$pct       = min( 100, (int) round( $count / $threshold * 100 ) );
 				printf(
 					'<div class="elt-progress"><strong>%1$d</strong><div><div class="elt-progress__bar"><span style="width:%2$d%%"></span></div><small>%1$d / %3$d fő küszöb</small></div></div>',

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Egy Lépéssel Több – Családok és adományok
  * Description:       Örökbefogadható családok kezelése, jelentkezések, automatikus státuszváltás és SimplePay online adományozás az Egy Lépéssel Több Alapítvány oldalához. Elementor Pro űrlap-műveletekkel és dinamikus címkékkel.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.4
  * Requires PHP:      7.4
  * Author:            Egy Lépéssel Több Alapítvány
@@ -14,7 +14,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'ELT_VERSION', '1.0.0' );
+define( 'ELT_VERSION', '1.1.0' );
 define( 'ELT_FILE', __FILE__ );
 define( 'ELT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ELT_URL', plugin_dir_url( __FILE__ ) );

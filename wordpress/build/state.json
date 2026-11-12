@@ -4,5 +4,19 @@
  "footer_id": 1083,
  "home_id": 1085,
  "support_id": 1092,
- "result_id": 1095
+ "result_id": 1095,
+ "terms": {
+  "orokbefogadhato": 12,
+  "orokbefogadott": 13
+ },
+ "families": {
+  "Noel": 1100,
+  "F. Noel": 1101,
+  "Kamilla": 1102
+ },
+ "loop_item_id": 1103,
+ "single_id": 1112,
+ "home_loop": true,
+ "adoptable_id": 1116,
+ "adopted_id": 1119
 }
