@@ -113,7 +113,7 @@ def loop_grid(query_id, per_page, pagination=False, nothing=""):
              column_gap=S(40), column_gap_tablet=S(32), column_gap_mobile=S(24), row_gap=S(40), row_gap_mobile=S(24),
              equal_height="yes", post_query_post_type="elt_csalad", post_query_query_id=query_id, nothing_found_message_text=nothing,
              post_query_include=["terms"], post_query_include_term_ids=[str(terms()[status])],
-             post_query_orderby="date", post_query_order="asc", nothing_found_message=nothing, **wanim())
+             post_query_orderby="date", post_query_order="desc", nothing_found_message=nothing, **wanim())
     if pagination:
         s["pagination_type"] = "numbers"
     return w("loop-grid", title="Családok listája (Loop Grid – Query ID: " + query_id + ")", **s)
@@ -150,23 +150,32 @@ def acceptance_privacy():
 
 
 def application_form():
+    """The real "Jelentkezz támogatónak" form of the previous site, wired to the family automation."""
+    amounts = [("Válassz összeget", "")] + [(f"{n:,} Ft".replace(",", " "), str(n)) for n in range(5000, 50001, 5000)]
+    heard = ["Televízióból", "Facebookról", "Plakáton láttam", "Instagramról", "Rádióból", "Barátoktól vagy ismerősöktől",
+             "Rendezvényen vagy eseményen", "Hírlevélből vagy e-mailből", "Egyéb felületről"]
+    opt = lambda pairs: "\n".join(f"{x}|{y}" for x, y in pairs)  # noqa: E731
     fields = [
-        {"_id": fid(), "custom_id": "csalad", "field_type": "select", "field_label": "Melyik családot támogatnád?", "width": "100",
+        {"_id": fid(), "custom_id": "vezeteknev", "field_type": "text", "field_label": "Vezetéknév", "width": "50", "required": "true"},
+        {"_id": fid(), "custom_id": "keresztnev", "field_type": "text", "field_label": "Keresztnév", "width": "50", "required": "true"},
+        {"_id": fid(), "custom_id": "email", "field_type": "email", "field_label": "E-mail", "width": "50", "required": "true"},
+        {"_id": fid(), "custom_id": "telefon", "field_type": "tel", "field_label": "Telefonszám", "width": "50", "required": "true"},
+        {"_id": fid(), "custom_id": "osszeg", "field_type": "select", "field_label": "Havi támogatás összege (HUF)", "width": "50",
+         "required": "true", "field_options": opt(amounts)},
+        {"_id": fid(), "custom_id": "csalad", "field_type": "select", "field_label": "Támogatni kívánt család", "width": "50",
          "required": "true", "field_options": "Válassz családot…|"},
-        {"_id": fid(), "custom_id": "nev", "field_type": "text", "field_label": "Név", "width": "50", "required": "true", "placeholder": "Teljes név"},
-        {"_id": fid(), "custom_id": "email", "field_type": "email", "field_label": "E-mail cím", "width": "50", "required": "true",
-         "placeholder": "pelda@email.hu"},
-        {"_id": fid(), "custom_id": "telefon", "field_type": "tel", "field_label": "Telefonszám", "width": "100", "placeholder": "+36 …"},
-        {"_id": fid(), "custom_id": "uzenet", "field_type": "textarea", "field_label": "Üzenet (nem kötelező)", "width": "100", "rows": "4",
-         "placeholder": "Bármi, amit szeretnél megosztani velünk…"},
-        acceptance_privacy(),
+        {"_id": fid(), "custom_id": "honnan", "field_type": "select", "field_label": "Honnan hallott rólunk?", "width": "100",
+         "required": "true", "field_options": opt([("Válasszon a felsoroltak közül", "")] + [(h, h) for h in heard])},
+        {"_id": fid(), "custom_id": "uzenet", "field_type": "textarea", "field_label": "Megjegyzés", "width": "100", "rows": "4"},
+        {"_id": fid(), "custom_id": "adatkezeles", "field_type": "acceptance", "field_label": "Adatkezelés", "width": "100", "required": "true",
+         "acceptance_text": f'Elolvastam és megértettem az <a href="{PRIVACY_URL}" target="_blank">adatkezelési tájékoztatót</a>.'},
     ]
-    return w("form", title="Jelentkezési űrlap (Családhoz jelentkezés)", form_name="Családhoz jelentkezés", form_fields=fields,
-             button_text="Jelentkezem támogatónak", submit_actions=["elt_jelentkezes", "email"],
-             email_to="info@" + DOMAIN, email_subject='Új családtámogatói jelentkezés – [field id="nev"]', email_content="[all-fields]",
-             email_from="noreply@bographic.hu", email_from_name="Egy Lépéssel Több weboldal", email_reply_to='[field id="email"]',
-             email_content_type="html",
-             success_message="Köszönjük a jelentkezésed! Munkatársunk hamarosan felveszi veled a kapcsolatot.",
+    return w("form", title="Jelentkezz támogatónak űrlap", form_name="Jelentkezz támogatónak", form_fields=fields,
+             button_text="Jelentkezem", submit_actions=["elt_jelentkezes", "email"],
+             email_to="info@" + DOMAIN, email_subject='Új támogatói jelentkezés – [field id="vezeteknev"] [field id="keresztnev"]',
+             email_content="[all-fields]", email_from="noreply@bographic.hu", email_from_name="Egy Lépéssel Több weboldal",
+             email_reply_to='[field id="email"]', email_content_type="html",
+             success_message="Köszönjük a jelentkezésed! E-mailben visszaigazolunk, és a szerződéskötés előtt telefonon is felvesszük veled a kapcsolatot.",
              error_message="Hiba történt a küldés során. Kérjük, próbáld újra, vagy írj az info@" + DOMAIN + " címre.",
              **form_style())
 
@@ -237,8 +246,8 @@ def single_elements():
     apply_open = con(
         eyebrow("Jelentkezés", SAND[700]),
         h2("Légy te is a család támogatója!", NAVY[800], _margin=box(0, 0, 16, 0)),
-        text("<p>Töltsd ki az űrlapot, és munkatársunk hamarosan felveszi veled a kapcsolatot a havi támogatás részleteiről. "
-             "A jelentkezés nem jár fizetési kötelezettséggel.</p>", title="Leírás", text_color=NAVY[600], **T(BODY, 16, 400, 1.65),
+        text("<p>A beküldött jelentkezésekre e-mailben visszaigazolunk. Telefonon a támogatókkal szerződéskötés előtt fogjuk felvenni "
+             "a kapcsolatot, amint a támogatni kívánt családnak összegyűlt a havi 50 000 Ft támogatása.</p>", title="Leírás", text_color=NAVY[600], **T(BODY, 16, 400, 1.65),
              _margin=box(0, 0, 32, 0)),
         con(application_form(), title="Űrlap kártya", background_background="classic", background_color="#FFFFFF", border_radius=box(16),
             padding=box(40), padding_mobile=box(24), border_border="solid", border_width=box(1), border_color=NAVY[100]),

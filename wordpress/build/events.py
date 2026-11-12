@@ -147,6 +147,29 @@ def post_grid(cat_new_id, nothing):
              nothing_found_message=nothing, nothing_found_message_text=nothing, **wanim())
 
 
+def event_card_dark():
+    """Compact dark card for the footer event strip (cover, title, date)."""
+    return [con(
+        con(image({"id": "", "url": ""}, "medium_large", title="Borítókép", **dyn(image=tag("post-featured-image"))),
+            title="Kép (link)", css_classes="elt-event-media elt-zoom", html_tag="a", link={"url": ""}, **dyn(link=tag("post-url"))),
+        heading("Cím", "h4", title="Cím", title_color="#FFFFFF", title_hover_color=SAND[400], **T(DISPLAY, 16, 600, 1.4), _margin=box(16, 0, 4, 0),
+                **dyn(title=tag("post-title"), link=tag("post-url"))),
+        heading("Dátum", "p", title="Dátum", title_color="rgba(255,255,255,0.6)", **T(BODY, 14, 400, 1.5),
+                **dyn(title=tag("post-date", {"type": "post_date_gmt", "format": "custom", "custom_format": "Y. F j."}))),
+        root=True, title="Rendezvény kártya", css_classes="elt-event-card")]
+
+
+def step_footer():
+    import elt_site
+    pid = ensure_site_part("event_loop_id", "loop-item", "ELT – Rendezvény kártya (lábléc, Loop elem)", None)
+    rest("POST", f"wp/v2/elementor_library/{pid}", {"status": "publish", "meta": {
+        "_elementor_edit_mode": "builder", "_elementor_page_settings": {"preview_type": "single/post"},
+        "_elementor_data": json.dumps(event_card_dark(), ensure_ascii=False)}})
+    elt_site.step_footer()
+    elt_site.step_kit()
+    print("footer events", pid)
+
+
 GALLERY_PAGES = [("kozos-elmenyeink", "Közös élményeink", 45), ("csaladi-napok", "Családi napok", 43),
                  ("alairasi-ceremonia", "Aláírási ceremónia", 42), ("galaest", "Gálaest", 44)]
 
@@ -162,4 +185,4 @@ def step_pages():
 
 if __name__ == "__main__":
     for a in sys.argv[1:]:
-        {"posts": step_posts, "templates": step_templates, "pages": step_pages}[a]()
+        {"posts": step_posts, "templates": step_templates, "pages": step_pages, "footer": step_footer}[a]()

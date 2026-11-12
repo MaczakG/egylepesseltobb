@@ -10,6 +10,9 @@ Minden szöveg, kép, menü és szín Elementorban vagy a WordPress adminban sze
 | Menüpontok | Megjelenés → Menük → **Egy Lépéssel Több – főmenü** |
 | Lábléc (partnerek, rendezvények, kapcsolat, térkép) | Theme Builder → Lábléc: **ELT – Lábléc** |
 | Főoldal (hero, nagykövetek, területek, alapító) | Oldalak → **Főoldal – Egy Lépéssel Több** → Szerkesztés Elementorral |
+| Bármely aloldal (Alapítónk, Kuratórium, Dokumentumok, 1% adó, Kapcsolat …) | Oldalak → az oldal neve → Szerkesztés Elementorral – minden oldal ugyanazokból az építőelemekből áll (sötét fejléc sáv + tartalom szakaszok) |
+| Események / galériák (Aláírási ceremónia, Családi nap …) | Bejegyzések → az esemény → Szerkesztés Elementorral (szöveg + Alap galéria widget) |
+| Esemény kártya és esemény aloldal kinézete | Theme Builder → **ELT – Bejegyzés kártya**, **ELT – Bejegyzés oldal (sablon)**, **ELT – Rendezvény kártya (lábléc)** |
 | Családkártya kinézete | Theme Builder → Loop elem: **ELT – Családkártya (Loop elem)** |
 | Család aloldal kinézete (minden családé egyszerre) | Theme Builder → Egyedi bejegyzés: **ELT – Család oldal (sablon)** |
 | Családok adatai | **Alapítvány → Családok** (WordPress admin) |
@@ -35,8 +38,19 @@ Minden szöveg, kép, menü és szín Elementorban vagy a WordPress adminban sze
 - Minden beküldött jelentkezés +1 jelentkezőt ad a kiválasztott családnak.
 - Ha a jelentkezők száma eléri a küszöböt (alapból 6), a család státusza magától **Örökbefogadott** lesz: eltűnik a főoldalról és az örökbefogadható listából, és átkerül az „Örökbefogadott családok” oldalra. A család oldalán az űrlap helyett köszönő üzenet jelenik meg.
 - A küszöb és a cél-státusz: **Alapítvány → Beállítások**. Mentéskor a szabály minden családra lefut.
+- A szabály alapja választható: **jelentkezők száma** (alapértelmezett) vagy **felajánlott havi összeg** – ez utóbbinál a család akkor örökbefogadott, ha a jelentkezésekben vállalt havi összegek elérik a havi célt (alapból 50 000 Ft, ahogy a korábbi oldalon szerepelt).
 - Kézzel bármikor átállíthatod a státuszt a család szerkesztésénél.
 - Ha egy jelentkezést a lomtárba teszel (pl. kéretlen üzenet), a jelentkezőszám eggyel csökken.
+
+## Oldalak és címek
+
+Minden oldal a korábbi egylepesseltobb.hu címén érhető el (pl. `/alapitonk/`, `/1-ado/`, `/linkesfizetes/`, `/jelntkezz-tamogatonak/`).
+A korábbi dátumos család-bejegyzések címei (pl. `/2026/11/05/d-jazmin-es-csaladja/`) a bővítmény 1.1-es verziójával automatikusan átirányítanak a család új oldalára.
+
+## Támogatás és fizetés
+
+- **Az Alapítvány működésének támogatása** (`/linkesfizetes/`), **Jótékonysági gálaest**, **Gyömrői Esték #2**: az összeg-kártyák gombjai a meglévő **SimplePay fizetési linkekre** mutatnak – ezek beállítás nélkül működnek. Új összeghez a SimplePay kereskedői felületén hozz létre új fizetési linket, és írd be a gomb linkjébe.
+- Az „Egyedi összeg” űrlap (saját SimplePay integráció) csak akkor jelenik meg, ha az Alapítvány → Beállítások oldalon megadtad a kereskedői adatokat.
 
 ## Jelentkezési űrlap
 
@@ -44,7 +58,8 @@ Elementor Pro űrlap a család oldalán és az „Örökbefogadható családok�
 
 - A **csalad** azonosítójú legördülő lista automatikusan feltöltődik az örökbefogadható családokkal; a család oldalán az adott család előre ki van választva. Más oldalon a `?csalad=ID` paraméter választja ki előre.
 - Beküldés utáni műveletek: **Családhoz jelentkezés (ELT)** (tárolás + számlálás) és **E-mail** (értesítés). Az e-mail címzettje az űrlap „E-mail” beállításainál módosítható.
-- Mezőazonosítók (Haladó → ID), ezeket ne nevezd át: `csalad`, `nev`, `email`, `telefon`, `uzenet`.
+- Mezőazonosítók (Haladó → ID), ezeket ne nevezd át: `csalad`, `vezeteknev`, `keresztnev` (vagy `nev`), `email`, `telefon`, `osszeg` (vállalt havi összeg), `uzenet`.
+- A „Kerülj be programunkba”, „Váradi Eszter-díjra jelölés” és „1% adó” űrlapok e-mailt küldenek és az Elementor → Beküldések menübe is mentenek.
 
 ## Online adomány (SimplePay)
 
@@ -77,7 +92,8 @@ Megjelenés → Menük. A „#” hivatkozású pontok (Kuratórium, Dokumentumo
 
 ## Teendők élesítés előtt
 
-- **Adatkezelési tájékoztató** oldal: jelenleg az előző (INKA VISION) oldal szövege van benne – cseréld le az Alapítvány tájékoztatójára.
+- **Bankszámlaszám:** a lábléc (a design szerint) OTP 11703006-25993994 számlát mutat, a régi oldalról átvett „Kapcsolat” és „1% adó” oldalon Erste 11600006-00000002-07129663 szerepel – egyeztesd, melyik az érvényes.
+- Az angol nyelvű változat (`/en/`) nem került át.
 - Közösségi ikonok linkjei (lábléc), telefonszám, e-mail cím ellenőrzése.
 - Rendezvények képei: jelenleg az Alapítvány meglévő fotói – cseréld valódi rendezvényképekre.
 - Űrlap értesítő e-mail feladója (`noreply@bographic.hu`) → éles domainre.

@@ -336,7 +336,15 @@ def footer_elements():
         padding=box(56, 40, 56, 40), padding_mobile=box(56, 24, 56, 24),
         border_border="solid", border_width=box(0, 0, 1, 0), border_color="rgba(255,255,255,0.1)")
 
-    events = grid(
+    if STATE.get("event_loop_id"):
+        events = w("loop-grid", title="Legutóbbi rendezvények (Loop Grid – Rendezvények kategória)",
+                   template_id=STATE["event_loop_id"], columns=4, columns_tablet=2, columns_mobile=1, posts_per_page=4,
+                   column_gap=S(24), row_gap=S(32), equal_height="yes", post_query_post_type="post",
+                   post_query_include=["terms"], post_query_include_term_ids=[str(STATE["categories"]["31"])],
+                   post_query_orderby="date", post_query_order="desc", **{"_animation": "fadeInUp"})
+    else:
+        events = None
+    events = events or grid(
         event_card("Jótékonysági Gála", "2026. szeptember 20. · Budapest, Bálna", ["about.webp", "event-gala-checkin.jpg", "editorial-small1.webp"], 0),
         event_card("Családi Piknik Nap", "2026. október 4. · Margitsziget", ["event-picnic-flute.png", "editorial-big.webp", "hero.webp"], 80),
         event_card("Karácsonyi Adományosztás", "2026. december 14. · Debrecen", ["editorial-small2.webp"], 160),
@@ -346,6 +354,8 @@ def footer_elements():
         heading("Rendezvényeink", "p", title="Felirat", title_color=SAND[400], **T(BODY, 12, 400, 1.4, 0.3, "uppercase"), _margin=box(0, 0, 12, 0)),
         heading("Találkozzunk élőben is", "h3", title="Cím", title_color="#FFFFFF", **T(DISPLAY, 30, 500, 1.25, size_m=24), _margin=box(0, 0, 40, 0)),
         events,
+        heading('<a href="' + HOME + 'kozos-elmenyeink/">Összes esemény és galéria →</a>', "p", title="Galéria link",
+                title_color=SAND[400], title_hover_color="#FFFFFF", **T(BODY, 14, 600, 1.4), _margin=box(32, 0, 0, 0)),
         title="Rendezvények", _element_id="events", content_width="boxed", boxed_width=S(1280),
         padding=box(64, 40, 64, 40), padding_mobile=box(64, 24, 64, 24),
         border_border="solid", border_width=box(0, 0, 1, 0), border_color="rgba(255,255,255,0.1)")

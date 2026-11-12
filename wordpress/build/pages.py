@@ -211,33 +211,7 @@ def opt_lines(pairs):
 
 
 def supporter_form():
-    """The real "Jelentkezz támogatónak" form (old fields), wired to the family automation."""
-    amounts = [("Válassz összeget", "")] + [(f"{n:,} Ft".replace(",", " "), str(n)) for n in range(5000, 50001, 5000)]
-    heard = ["Televízióból", "Facebookról", "Plakáton láttam", "Instagramról", "Rádióból", "Barátoktól vagy ismerősöktől",
-             "Rendezvényen vagy eseményen", "Hírlevélből vagy e-mailből", "Egyéb felületről"]
-    fields = [
-        {"_id": fid(), "custom_id": "vezeteknev", "field_type": "text", "field_label": "Vezetéknév", "width": "50", "required": "true"},
-        {"_id": fid(), "custom_id": "keresztnev", "field_type": "text", "field_label": "Keresztnév", "width": "50", "required": "true"},
-        {"_id": fid(), "custom_id": "email", "field_type": "email", "field_label": "E-mail", "width": "50", "required": "true"},
-        {"_id": fid(), "custom_id": "telefon", "field_type": "tel", "field_label": "Telefonszám", "width": "50", "required": "true"},
-        {"_id": fid(), "custom_id": "osszeg", "field_type": "select", "field_label": "Havi támogatás összege (HUF)", "width": "50",
-         "required": "true", "field_options": opt_lines(amounts)},
-        {"_id": fid(), "custom_id": "csalad", "field_type": "select", "field_label": "Támogatni kívánt család", "width": "50",
-         "required": "true", "field_options": "Válassz családot…|"},
-        {"_id": fid(), "custom_id": "honnan", "field_type": "select", "field_label": "Honnan hallott rólunk?", "width": "100",
-         "required": "true", "field_options": opt_lines([("Válasszon a felsoroltak közül", "")] + [(h, h) for h in heard])},
-        {"_id": fid(), "custom_id": "uzenet", "field_type": "textarea", "field_label": "Megjegyzés", "width": "100", "rows": "4"},
-        {"_id": fid(), "custom_id": "adatkezeles", "field_type": "acceptance", "field_label": "Adatkezelés", "width": "100", "required": "true",
-         "acceptance_text": f'Elolvastam és megértettem az <a href="{PRIVACY_URL}" target="_blank">adatkezelési tájékoztatót</a>.'},
-    ]
-    return w("form", title="Jelentkezz támogatónak űrlap", form_name="Jelentkezz támogatónak", form_fields=fields,
-             button_text="Jelentkezem", submit_actions=["elt_jelentkezes", "email"],
-             email_to="info@" + DOMAIN, email_subject='Új támogatói jelentkezés – [field id="vezeteknev"] [field id="keresztnev"]',
-             email_content="[all-fields]", email_from="noreply@bographic.hu", email_from_name="Egy Lépéssel Több weboldal",
-             email_reply_to='[field id="email"]', email_content_type="html",
-             success_message="Köszönjük a jelentkezésed! E-mailben visszaigazolunk, és a szerződéskötés előtt telefonon is felvesszük veled a kapcsolatot.",
-             error_message="Hiba történt a küldés során. Kérjük, próbáld újra, vagy írj az info@" + DOMAIN + " címre.",
-             **form_style())
+    return application_form()
 
 
 def simple_form(name, fields, button_text, success, subject):

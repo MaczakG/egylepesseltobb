@@ -75,6 +75,7 @@ class ELT_Elementor {
 	 */
 	public static function filter_status_query( $query, $status ) {
 		$query->set( 'post_type', ELT_CPT );
+		$query->set( 'orderby', array( 'menu_order' => 'ASC', 'date' => 'DESC' ) );
 		$query->set(
 			'tax_query',
 			array(

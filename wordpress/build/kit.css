@@ -79,6 +79,13 @@ body.elt-scrolled .elt-header-inner { transform: scale(.94); }
 /* Vonalas (körvonalas) SVG ikonok: ne töltse ki az Elementor ikon színe */
 .elt-icon-line svg { fill: none !important; stroke: currentColor; }
 
+/* Rendezvény kártya a láblécben (Loop elem) */
+.elt-event-media { position: relative; border-radius: 12px; overflow: hidden; display: block; }
+.elt-event-media img { width: 100%; height: 176px !important; object-fit: cover; display: block; }
+.elt-event-media::after { content: ""; position: absolute; inset: 0; background: rgba(26, 37, 45, .3); transition: background .3s; pointer-events: none; }
+.elt-event-card:hover .elt-event-media::after { background: rgba(26, 37, 45, .1); }
+.elt-event-card:hover .elt-event-media img { transform: scale(1.03); }
+
 /* Térkép szürkén */
 .elt-map iframe { filter: grayscale(1) contrast(1.25); display: block; }
 
