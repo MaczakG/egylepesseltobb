@@ -1,0 +1,131 @@
+/* =========================================================
+   Egy Lépéssel Több – közös effektek
+   Helye: Elementor → Webhely beállítások → Egyéni CSS
+   Az osztályokat az elemek „Haladó → CSS osztályok” mezője adja.
+   ========================================================= */
+html { scroll-behavior: smooth; }
+::selection { background: #dac7a0; color: #1a252d; }
+#top, #families, #ambassadors, #areas, #founder, #events, #contact, #jelentkezes, #adomany { scroll-margin-top: 5.5rem; }
+
+/* Belépő animáció: az Elementor „Fade In Up” finomabb, 24px-es változata */
+@keyframes eltFadeUp { from { opacity: 0; transform: translate3d(0, 24px, 0); } to { opacity: 1; transform: none; } }
+.elementor-element.animated.fadeInUp { animation-name: eltFadeUp; animation-duration: .8s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+
+/* elt-lift: kártya emelkedés hoverre · elt-zoom: kép nagyítás a kártyán belül */
+.elt-lift { transition: transform .5s cubic-bezier(.22, 1, .36, 1), box-shadow .3s cubic-bezier(.22, 1, .36, 1); }
+.elt-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -14px rgba(26, 37, 45, .28); }
+.elt-zoom { overflow: hidden; }
+.elt-zoom img { transition: transform .5s cubic-bezier(.22, 1, .36, 1); }
+.elt-lift:hover .elt-zoom img { transform: scale(1.04); }
+
+/* elt-btn-primary: elsődleges gomb emelkedés + homokszínű gyűrű */
+.elt-btn-primary .elementor-button { position: relative; transition: transform .25s cubic-bezier(.22, 1, .36, 1), background-color .25s; }
+.elt-btn-primary .elementor-button:hover { transform: translateY(-2px); }
+.elt-btn-primary .elementor-button::after { content: ""; position: absolute; inset: -3px; border-radius: 999px; box-shadow: 0 0 0 2px rgba(218, 199, 160, .55); opacity: 0; transition: opacity .25s; pointer-events: none; }
+.elt-btn-primary .elementor-button:hover::after { opacity: 1; }
+
+/* Fejléc: áttetsző sötét sáv, görgetéskor enyhén kisebb */
+.elt-header { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.admin-bar .elt-header { top: 32px !important; }
+@media (max-width: 782px) { .admin-bar .elt-header { top: 46px !important; } }
+.elt-header-inner { transition: transform .3s cubic-bezier(.22, 1, .36, 1); transform-origin: top center; }
+body.elt-scrolled .elt-header-inner { transform: scale(.94); }
+
+/* Menü: lenyíló panelek, nyíl forgatás, gombok a mobil menüben */
+.elt-nav .elementor-nav-menu--main .sub-menu { border: 1px solid rgba(255, 255, 255, .1); border-radius: 12px; overflow: hidden; padding: 8px 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .5); min-width: 240px !important; }
+.elt-nav .elementor-nav-menu--main .sub-arrow svg, .elt-nav .elementor-nav-menu--main .sub-arrow i { transition: transform .2s; }
+.elt-nav .elementor-nav-menu--main li:hover > a .sub-arrow svg, .elt-nav .elementor-nav-menu--main li:hover > a .sub-arrow i { transform: rotate(180deg); }
+.elt-nav .elementor-nav-menu--main .elt-menu-cta { display: none !important; }
+.elt-nav .elementor-nav-menu--dropdown .elementor-item { font-family: "Baloo 2", sans-serif; font-size: 18px; }
+.elt-nav .elementor-nav-menu--dropdown .sub-menu .elementor-sub-item { font-family: "Nunito", sans-serif; font-size: 14px; color: rgba(255, 255, 255, .7); padding-left: 40px; }
+.elt-nav .elementor-nav-menu--dropdown .elt-menu-cta > a { justify-content: center; border: 1px solid rgba(255, 255, 255, .4); border-radius: 999px; margin: 16px 24px 0; font-family: "Nunito", sans-serif; font-weight: 600; font-size: 16px; }
+.elt-nav .elementor-nav-menu--dropdown .elt-menu-cta--primary > a { background: #dac7a0 !important; color: #1a252d !important; border-color: #dac7a0; margin-top: 8px; margin-bottom: 24px; }
+
+/* Hero */
+.elt-hero { min-height: max(100vh, 640px); }
+.elt-scroll-cue { animation: eltScrollCue 2.6s cubic-bezier(.22, 1, .36, 1) infinite; }
+.elt-scroll-cue .elementor-heading-title { writing-mode: vertical-rl; }
+@keyframes eltScrollCue { 0%, 100% { transform: translateY(0); opacity: .7; } 50% { transform: translateY(6px); opacity: 1; } }
+
+/* Nagykövetek: lágyított portré 4:5-ben, alsó homokszínű vonal hoverre */
+.elt-amb-photo { position: relative; overflow: hidden; }
+.elt-amb-photo img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: top; filter: contrast(.78) saturate(.85) brightness(1.05); transition: transform .5s cubic-bezier(.22, 1, .36, 1); }
+.elt-amb-card:hover .elt-amb-photo img { transform: scale(1.04); }
+.elt-amb-photo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #dac7a0; transform: scaleX(0); transform-origin: center; transition: transform .3s cubic-bezier(.22, 1, .36, 1); }
+.elt-amb-card:hover .elt-amb-photo::after { transform: scaleX(1); }
+
+/* Partner logók: szürke → színes (fix 112px magas fehér csempe, középre rendezett sorok) */
+.elt-partner-row > .elt-partner { flex: 0 0 calc((100% - 80px) / 6); }
+@media (max-width: 1024px) { .elt-partner-row > .elt-partner { flex-basis: calc((100% - 32px) / 3); } }
+@media (max-width: 767px) { .elt-partner-row > .elt-partner { flex-basis: calc((100% - 16px) / 2); } }
+.elt-partner { height: 112px; }
+.elt-partner .elementor-widget-image { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.elt-partner img { width: 100%; height: 88px !important; object-fit: contain; filter: grayscale(100%); opacity: .55; transition: filter .3s, opacity .3s, transform .3s; }
+.elt-partner:hover img { filter: none; opacity: 1; transform: translateY(-2px); }
+
+/* Rendezvény kártyák: a galériából csak az első kép látszik, kattintásra lightbox az összes képpel */
+.elt-event .gallery { margin: 0 !important; }
+.elt-event .gallery-item { margin: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+.elt-event .gallery-item:not(:first-child) { display: none; }
+.elt-event .gallery-icon { position: relative; height: 176px; border-radius: 12px; overflow: hidden; }
+.elt-event .gallery-icon a { display: block; height: 100%; }
+.elt-event .gallery-icon img { width: 100%; height: 100% !important; object-fit: cover; transition: transform .5s cubic-bezier(.22, 1, .36, 1); }
+.elt-event .gallery-icon a::after { content: ""; position: absolute; inset: 0; background: rgba(26, 37, 45, .3); transition: background .3s; }
+.elt-event:hover .gallery-icon a::after { background: rgba(26, 37, 45, .1); }
+.elt-event:hover .gallery-icon img { transform: scale(1.03); }
+
+/* Alapító fotó díszkerete */
+.elt-founder-photo img { outline: 1px solid rgba(166, 140, 92, .45); outline-offset: 16px; }
+@media (max-width: 767px) { .elt-founder-photo img { outline: none; } }
+
+/* Vonalas (körvonalas) SVG ikonok: ne töltse ki az Elementor ikon színe */
+.elt-icon-line svg { fill: none !important; stroke: currentColor; }
+
+/* Rendezvény kártya a láblécben (Loop elem) */
+.elt-event-media { position: relative; border-radius: 12px; overflow: hidden; display: block; }
+.elt-event-media img { width: 100%; height: 176px !important; object-fit: cover; display: block; }
+.elt-event-media::after { content: ""; position: absolute; inset: 0; background: rgba(26, 37, 45, .3); transition: background .3s; pointer-events: none; }
+.elt-event-card:hover .elt-event-media::after { background: rgba(26, 37, 45, .1); }
+.elt-event-card:hover .elt-event-media img { transform: scale(1.03); }
+
+/* Galériák (elt-gallery): egyforma, szorosan illeszkedő négyzetes képek */
+.elt-gallery .gallery { margin: 0 !important; }
+.elt-gallery .gallery-item img { width: 100% !important; height: auto !important; aspect-ratio: 1 / 1; object-fit: cover; display: block; transition: transform .4s cubic-bezier(.22, 1, .36, 1), opacity .3s; }
+.elt-gallery .gallery-icon { overflow: hidden; border-radius: 8px; }
+.elt-gallery .gallery-item:hover img { transform: scale(1.04); }
+
+/* Térkép szürkén */
+.elt-map iframe { filter: grayscale(1) contrast(1.25); display: block; }
+
+/* Családkártya (Loop elem) és státusz címke */
+.elt-status-badge .elementor-heading-title { display: inline-block; background: #dac7a0; color: #1a252d; font-size: 12px; font-weight: 600; line-height: 1; padding: 7px 12px; border-radius: 999px; }
+.elt_statusz-orokbefogadott .elt-status-badge .elementor-heading-title,
+body.elt-csalad-orokbefogadott .elt-status-badge .elementor-heading-title { background: #334758; color: #fff; }
+.elt-card-cta .elementor-heading-title a { display: block; }
+.elt-family-card .elt-card-media img { height: 256px; width: 100%; object-fit: cover; }
+
+/* Információs címkék a láblécben */
+.elt-info small { display: block; color: rgba(255, 255, 255, .4); font-size: 12px; text-transform: uppercase; letter-spacing: .025em; margin-bottom: 4px; }
+.elt-info p { margin: 0; }
+.elt-info .elt-info-sub { display: block; color: rgba(255, 255, 255, .5); font-size: 12px; margin-top: 4px; }
+
+/* Szövegblokkok (elt-prose): listák, linkek, alcímek */
+.elt-prose ul, .elt-prose ol { padding-left: 1.3em; margin: 0 0 1em; }
+.elt-prose li { margin-bottom: .4em; }
+.elt-prose a { color: #a68c5c; text-decoration: underline; text-underline-offset: 3px; }
+.elt-prose a:hover { color: #263640; }
+.elt-prose h2, .elt-prose h3, .elt-prose h4 { font-family: "Baloo 2", sans-serif; color: #263640; margin: 1.2em 0 .4em; line-height: 1.3; }
+.elt-prose p:last-child { margin-bottom: 0; }
+
+/* Űrlapok */
+.elt-form .elementor-field-group > label { font-weight: 600; margin-bottom: 6px; }
+.elt-form .elementor-field-textual { border-radius: 12px; padding: 12px 16px; }
+.elt-form .elementor-field-type-acceptance label { font-weight: 400; font-size: .9em; }
+.elt-form .elementor-field-subgroup a { text-decoration: underline; }
+.elt-form .elementor-button { border-radius: 999px; }
+
+@media (prefers-reduced-motion: reduce) {
+	html { scroll-behavior: auto; }
+	.elt-scroll-cue { animation: none; }
+	.elt-lift:hover, .elt-btn-primary .elementor-button:hover { transform: none; }
+}
