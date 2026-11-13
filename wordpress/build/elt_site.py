@@ -148,7 +148,7 @@ def step_kit():
         "lightbox_enable_fullscreen": "yes",
         "lightbox_enable_zoom": "",
         "lightbox_enable_share": "",
-        "lightbox_title_src": "title",
+        "lightbox_title_src": "",
         "lightbox_description_src": "",
         "lightbox_color": "rgba(26,37,45,0.95)",
         "lightbox_ui_color": "rgba(255,255,255,0.8)",
@@ -163,7 +163,12 @@ def step_kit():
     for h in range(1, 7):
         settings.update(T(DISPLAY, None, 500, 1.2, prefix=f"h{h}_typography"))
         settings[f"h{h}_color"] = NAVY[800]
-    mcp("elementor-update-page-settings", {"post_id": kit_id, "settings": settings})
+    current = rest("GET", f"wp/v2/elementor_library/{kit_id}?context=edit&_fields=meta")["meta"]["_elementor_page_settings"] or {}
+    current.update(settings)
+    rest("POST", f"wp/v2/elementor_library/{kit_id}", {"meta": {"_elementor_page_settings": current}})
+    # A real kit save (stage + publish through the Elementor MCP) regenerates the kit CSS.
+    mcp("elementor-update-page-settings", {"post_id": kit_id, "settings": current})
+    mcp("elementor-publish-document", {"post_id": kit_id})
     print("kit saved")
 
 
@@ -182,8 +187,9 @@ MENU = [
     ("Galéria", "#", [("Közös élményeink", HOME + "kozos-elmenyeink/"), ("Családi napok", HOME + "csaladi-napok/"),
                       ("Aláírási ceremónia", HOME + "alairasi-ceremonia/"), ("Gálaest", HOME + "galaest/"),
                       ("Média megjelenések", HOME + "media-megjelenesek/"), ("Prospektus", "PROSPEKTUS")]),
-    ("Váradi Eszter díj", "https://hu.wikipedia.org/wiki/V%C3%A1radi_Eszter-d%C3%ADj",
-     [("Váradi Eszter-díjra jelölés", HOME + "varadi-eszter-dijra-jeloles/")]),
+    ("Váradi Eszter díj", "#",
+     [("Váradi Eszter-díj (Wikipédia)", "WIKI:https://hu.wikipedia.org/wiki/V%C3%A1radi_Eszter-d%C3%ADj"),
+      ("Váradi Eszter-díjra jelölés", HOME + "varadi-eszter-dijra-jeloles/")]),
 ]
 CTA_ADO = HOME + "1-ado/"
 CTA_MAIN = HOME + "orokbefogadhato-csaladok/"
@@ -208,9 +214,11 @@ def step_menu():
                                                     "status": "publish", "menu_order": order})
         order += 1
         for clabel, curl in children:
-            rest("POST", "wp/v2/menu-items", {"title": clabel, "url": prospektus if curl == "PROSPEKTUS" else curl, "menus": mid,
+            external = curl == "PROSPEKTUS" or curl.startswith("WIKI:")
+            url = prospektus if curl == "PROSPEKTUS" else curl.replace("WIKI:", "", 1)
+            rest("POST", "wp/v2/menu-items", {"title": clabel, "url": url, "menus": mid,
                                               "type": "custom", "status": "publish", "menu_order": order, "parent": parent["id"],
-                                              "target": "_blank" if curl == "PROSPEKTUS" else ""})
+                                              "target": "_blank" if external else ""})
             order += 1
     rest("POST", "wp/v2/menu-items", {"title": "Adó 1%", "url": CTA_ADO, "menus": mid, "type": "custom",
                                       "status": "publish", "menu_order": order, "classes": ["elt-menu-cta"]})
@@ -226,7 +234,7 @@ def header_elements():
                  _flex_size="none")
     nav = w("nav-menu", title="Főmenü", menu=STATE["menu_id"], layout="horizontal", align_items="center",
             pointer="underline", animation_line="grow", submenu_icon={"value": "fas fa-chevron-down", "library": "fa-solid"},
-            dropdown="tablet_extra", full_width="stretch", _flex_size="grow", _flex_size_tablet_extra="none", _flex_align_self="center",
+            dropdown="tablet_extra", full_width="stretch", _flex_size="none", _flex_align_self="center",
             _element_width_tablet_extra="initial", _element_custom_width_tablet_extra=S(48), text_align="aside", toggle="burger", toggle_align="right",
             _css_classes="elt-nav",
             **T(BODY, 14, 500, 1.4, 0.025, prefix="menu_typography"),
@@ -244,11 +252,13 @@ def header_elements():
         button("Adó 1%", CTA_ADO, primary=False, title="Adó 1% gomb", text_padding=box(12, 20, 12, 20), **T(BODY, 14, 600, 1.2)),
         button("Fogadj örökbe egy családot", CTA_MAIN, title="Fő gomb", text_padding=box(12, 20, 12, 20), **T(BODY, 14, 600, 1.2)),
         title="Gombok", flex_direction="row", flex_gap=gap(12), flex_align_items="center", _flex_size="none",
+        width={"unit": "custom", "size": "auto", "sizes": []},
         hide_tablet_extra="hidden-tablet_extra", hide_tablet="hidden-tablet", hide_mobile="hidden-mobile")
     script = w("html", title="Görgetés-effekt (fejléc kicsinyítés)", html=(
         "<script>(function(){var b=document.body;function u(){b.classList.toggle('elt-scrolled',window.scrollY>40)}"
         "u();window.addEventListener('scroll',u,{passive:true})})();</script>"))
-    inner = con(logo, nav, buttons, title="Fejléc sor", flex_direction="row", flex_justify_content="space-between",
+    inner = con(logo, nav, buttons, title="Fejléc sor", flex_direction="row", flex_justify_content="center",
+                flex_justify_content_tablet_extra="space-between",
                 flex_align_items="center", flex_gap=gap(40), flex_wrap="nowrap", min_height=S(80),
                 padding=box(0, 40, 0, 40), padding_mobile=box(0, 24, 0, 24), css_classes="elt-header-inner",
                 content_width="boxed", boxed_width=S(1536))
@@ -278,8 +288,7 @@ def ensure_site_part(key, type_, title, conditions):
 
 
 def publish(pid, route, elements, settings=None):
-    save_elementor(route, pid, elements, settings)
-    mcp("elementor-publish-document", {"post_id": pid})
+    save_elementor(route, pid, elements, settings, extra={"status": "publish"})
 
 
 def step_header():
@@ -323,7 +332,8 @@ def footer_elements():
         ("partner-01-bastion.png", "Bastion"), ("partner-02.png", "Partner"), ("partner-03-daewoo.png", "Daewoo"),
         ("partner-04-lipoti.png", "Lipóti Pékség"), ("partner-05-hsbc.png", "HSBC"), ("partner-06-pizzame.png", "Pizza ME"),
         ("partner-07-hardrock.png", "Hard Rock Cafe"), ("partner-08-bullrent.png", "BullRent"),
-        ("partner-09-poseidon.png", "POSeidon"), ("partner-10-justicesecurity.png", "Justice Security")]
+        ("partner-09-poseidon.png", "POSeidon"), ("partner-10-justicesecurity.png", "Justice Security"),
+        ("partner-11-profilii.png", "Pro Filii Alapítvány")]
     partner_cells = [con(image(m(f), "medium", title=f"{n} logó"), title=f"Partner: {n}", css_classes="elt-partner",
                          background_background="classic", background_color="#FFFFFF", border_radius=box(12),
                          min_height=S(112), padding=box(12), flex_justify_content="center", flex_align_items="center")
@@ -331,7 +341,8 @@ def footer_elements():
     partners_sec = con(
         heading("Kiemelt partnereink", "p", title="Felirat", align="center", title_color="rgba(255,255,255,0.4)",
                 **T(BODY, 12, 400, 1.4, 0.3, "uppercase"), _margin=box(0, 0, 36, 0)),
-        grid(*partner_cells, cols=5, cols_t=3, cols_m=2, g=16, title="Partner logók"),
+        con(*partner_cells, title="Partner logók (sorok középre)", css_classes="elt-partner-row", flex_direction="row",
+            flex_wrap="wrap", flex_justify_content="center", flex_gap=gap(16)),
         title="Partnerek", content_width="boxed", boxed_width=S(1280),
         padding=box(56, 40, 56, 40), padding_mobile=box(56, 24, 56, 24),
         border_border="solid", border_width=box(0, 0, 1, 0), border_color="rgba(255,255,255,0.1)")
@@ -486,16 +497,16 @@ def ambassadors_section():
     for i, (name, role, img) in enumerate(AMBASSADORS):
         cards.append(con(
             con(image(m(img), "large", title="Portré"), title="Fotó", css_classes="elt-amb-photo"),
-            con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 18, 600, 1.4), _margin=box(0, 0, 4, 0)),
-                heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 14, 400, 1.4, 0.025, "uppercase")),
-                title="Szöveg", padding=box(24), padding_mobile=box(16)),
+            con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 17, 600, 1.3), _margin=box(0, 0, 4, 0)),
+                heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 12, 400, 1.4, 0.025, "uppercase")),
+                title="Szöveg", padding=box(18, 12, 18, 12), padding_mobile=box(14, 10, 14, 10)),
             title=f"Nagykövet: {name}", css_classes="elt-lift elt-amb-card", overflow="hidden",
             background_background="classic", background_color="rgba(51,71,88,0.6)", border_border="solid", border_width=box(1),
-            border_color="rgba(255,255,255,0.1)", border_radius=box(16), **anim((i % 3) * 80)))
+            border_color="rgba(255,255,255,0.1)", border_radius=box(16), **anim(i * 60)))
     head = con(eyebrow("Nagyköveteink", SAND[400], **wanim()),
                h2("Akik a nevüket adják hozzá, hogy több család jusson segítséghez", "#FFFFFF", **wanim(80)),
                title="Fejléc", width=S(672), width_tablet=S(100, "%"), margin=box(0, 0, 80, 0), margin_mobile=box(0, 0, 64, 0))
-    return con(head, grid(*cards, cols=3, cols_t=2, cols_m=2, g=32, g_m=16, title="Nagykövet kártyák"),
+    return con(head, grid(*cards, cols=6, cols_t=3, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"),
                root=True, title="Nagykövetek", html_tag="section", _element_id="ambassadors", content_width="boxed",
                boxed_width=S(1280), overflow="hidden", background_background="classic", background_color=NAVY[800], **SECTION_PAD)
 

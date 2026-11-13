@@ -108,7 +108,7 @@ def gallery(urls, cols=3, title="Galéria"):
             items.append({"id": new["id"], "url": new["url"]})
     return w("image-gallery", title=title, wp_gallery=items, gallery_columns=str(cols), gallery_columns_tablet="3",
              gallery_columns_mobile="2", thumbnail_size="medium_large", gallery_link="file", open_lightbox="yes",
-             gallery_display_caption="none", image_spacing="custom", image_spacing_custom=S(12), image_border_radius=box(12))
+             gallery_display_caption="none", image_spacing="custom", image_spacing_custom=S(6), _css_classes="elt-gallery")
 
 
 def is_decor(wd, page_title):
@@ -332,18 +332,17 @@ def page_nagykoveteink():
                 pic["settings"].update(link_to="custom", link=link(last_img["href"], True))
             cards.append(con(
                 con(pic, title="Fotó", css_classes="elt-amb-photo"),
-                con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 18, 600, 1.4), _margin=box(0, 0, 4, 0)),
-                    heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 14, 400, 1.4, 0.025, "uppercase")),
-                    title="Szöveg", padding=box(24), padding_mobile=box(16)),
+                con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 17, 600, 1.3), _margin=box(0, 0, 4, 0)),
+                    heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 12, 400, 1.4, 0.025, "uppercase")),
+                    title="Szöveg", padding=box(18, 12, 18, 12), padding_mobile=box(14, 10, 14, 10)),
                 title=f"Nagykövet: {name}", css_classes="elt-lift elt-amb-card", overflow="hidden",
-                background_background="classic", background_color="rgba(51,71,88,0.6)", border_border="solid", border_width=box(1),
-                border_color="rgba(255,255,255,0.1)", border_radius=box(16), **anim((len(cards) % 3) * 80)))
+                background_background="classic", background_color=NAVY[800], border_radius=box(16), **anim(len(cards) * 60)))
             last_img = None
     lead = next(wd["text"] for wd in wds if wd["type"] == "heading" and wd["text"].startswith("Ők azok"))
     save_page(slug, "Nagyköveteink", [
         page_hero("Alapítvány", "Nagyköveteink", lead),
-        con(grid(*cards, cols=3, cols_t=2, cols_m=2, g=32, g_m=16, title="Nagykövet kártyák"), root=True, title="Nagykövetek",
-            html_tag="section", content_width="boxed", boxed_width=S(1280), background_background="classic", background_color=NAVY[800],
+        con(grid(*cards, cols=6, cols_t=3, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"), root=True, title="Nagykövetek",
+            html_tag="section", content_width="boxed", boxed_width=S(1280), background_background="classic", background_color=SAND[50],
             padding=box(96, 40, 112, 40), padding_mobile=box(64, 24, 72, 24)),
     ])
 
@@ -566,14 +565,17 @@ def page_1ado():
 def page_fogadj_orokbe():
     slug = "fogadj-orokbe-egy-csaladot"
     wds = [wd for wd in W(slug) if wd["type"] == "heading"]
-    qa, i = [], 0
     texts = [wd["text"] for wd in wds if not is_decor(wd, "Fogadj örökbe egy családot")]
     lead = texts[0] if texts else ""
     rest_ = [t for t in texts[1:] if not re.search(r"és családja$|^[A-ZÁ-Ű]\. [A-ZÁ-Ű]", t)]
-    while i < len(rest_) - 1:
-        qa.append((rest_[i], rest_[i + 1]))
-        i += 2
-    cards = [card(h3(q, _margin=box(0, 0, 8, 0)), prose(f"<p>{html.escape(a)}</p>"), title=q[:60], border_border="solid",
+    qa = []
+    for t in rest_:
+        if t.rstrip().endswith("?"):
+            qa.append([t, []])
+        elif qa:
+            qa[-1][1].append(t)
+    qa = [(q, "".join(f"<p>{html.escape(x)}</p>" for x in ans)) for q, ans in qa if ans]
+    cards = [card(h3(q, _margin=box(0, 0, 8, 0)), prose(a), title=q[:60], border_border="solid",
                   border_width=box(4, 0, 0, 0), border_color=SAND[500], **anim((k % 2) * 80)) for k, (q, a) in enumerate(qa)]
     save_page(slug, "Fogadj örökbe egy családot", [
         page_hero("Fogadj örökbe egy családot", "Fogadj örökbe egy családot", lead),
@@ -612,12 +614,12 @@ def page_alapitonk():
     photo = next(wd for wd in wds if wd["type"] == "image")
     paras = [wd["text"] for wd in wds if wd["type"] == "heading" and as_paragraph(wd)]
     more = next((wd for wd in wds if wd.get("href")), None)
-    copy = con(eyebrow("Alapítónk", SAND[400]),
-               heading("Hajós István", "h2", title="Név", title_color="#FFFFFF", **T(DISPLAY, 48, 500, 1.2, size_m=34), _margin=box(0, 0, 8, 0)),
-               heading("az Egy Lépéssel Több Alapítvány alapítója", "p", title="Alcím", title_color=SAND[400], **T(BODY, 18, 500, 1.5), _margin=box(0, 0, 24, 0)),
-               text("".join(f"<p>{html.escape(p)}</p>" for p in paras), title="Bemutatkozás", text_color="rgba(255,255,255,0.8)",
+    copy = con(eyebrow("Alapítónk", SAND[700]),
+               heading("Hajós István", "h2", title="Név", title_color=NAVY[800], **T(DISPLAY, 48, 500, 1.2, size_m=34), _margin=box(0, 0, 8, 0)),
+               heading("az Egy Lépéssel Több Alapítvány alapítója", "p", title="Alcím", title_color=SAND[700], **T(BODY, 18, 500, 1.5), _margin=box(0, 0, 24, 0)),
+               text("".join(f"<p>{html.escape(p)}</p>" for p in paras), title="Bemutatkozás", text_color=NAVY[600],
                     paragraph_spacing=S(20), **T(BODY, 18, 400, 1.7, size_m=16)),
-               button(more["text"], more["href"], primary=False, _margin=box(16, 0, 0, 0)) if more else heading("", "p"),
+               button(more["text"], more["href"], primary=False, light=False, _margin=box(16, 0, 0, 0)) if more else heading("", "p"),
                title="Szöveg", width=S(58, "%"), width_tablet=S(100, "%"), **anim(120))
     pic = con(img(photo["src"], "Hajós István", height=S(560), height_mobile=S(420), **{"object-fit": "cover"}),
               title="Fotó (díszkerettel)", css_classes="elt-founder-photo", width=S(42, "%"), width_tablet=S(100, "%"), **anim())
@@ -625,7 +627,7 @@ def page_alapitonk():
         page_hero("Alapítvány", "Alapítónk", "Hajós István, az Egy Lépéssel Több Alapítvány alapítója."),
         con(pic, copy, root=True, title="Alapító", html_tag="section", content_width="boxed", boxed_width=S(1152), flex_direction="row",
             flex_direction_tablet="column", flex_align_items="center", flex_gap=gap(56), background_background="classic",
-            background_color=NAVY[700], padding=box(96, 40, 112, 40), padding_mobile=box(64, 24, 72, 24)),
+            background_color=SAND[50], padding=box(96, 40, 112, 40), padding_mobile=box(64, 24, 72, 24)),
     ])
 
 
@@ -635,7 +637,7 @@ def page_family_lists():
              "havi rendszereséggel segíthessünk a „fogadj örökbe egy családot” programunkkal.")
     save_page("orokbefogadhato-csaladok", "Örökbefogadható családok", [
         page_hero("Fogadj örökbe egy családot", "Örökbefogadható családok", intro),
-        dyn_.list_section(loop_grid("elt_orokbefogadhato", 12, pagination=True, nothing="Jelenleg minden család megtalálta a támogatóit. Köszönjük!")),
+        dyn_.list_section(loop_grid("elt_orokbefogadhato", 100, nothing="Jelenleg minden család megtalálta a támogatóit. Köszönjük!")),
         section(eyebrow("Jelentkezés", SAND[700]), h2("Jelentkezz támogatónak!"),
                 prose("<p>A beküldött jelentkezésekre e-mailben visszaigazolunk. Telefonon a támogatókkal szerződéskötés előtt fogjuk felvenni "
                       "a kapcsolatot, amint a támogatni kívánt családnak összegyűlt a havi 50 000 Ft támogatása.</p>"),

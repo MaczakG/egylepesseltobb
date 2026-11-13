@@ -14,9 +14,9 @@ from bs4 import BeautifulSoup
 sys.path.insert(0, os.path.dirname(__file__))
 from elt_site import STATE, save_state, NAVY, SAND, DISPLAY, BODY, HOME, eyebrow, anim, wanim, button, ensure_site_part, publish  # noqa: E402
 from site_dynamic import page_hero, dyn  # noqa: E402
-from el import S, box, gap, T, tag, con, w, heading, text, image  # noqa: E402
+from el import S, box, gap, T, tag, con, w, heading, text, image, walk  # noqa: E402
 from wp import rest, mcp  # noqa: E402
-from migrate import migrate_image, load_posts, media_info, clean_html, first_text, STATE as MSTATE, save as msave  # noqa: E402
+from migrate import migrate_image, load_posts, media_info, clean_html, first_text, old_get, STATE as MSTATE, save as msave  # noqa: E402
 from pages import save_page, section  # noqa: E402
 
 CATS = {42: "Aláírási ceremónia", 43: "Családi nap", 44: "Gálaest", 45: "Közös élményeink", 31: "Rendezvények"}
@@ -42,8 +42,8 @@ def event_elements(story_html, gallery_items):
     if gallery_items:
         els.append(w("image-gallery", title=f"Galéria ({len(gallery_items)} kép)", wp_gallery=gallery_items, gallery_columns="4",
                      gallery_columns_tablet="3", gallery_columns_mobile="2", thumbnail_size="medium", gallery_link="file",
-                     open_lightbox="yes", gallery_display_caption="none", image_spacing="custom", image_spacing_custom=S(10),
-                     image_border_radius=box(10)))
+                     open_lightbox="yes", gallery_display_caption="none", image_spacing="custom", image_spacing_custom=S(6),
+                     _css_classes="elt-gallery"))
     return [con(*els, root=True, title="Tartalom", flex_gap=gap(32))]
 
 
@@ -151,12 +151,59 @@ def event_card_dark():
     """Compact dark card for the footer event strip (cover, title, date)."""
     return [con(
         con(image({"id": "", "url": ""}, "medium_large", title="Borítókép", **dyn(image=tag("post-featured-image"))),
-            title="Kép (link)", css_classes="elt-event-media elt-zoom", html_tag="a", link={"url": ""}, **dyn(link=tag("post-url"))),
+            title="Kép (link)", css_classes="elt-event-media elt-zoom", html_tag="a", link={"url": ""}, border_radius=box(12),
+            overflow="hidden", **dyn(link=tag("post-url"))),
         heading("Cím", "h4", title="Cím", title_color="#FFFFFF", title_hover_color=SAND[400], **T(DISPLAY, 16, 600, 1.4), _margin=box(16, 0, 4, 0),
                 **dyn(title=tag("post-title"), link=tag("post-url"))),
         heading("Dátum", "p", title="Dátum", title_color="rgba(255,255,255,0.6)", **T(BODY, 14, 400, 1.5),
                 **dyn(title=tag("post-date", {"type": "post_date_gmt", "format": "custom", "custom_format": "Y. F j."}))),
         root=True, title="Rendezvény kártya", css_classes="elt-event-card")]
+
+
+def old_attachments(old_id):
+    out, page = [], 1
+    while True:
+        try:
+            batch = old_get(f"/wp-json/wp/v2/media?parent={old_id}&per_page=100&page={page}&orderby=id&order=asc&_fields=id,source_url,mime_type")
+        except Exception:
+            break
+        out += [m for m in batch if m.get("mime_type", "").startswith("image/")]
+        if len(batch) < 100:
+            break
+        page += 1
+    return out
+
+
+def step_fixgalleries():
+    """Add images that were only attached to the old posts (Pro Filii, Gálaest), apply the tight gallery style."""
+    import elt_site
+    done = MSTATE.get("events", {})
+    for old_id, new_id in done.items():
+        post = rest("GET", f"wp/v2/posts/{new_id}?context=edit&_fields=id,title,featured_media,meta")
+        data = json.loads(post["meta"].get("_elementor_data") or "[]")
+        gal = next((e for e in walk(data) if e.get("widgetType") == "image-gallery"), None)
+        items = gal["settings"]["wp_gallery"] if gal else []
+        have = {i["id"] for i in items}
+        title = html.unescape(post["title"]["raw"])
+        added = 0
+        for att in old_attachments(old_id):
+            new = migrate_image(att["source_url"], title)
+            if new and new["id"] not in have:
+                items.append({"id": new["id"], "url": new["url"]})
+                have.add(new["id"])
+                added += 1
+        if not items:
+            continue
+        if gal is None:
+            data[0]["elements"].append(event_elements("", items)[0]["elements"][-1])
+        else:
+            gal["settings"].update(event_elements("", items)[0]["elements"][-1]["settings"])
+        payload = {"meta": {"_elementor_data": json.dumps(data, ensure_ascii=False)}}
+        if not post.get("featured_media"):
+            payload["featured_media"] = items[0]["id"]
+        rest("POST", f"wp/v2/posts/{new_id}", payload)
+        print("gallery", title, len(items), "images", f"(+{added})")
+    elt_site.step_kit()
 
 
 def step_footer():
@@ -185,4 +232,5 @@ def step_pages():
 
 if __name__ == "__main__":
     for a in sys.argv[1:]:
-        {"posts": step_posts, "templates": step_templates, "pages": step_pages, "footer": step_footer}[a]()
+        {"posts": step_posts, "templates": step_templates, "pages": step_pages, "footer": step_footer,
+         "fixgalleries": step_fixgalleries}[a]()

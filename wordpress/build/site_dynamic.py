@@ -237,8 +237,8 @@ def single_elements():
         con(w("theme-post-content", title="Történet (a család szövege)", align="left", text_color=NAVY[600],
               **T(BODY, 18, 400, 1.75, size_m=16)), title="Történet"),
         w("image-gallery", title="Galéria (a család képei)", gallery_columns="3", gallery_columns_mobile="2", thumbnail_size="medium_large",
-          gallery_link="file", open_lightbox="yes", gallery_display_caption="none", image_spacing="custom", image_spacing_custom=S(12),
-          image_border_radius=box(12), wp_gallery=[], _margin=box(48, 0, 0, 0), **dyn(wp_gallery=tag("elt-csalad-galeria", {"boritokep": ""}))),
+          gallery_link="file", open_lightbox="yes", gallery_display_caption="none", image_spacing="custom", image_spacing_custom=S(6),
+          _css_classes="elt-gallery", wp_gallery=[], _margin=box(48, 0, 0, 0), **dyn(wp_gallery=tag("elt-csalad-galeria", {"boritokep": ""}))),
         root=True, title="Történet és galéria", html_tag="section", content_width="boxed", boxed_width=S(820),
         background_background="classic", background_color="#FFFFFF",
         padding=box(112, 40, 112, 40), padding_mobile=box(72, 24, 72, 24))

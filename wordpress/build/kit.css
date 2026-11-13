@@ -54,7 +54,10 @@ body.elt-scrolled .elt-header-inner { transform: scale(.94); }
 .elt-amb-photo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #dac7a0; transform: scaleX(0); transform-origin: center; transition: transform .3s cubic-bezier(.22, 1, .36, 1); }
 .elt-amb-card:hover .elt-amb-photo::after { transform: scaleX(1); }
 
-/* Partner logók: szürke → színes (fix 112px magas fehér csempe) */
+/* Partner logók: szürke → színes (fix 112px magas fehér csempe, középre rendezett sorok) */
+.elt-partner-row > .elt-partner { flex: 0 0 calc((100% - 80px) / 6); }
+@media (max-width: 1024px) { .elt-partner-row > .elt-partner { flex-basis: calc((100% - 32px) / 3); } }
+@media (max-width: 767px) { .elt-partner-row > .elt-partner { flex-basis: calc((100% - 16px) / 2); } }
 .elt-partner { height: 112px; }
 .elt-partner .elementor-widget-image { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .elt-partner img { width: 100%; height: 88px !important; object-fit: contain; filter: grayscale(100%); opacity: .55; transition: filter .3s, opacity .3s, transform .3s; }
@@ -72,9 +75,8 @@ body.elt-scrolled .elt-header-inner { transform: scale(.94); }
 .elt-event:hover .gallery-icon img { transform: scale(1.03); }
 
 /* Alapító fotó díszkerete */
-.elt-founder-photo { position: relative; }
-.elt-founder-photo::before { content: ""; position: absolute; inset: -16px; border: 1px solid rgba(218, 199, 160, .4); border-radius: 16px; pointer-events: none; }
-@media (max-width: 767px) { .elt-founder-photo::before { display: none; } }
+.elt-founder-photo img { outline: 1px solid rgba(166, 140, 92, .45); outline-offset: 16px; }
+@media (max-width: 767px) { .elt-founder-photo img { outline: none; } }
 
 /* Vonalas (körvonalas) SVG ikonok: ne töltse ki az Elementor ikon színe */
 .elt-icon-line svg { fill: none !important; stroke: currentColor; }
@@ -85,6 +87,12 @@ body.elt-scrolled .elt-header-inner { transform: scale(.94); }
 .elt-event-media::after { content: ""; position: absolute; inset: 0; background: rgba(26, 37, 45, .3); transition: background .3s; pointer-events: none; }
 .elt-event-card:hover .elt-event-media::after { background: rgba(26, 37, 45, .1); }
 .elt-event-card:hover .elt-event-media img { transform: scale(1.03); }
+
+/* Galériák (elt-gallery): egyforma, szorosan illeszkedő négyzetes képek */
+.elt-gallery .gallery { margin: 0 !important; }
+.elt-gallery .gallery-item img { width: 100% !important; height: auto !important; aspect-ratio: 1 / 1; object-fit: cover; display: block; transition: transform .4s cubic-bezier(.22, 1, .36, 1), opacity .3s; }
+.elt-gallery .gallery-icon { overflow: hidden; border-radius: 8px; }
+.elt-gallery .gallery-item:hover img { transform: scale(1.04); }
 
 /* Térkép szürkén */
 .elt-map iframe { filter: grayscale(1) contrast(1.25); display: block; }

@@ -72,8 +72,9 @@ def mcp(tool, args):
 
 
 def save_elementor(post_type_route, post_id, elements, page_settings=None, extra=None):
-    """Write Elementor (V3) data through REST, then let Elementor re-save the document
-    (regenerates CSS and clears its caches) via the MCP update-page-settings ability."""
+    """Write Elementor (V3) data through REST, then run a real Elementor save: the MCP stages the
+    document (published documents are edited through a draft copy) and publishing it saves the
+    document properly, which regenerates its CSS and clears Elementor's element cache."""
     payload = {"meta": {"_elementor_edit_mode": "builder", "_elementor_data": json.dumps(elements, ensure_ascii=False)}}
     if page_settings is not None:
         payload["meta"]["_elementor_page_settings"] = page_settings
@@ -81,3 +82,4 @@ def save_elementor(post_type_route, post_id, elements, page_settings=None, extra
         payload.update(extra)
     rest("POST", f"wp/v2/{post_type_route}/{post_id}", payload)
     mcp("elementor-update-page-settings", {"post_id": post_id, "settings": page_settings or {"hide_title": "yes"}})
+    mcp("elementor-publish-document", {"post_id": post_id})
