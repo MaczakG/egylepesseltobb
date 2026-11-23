@@ -1,0 +1,16 @@
+/* Egy Lépéssel Több – front-end helpers. The visual design itself lives in Elementor. */
+
+/* Family page: show blocks only for the matching status (editor shows both). */
+body.elt-csalad-orokbefogadott .elt-csak-orokbefogadhato,
+body.elt-csalad-orokbefogadhato .elt-csak-orokbefogadott { display: none !important; }
+
+/* Elements with this class only show once SimplePay keys are set (Alapítvány → Beállítások). */
+body.elt-simplepay-ki .elt-csak-simplepay { display: none !important; }
+
+/* SimplePay result box */
+.elt-result { border-radius: 16px; padding: 24px 28px; margin: 0 0 24px; background: #eef2f4; color: #334758; border-left: 4px solid #dac7a0; }
+.elt-result h3 { margin: 0 0 10px; font-size: 1.4em; color: #263640; }
+.elt-result p { margin: 0 0 8px; }
+.elt-result--success { background: #f3f8f0; border-left-color: #6a9c58; }
+.elt-result--fail { background: #fbf0ee; border-left-color: #b3554a; }
+.elt-result--cancel { background: #fdfbf7; border-left-color: #c3ac7e; }
