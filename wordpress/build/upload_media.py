@@ -23,6 +23,8 @@ ALT = {
     "ambassador-proksa-szandra.jpg": "Proksa Szandra portréja",
     "ambassador-kovacs-dobos-evelin.jpg": "Kovács-Dobos Evelin portréja",
     "ambassador-andrasfi-tibor.jpg": "Andrásfi Tibor portréja",
+    "ambassador-dr-kenez-nora.jpg": "Dr. Kenéz Nóra portréja",
+    "ambassador-vegvari-tibor.jpg": "Végvári Tibor portréja",
     "founder.jpg": "Hajós István, az alapítvány alapítója",
     "partner-01-bastion.png": "Bastion logó",
     "partner-02.png": "Kiemelt partner logó",

@@ -46,7 +46,8 @@ def mcp(tool, args):
     global _SID
     url = WP_URL + "/wp-json/elementor/mcp/"
 
-    def post(payload):
+    def post(payload, _try=0):
+        time.sleep(PAUSE)
         h = {"Authorization": _AUTH, "Content-Type": "application/json", "Accept": "application/json, text/event-stream",
              "MCP-Protocol-Version": "2025-06-18"}
         if _SID:
@@ -56,7 +57,11 @@ def mcp(tool, args):
             with urllib.request.urlopen(req, context=_CTX, timeout=300) as r:
                 return r.headers.get("mcp-session-id"), r.read().decode()
         except urllib.error.HTTPError as e:
-            raise RuntimeError(f"MCP HTTP {e.code}: {e.read().decode()[:1500]}")
+            msg = e.read().decode()[:1500]
+            if e.code == 403 and "Imunify360" in msg and _try < 4:
+                time.sleep(60 * (2 ** _try))
+                return post(payload, _try + 1)
+            raise RuntimeError(f"MCP HTTP {e.code}: {msg}")
 
     if not _SID:
         _SID, _ = post({"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "elt-build", "version": "1"}}})

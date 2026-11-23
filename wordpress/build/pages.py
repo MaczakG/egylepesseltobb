@@ -318,6 +318,22 @@ def page_nagykoveteink():
     photos = {"Győrfi Pál": "ambassador-gyorfi-pal.jpg", "Rácz Jenő": "ambassador-racz-jeno.jpg", "Kucsera Gábor": "ambassador-kucsera-gabor.jpg",
               "Proksa Szandra": "ambassador-proksa-szandra.jpg", "Andrásfi Tibor": "ambassador-andrasfi-tibor.jpg",
               "Kovács-Dobos Evelin": "ambassador-kovacs-dobos-evelin.jpg"}
+    # Added after the old site was extracted (Dávid, 2026-11-23).
+    extra = [("Dr. Kenéz Nóra", "Szépségkirálynő, gyógyszerész", "ambassador-dr-kenez-nora.jpg")]
+    media_ambassadors = [("Végvári Tibor", "Médianagykövet", "ambassador-vegvari-tibor.jpg")]
+
+    def amb_card(name, role, photo, href=None, n=0):
+        pic = image(m(photo), "large", title="Portré")
+        if href:
+            pic["settings"].update(link_to="custom", link=link(href, True))
+        return con(
+            con(pic, title="Fotó", css_classes="elt-amb-photo"),
+            con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 17, 600, 1.3), _margin=box(0, 0, 4, 0)),
+                heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 12, 400, 1.4, 0.025, "uppercase")),
+                title="Szöveg", padding=box(18, 12, 18, 12), padding_mobile=box(14, 10, 14, 10)),
+            title=f"Nagykövet: {name}", css_classes="elt-lift elt-amb-card", overflow="hidden",
+            background_background="classic", background_color=NAVY[800], border_radius=box(16), **anim(n * 60))
+
     cards, last_img = [], None
     for wd in wds:
         if wd["type"] == "image":
@@ -327,21 +343,22 @@ def page_nagykoveteink():
             if not name:
                 continue
             role = wd["text"][len(name):].strip()
-            pic = image(m(photos[name]), "large", title="Portré")
-            if last_img.get("href"):
-                pic["settings"].update(link_to="custom", link=link(last_img["href"], True))
-            cards.append(con(
-                con(pic, title="Fotó", css_classes="elt-amb-photo"),
-                con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 17, 600, 1.3), _margin=box(0, 0, 4, 0)),
-                    heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 12, 400, 1.4, 0.025, "uppercase")),
-                    title="Szöveg", padding=box(18, 12, 18, 12), padding_mobile=box(14, 10, 14, 10)),
-                title=f"Nagykövet: {name}", css_classes="elt-lift elt-amb-card", overflow="hidden",
-                background_background="classic", background_color=NAVY[800], border_radius=box(16), **anim(len(cards) * 60)))
+            cards.append(amb_card(name, role, photos[name], last_img.get("href"), len(cards)))
             last_img = None
+    for name, role, photo in extra:
+        cards.append(amb_card(name, role, photo, n=len(cards)))
+    cols = len(cards)
+    media_cards = [amb_card(name, role, photo, n=i) for i, (name, role, photo) in enumerate(media_ambassadors)]
     lead = next(wd["text"] for wd in wds if wd["type"] == "heading" and wd["text"].startswith("Ők azok"))
+    media_head = con(eyebrow("Médianagyköveteink", SAND[700]),
+                     h2("Akik ismertségükkel és médiafelületeikkel segítik az Alapítvány üzenetének terjesztését"),
+                     title="Fejléc", width=S(720), width_tablet=S(100, "%"), margin=box(64, 0, 16, 0))
     save_page(slug, "Nagyköveteink", [
         page_hero("Alapítvány", "Nagyköveteink", lead),
-        con(grid(*cards, cols=6, cols_t=3, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"), root=True, title="Nagykövetek",
+        con(grid(*cards, cols=cols, cols_t=4, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"),
+            media_head,
+            grid(*media_cards, cols=cols, cols_t=4, cols_m=2, g=24, g_m=16, title="Médianagykövet kártyák"),
+            root=True, title="Nagykövetek",
             html_tag="section", content_width="boxed", boxed_width=S(1280), background_background="classic", background_color=SAND[50],
             padding=box(96, 40, 112, 40), padding_mobile=box(64, 24, 72, 24)),
     ])

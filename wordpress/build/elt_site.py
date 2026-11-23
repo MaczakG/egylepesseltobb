@@ -489,7 +489,8 @@ AMBASSADORS = [("Győrfi Pál", "OMSZ szóvivő", "ambassador-gyorfi-pal.jpg"), 
                ("Kucsera Gábor", "Kétszeres világbajnok kajakos", "ambassador-kucsera-gabor.jpg"),
                ("Proksa Szandra", "TV2 műsorvezető", "ambassador-proksa-szandra.jpg"),
                ("Kovács-Dobos Evelin", "Színésznő", "ambassador-kovacs-dobos-evelin.jpg"),
-               ("Andrásfi Tibor", "Olimpiai bajnok", "ambassador-andrasfi-tibor.jpg")]
+               ("Andrásfi Tibor", "Olimpiai bajnok", "ambassador-andrasfi-tibor.jpg"),
+               ("Dr. Kenéz Nóra", "Szépségkirálynő, gyógyszerész", "ambassador-dr-kenez-nora.jpg")]
 
 
 def ambassadors_section():
@@ -506,7 +507,7 @@ def ambassadors_section():
     head = con(eyebrow("Nagyköveteink", SAND[400], **wanim()),
                h2("Akik a nevüket adják hozzá, hogy több család jusson segítséghez", "#FFFFFF", **wanim(80)),
                title="Fejléc", width=S(672), width_tablet=S(100, "%"), margin=box(0, 0, 80, 0), margin_mobile=box(0, 0, 64, 0))
-    return con(head, grid(*cards, cols=6, cols_t=3, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"),
+    return con(head, grid(*cards, cols=len(cards), cols_t=4, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"),
                root=True, title="Nagykövetek", html_tag="section", _element_id="ambassadors", content_width="boxed",
                boxed_width=S(1280), overflow="hidden", background_background="classic", background_color=NAVY[800], **SECTION_PAD)
 
