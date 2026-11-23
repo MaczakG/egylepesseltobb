@@ -493,21 +493,31 @@ AMBASSADORS = [("Győrfi Pál", "OMSZ szóvivő", "ambassador-gyorfi-pal.jpg"), 
                ("Dr. Kenéz Nóra", "Szépségkirálynő, gyógyszerész", "ambassador-dr-kenez-nora.jpg")]
 
 
+MEDIA_AMBASSADORS = [("Végvári Tibor", "Médianagykövet", "ambassador-vegvari-tibor.jpg")]
+
+
+def ambassador_card(name, role, img, i=0):
+    return con(
+        con(image(m(img), "large", title="Portré"), title="Fotó", css_classes="elt-amb-photo"),
+        con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 17, 600, 1.3), _margin=box(0, 0, 4, 0)),
+            heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 12, 400, 1.4, 0.025, "uppercase")),
+            title="Szöveg", padding=box(18, 12, 18, 12), padding_mobile=box(14, 10, 14, 10)),
+        title=f"Nagykövet: {name}", css_classes="elt-lift elt-amb-card", overflow="hidden",
+        background_background="classic", background_color="rgba(51,71,88,0.6)", border_border="solid", border_width=box(1),
+        border_color="rgba(255,255,255,0.1)", border_radius=box(16), **anim(i * 60))
+
+
 def ambassadors_section():
-    cards = []
-    for i, (name, role, img) in enumerate(AMBASSADORS):
-        cards.append(con(
-            con(image(m(img), "large", title="Portré"), title="Fotó", css_classes="elt-amb-photo"),
-            con(heading(name, "h3", title="Név", title_color="#FFFFFF", align="center", **T(DISPLAY, 17, 600, 1.3), _margin=box(0, 0, 4, 0)),
-                heading(role, "p", title="Szerep", title_color=SAND[500], align="center", **T(BODY, 12, 400, 1.4, 0.025, "uppercase")),
-                title="Szöveg", padding=box(18, 12, 18, 12), padding_mobile=box(14, 10, 14, 10)),
-            title=f"Nagykövet: {name}", css_classes="elt-lift elt-amb-card", overflow="hidden",
-            background_background="classic", background_color="rgba(51,71,88,0.6)", border_border="solid", border_width=box(1),
-            border_color="rgba(255,255,255,0.1)", border_radius=box(16), **anim(i * 60)))
+    cards = [ambassador_card(*a, i=i) for i, a in enumerate(AMBASSADORS)]
+    media = [ambassador_card(*a, i=i) for i, a in enumerate(MEDIA_AMBASSADORS)]
+    cols = len(cards)
     head = con(eyebrow("Nagyköveteink", SAND[400], **wanim()),
                h2("Akik a nevüket adják hozzá, hogy több család jusson segítséghez", "#FFFFFF", **wanim(80)),
                title="Fejléc", width=S(672), width_tablet=S(100, "%"), margin=box(0, 0, 80, 0), margin_mobile=box(0, 0, 64, 0))
-    return con(head, grid(*cards, cols=len(cards), cols_t=4, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"),
+    media_head = con(eyebrow("Médianagyköveteink", SAND[400], **wanim()),
+                     title="Médianagykövet fejléc", margin=box(80, 0, 16, 0), margin_mobile=box(64, 0, 8, 0))
+    return con(head, grid(*cards, cols=cols, cols_t=4, cols_m=2, g=24, g_m=16, title="Nagykövet kártyák"),
+               media_head, grid(*media, cols=cols, cols_t=4, cols_m=2, g=24, g_m=16, title="Médianagykövet kártyák"),
                root=True, title="Nagykövetek", html_tag="section", _element_id="ambassadors", content_width="boxed",
                boxed_width=S(1280), overflow="hidden", background_background="classic", background_color=NAVY[800], **SECTION_PAD)
 
